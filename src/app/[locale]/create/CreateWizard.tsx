@@ -118,11 +118,10 @@ export default function CreateWizard({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate audio");
 
-      setAudioUrl(data.audioUrl);
-      setStep("result");
+      // Redirect to generating page immediately
+      router.push(`/create/generating/${generatedSongId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
       setLoading(false);
     }
   }
