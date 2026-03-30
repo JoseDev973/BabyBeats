@@ -76,5 +76,75 @@
     "nowPlaying": "Reproduciendo",
     "queue": "Cola",
     "lyrics": "Letra"
+  },
+  "create": {
+    "title": "Crea una canción para tu bebé",
+    "firstFree": "Tu primera canción es gratis!",
+    "creditsRemaining": "{count} créditos restantes",
+    "childStep": "¿Cómo se llama tu bebé?",
+    "childHint": "Este nombre aparecerá en la letra de la canción",
+    "childPlaceholder": "Ej: Sofía, Mateo, Emma...",
+    "themeStep": "¿Qué tipo de canción para {name}?",
+    "themeHint": "Elige un tema",
+    "lullaby": "Canción de cuna",
+    "educational": "Educativa",
+    "fun": "Diversión",
+    "customPrompt": "¿Algún pedido especial? (opcional)",
+    "customPlaceholder": "Ej: que incluya animales, que mencione la hora de dormir...",
+    "styleStep": "Elige estilo y idioma",
+    "musicStyle": "Estilo musical",
+    "language": "Idioma",
+    "generateLyrics": "Generar Letra",
+    "previewStep": "¡Aquí está la letra para {name}!",
+    "previewHint": "Revisa la letra, luego genera el audio",
+    "generateAudio": "Generar Audio",
+    "needCredits": "Necesitas créditos para generar audio",
+    "buyCredits": "Comprar créditos",
+    "back": "Atrás",
+    "next": "Siguiente"
+  },
+  "generating": {
+    "title": "Creando tu canción...",
+    "steps": {
+      "preparing": "Preparando tu canción...",
+      "composing": "Componiendo la melodía...",
+      "instruments": "Agregando instrumentos...",
+      "vocals": "Grabando vocales...",
+      "mixing": "Mezclando y masterizando...",
+      "almost": "Ya casi está..."
+    },
+    "elapsed": "transcurrido",
+    "patience": "Esto suele tomar 1-3 minutos. Puedes salir y revisar \"Mis Canciones\" después.",
+    "ready": "¡La canción de {name} está lista!",
+    "created": "Tu canción personalizada ha sido creada",
+    "download": "Descargar MP3",
+    "shareLink": "Copiar Link",
+    "copied": "¡Copiado!",
+    "createAnother": "Crear Otra",
+    "mySongs": "Mis Canciones",
+    "failed": "Algo salió mal",
+    "failedHint": "La generación de audio falló. No se cobró tu crédito.",
+    "tryAgain": "Intentar de nuevo"
+  },
+  "platforms": {
+    "title": "Escúchala en tu plataforma favorita",
+    "subtitle": "Descarga el MP3 y agrégalo a Spotify o Apple Music para escucharlo junto con tu música",
+    "spotify": {
+      "title": "Agregar a Spotify",
+      "step1": "Descarga el MP3 de tu canción",
+      "step2": "Abre Spotify en tu computador (app de escritorio)",
+      "step3": "Ve a Configuración → Archivos locales → Activar",
+      "step4": "Agrega la carpeta donde guardaste el MP3",
+      "step5": "La canción aparece en \"Archivos locales\" — agrégala a cualquier playlist",
+      "step6": "En tu celular, descarga la playlist con WiFi para escucharla offline"
+    },
+    "apple": {
+      "title": "Agregar a Apple Music",
+      "step1": "Descarga el MP3 de tu canción",
+      "step2": "Abre la app Música (o iTunes) en tu computador",
+      "step3": "Arrastra el MP3 a tu biblioteca",
+      "step4": "La canción se sincroniza automáticamente a todos tus dispositivos con iCloud",
+      "step5": "Agrégala a cualquier playlist junto con tu música"
+    }
   }
 }

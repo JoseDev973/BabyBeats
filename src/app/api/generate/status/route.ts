@@ -31,17 +31,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Song not found" }, { status: 404 });
   }
 
-  // If already completed or failed, return current state
   if (song.status === "completed" || song.status === "failed") {
     return NextResponse.json({
       status: song.status,
-      audioUrl: song.audio_url,
+      audioUrlA: song.audio_url,
+      audioUrlB: song.audio_url_b,
+      coverImage: song.cover_image_url,
       childName: song.child_name,
       shareToken: song.share_token,
     });
   }
 
-  // If generating, check Suno status
   if (song.status === "generating" && song.suno_task_id) {
     try {
       const res = await fetch(
@@ -57,17 +57,22 @@ export async function GET(request: Request) {
       const sunoStatus = data.data?.status;
 
       if (sunoStatus === "SUCCESS") {
-        const track = data.data.response?.data?.[0];
-        const audioUrl = track?.audio_url;
-        const duration = Math.round(track?.duration || 0);
+        const tracks = data.data.response?.data;
+        const trackA = tracks?.[0];
+        const trackB = tracks?.[1];
 
-        if (audioUrl) {
+        if (trackA?.audio_url) {
           await supabase
             .from("generated_songs")
             .update({
               status: "completed",
-              audio_url: audioUrl,
-              duration_seconds: duration,
+              audio_url: trackA.audio_url,
+              duration_seconds: Math.round(trackA.duration || 0),
+              audio_url_b: trackB?.audio_url || null,
+              duration_seconds_b: trackB
+                ? Math.round(trackB.duration || 0)
+                : null,
+              cover_image_url: trackA.image_url || trackB?.image_url || null,
               is_public: true,
               updated_at: new Date().toISOString(),
             })
@@ -75,7 +80,9 @@ export async function GET(request: Request) {
 
           return NextResponse.json({
             status: "completed",
-            audioUrl,
+            audioUrlA: trackA.audio_url,
+            audioUrlB: trackB?.audio_url || null,
+            coverImage: trackA.image_url || trackB?.image_url || null,
             childName: song.child_name,
             shareToken: song.share_token,
           });
@@ -91,7 +98,6 @@ export async function GET(request: Request) {
         return NextResponse.json({ status: "failed" });
       }
 
-      // Still generating
       return NextResponse.json({
         status: "generating",
         sunoStatus: sunoStatus || "PENDING",

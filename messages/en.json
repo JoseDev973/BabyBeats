@@ -76,5 +76,75 @@
     "nowPlaying": "Now Playing",
     "queue": "Queue",
     "lyrics": "Lyrics"
+  },
+  "create": {
+    "title": "Create a song for your baby",
+    "firstFree": "Your first song is free!",
+    "creditsRemaining": "{count} credits remaining",
+    "childStep": "What's your baby's name?",
+    "childHint": "This name will appear in the lyrics of the song",
+    "childPlaceholder": "e.g., Sofia, Mateo, Emma...",
+    "themeStep": "What kind of song for {name}?",
+    "themeHint": "Choose a theme",
+    "lullaby": "Lullaby",
+    "educational": "Educational",
+    "fun": "Fun & Play",
+    "customPrompt": "Any specific request? (optional)",
+    "customPlaceholder": "e.g., include animals, mention bedtime, about counting to 10...",
+    "styleStep": "Pick a style and language",
+    "musicStyle": "Music Style",
+    "language": "Language",
+    "generateLyrics": "Generate Lyrics",
+    "previewStep": "Here are the lyrics for {name}!",
+    "previewHint": "Review the lyrics, then generate the audio",
+    "generateAudio": "Generate Audio",
+    "needCredits": "You need credits to generate audio",
+    "buyCredits": "Buy credits",
+    "back": "Back",
+    "next": "Next"
+  },
+  "generating": {
+    "title": "Creating your song...",
+    "steps": {
+      "preparing": "Preparing your song...",
+      "composing": "Composing melody...",
+      "instruments": "Adding instruments...",
+      "vocals": "Recording vocals...",
+      "mixing": "Mixing & mastering...",
+      "almost": "Almost there..."
+    },
+    "elapsed": "elapsed",
+    "patience": "This usually takes 1-3 minutes. You can leave this page and check \"My Songs\" later.",
+    "ready": "{name}'s song is ready!",
+    "created": "Your personalized song has been created",
+    "download": "Download MP3",
+    "shareLink": "Copy Link",
+    "copied": "Copied!",
+    "createAnother": "Create Another",
+    "mySongs": "My Songs",
+    "failed": "Something went wrong",
+    "failedHint": "The audio generation failed. Your credit has not been charged.",
+    "tryAgain": "Try Again"
+  },
+  "platforms": {
+    "title": "Listen on your favorite platform",
+    "subtitle": "Download the MP3 and add it to Spotify or Apple Music to listen alongside your music",
+    "spotify": {
+      "title": "Add to Spotify",
+      "step1": "Download your song's MP3",
+      "step2": "Open Spotify on your computer (desktop app)",
+      "step3": "Go to Settings → Local Files → Turn on",
+      "step4": "Add the folder where you saved the MP3",
+      "step5": "The song appears in \"Local Files\" — add it to any playlist",
+      "step6": "On your phone, download the playlist on WiFi to listen offline"
+    },
+    "apple": {
+      "title": "Add to Apple Music",
+      "step1": "Download your song's MP3",
+      "step2": "Open the Music app (or iTunes) on your computer",
+      "step3": "Drag the MP3 into your library",
+      "step4": "The song syncs automatically to all your devices via iCloud",
+      "step5": "Add it to any playlist alongside your music"
+    }
   }
 }

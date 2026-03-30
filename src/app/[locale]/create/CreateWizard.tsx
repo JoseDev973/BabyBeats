@@ -14,7 +14,6 @@ import {
   ArrowRight,
   Loader2,
   Coins,
-  Check,
 } from "lucide-react";
 import type { SongTheme } from "@/types/database";
 
@@ -47,14 +46,14 @@ const LANGUAGES = [
   { value: "it", label: "Italiano" },
 ];
 
-const STEPS = ["child", "theme", "style", "preview", "result"] as const;
-type Step = (typeof STEPS)[number];
+const STEP_KEYS = ["child", "theme", "style", "preview"] as const;
+type Step = (typeof STEP_KEYS)[number];
 
 export default function CreateWizard({
   credits,
   totalGenerated,
 }: CreateWizardProps) {
-  const t = useTranslations();
+  const t = useTranslations("create");
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("child");
@@ -67,9 +66,8 @@ export default function CreateWizard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [generatedSongId, setGeneratedSongId] = useState<string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
-  const stepIndex = STEPS.indexOf(step);
+  const stepIndex = STEP_KEYS.indexOf(step);
   const isFirstSong = totalGenerated === 0;
   const hasCredits = credits > 0 || isFirstSong;
 
@@ -118,7 +116,6 @@ export default function CreateWizard({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate audio");
 
-      // Redirect to generating page immediately
       router.push(`/create/generating/${generatedSongId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -137,12 +134,12 @@ export default function CreateWizard({
       return;
     }
     const nextIndex = stepIndex + 1;
-    if (nextIndex < STEPS.length) setStep(STEPS[nextIndex]);
+    if (nextIndex < STEP_KEYS.length) setStep(STEP_KEYS[nextIndex]);
   }
 
   function goBack() {
     const prevIndex = stepIndex - 1;
-    if (prevIndex >= 0) setStep(STEPS[prevIndex]);
+    if (prevIndex >= 0) setStep(STEP_KEYS[prevIndex]);
   }
 
   return (
@@ -152,15 +149,15 @@ export default function CreateWizard({
         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-4">
           <Sparkles className="h-4 w-4" />
           {isFirstSong
-            ? "Your first song is free!"
-            : `${credits} credits remaining`}
+            ? t("firstFree")
+            : t("creditsRemaining", { count: credits })}
         </div>
-        <h1 className="text-3xl font-bold">Create a song for your baby</h1>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
       </div>
 
       {/* Progress bar */}
       <div className="flex items-center gap-1 mb-10">
-        {STEPS.map((s, i) => (
+        {STEP_KEYS.map((s, i) => (
           <div
             key={s}
             className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -175,18 +172,14 @@ export default function CreateWizard({
         <div className="space-y-6">
           <div className="text-center">
             <Baby className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">
-              What&apos;s your baby&apos;s name?
-            </h2>
-            <p className="text-muted-foreground">
-              This name will appear in the lyrics of the song
-            </p>
+            <h2 className="text-xl font-semibold mb-2">{t("childStep")}</h2>
+            <p className="text-muted-foreground">{t("childHint")}</p>
           </div>
           <input
             type="text"
             value={childName}
             onChange={(e) => setChildName(e.target.value)}
-            placeholder="e.g., Sofia, Mateo, Emma..."
+            placeholder={t("childPlaceholder")}
             className="w-full px-4 py-3 rounded-xl border border-input bg-background text-lg text-center focus:outline-none focus:ring-2 focus:ring-ring"
             autoFocus
             onKeyDown={(e) => e.key === "Enter" && goNext()}
@@ -199,35 +192,35 @@ export default function CreateWizard({
         <div className="space-y-6">
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">
-              What kind of song for {childName}?
+              {t("themeStep", { name: childName })}
             </h2>
-            <p className="text-muted-foreground">Choose a theme</p>
+            <p className="text-muted-foreground">{t("themeHint")}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {THEMES.map((t) => (
+            {THEMES.map((th) => (
               <button
-                key={t.value}
-                onClick={() => setTheme(t.value)}
+                key={th.value}
+                onClick={() => setTheme(th.value)}
                 className={`p-6 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${
-                  theme === t.value
+                  theme === th.value
                     ? "border-primary bg-primary/5 shadow-md"
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                <t.icon className={`h-8 w-8 ${t.color}`} />
-                <span className="font-medium capitalize">{t.value}</span>
+                <th.icon className={`h-8 w-8 ${th.color}`} />
+                <span className="font-medium">{t(th.value)}</span>
               </button>
             ))}
           </div>
 
           <div>
             <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
-              Any specific request? (optional)
+              {t("customPrompt")}
             </label>
             <textarea
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder="e.g., include animals, mention bedtime, about counting to 10..."
+              placeholder={t("customPlaceholder")}
               rows={2}
               className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
             />
@@ -240,14 +233,12 @@ export default function CreateWizard({
         <div className="space-y-6">
           <div className="text-center">
             <Music className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">
-              Pick a style and language
-            </h2>
+            <h2 className="text-xl font-semibold mb-2">{t("styleStep")}</h2>
           </div>
 
           <div>
             <label className="text-sm font-medium mb-2 block">
-              Music Style
+              {t("musicStyle")}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {STYLES.map((s) => (
@@ -267,7 +258,9 @@ export default function CreateWizard({
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Language</label>
+            <label className="text-sm font-medium mb-2 block">
+              {t("language")}
+            </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {LANGUAGES.map((l) => (
                 <button
@@ -293,11 +286,9 @@ export default function CreateWizard({
           <div className="text-center">
             <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">
-              Here are the lyrics for {childName}!
+              {t("previewStep", { name: childName })}
             </h2>
-            <p className="text-muted-foreground">
-              Review the lyrics, then generate the audio
-            </p>
+            <p className="text-muted-foreground">{t("previewHint")}</p>
           </div>
 
           <div className="bg-muted/50 rounded-xl p-6 border border-border">
@@ -309,79 +300,15 @@ export default function CreateWizard({
           {!hasCredits && (
             <div className="bg-accent/20 border border-accent rounded-lg p-4 text-center">
               <Coins className="h-5 w-5 text-accent-foreground mx-auto mb-2" />
-              <p className="text-sm font-medium">
-                You need credits to generate audio
-              </p>
+              <p className="text-sm font-medium">{t("needCredits")}</p>
               <button
                 onClick={() => router.push("/pricing")}
                 className="mt-2 text-sm text-primary font-medium hover:underline"
               >
-                Buy credits
+                {t("buyCredits")}
               </button>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Step: Result */}
-      {step === "result" && (
-        <div className="space-y-6">
-          <div className="text-center">
-            <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="h-8 w-8 text-green-600" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">
-              {childName}&apos;s song is ready!
-            </h2>
-          </div>
-
-          {audioUrl && (
-            <div className="bg-card rounded-xl p-6 border border-border space-y-4">
-              <audio controls className="w-full" src={audioUrl}>
-                Your browser does not support audio.
-              </audio>
-
-              <div className="flex gap-3">
-                <a
-                  href={audioUrl}
-                  download={`${childName}-babybeats.mp3`}
-                  className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-medium text-center hover:bg-primary/90 transition-colors"
-                >
-                  Download MP3
-                </a>
-                <button
-                  onClick={() => {
-                    const shareUrl = `${window.location.origin}/share/${generatedSongId}`;
-                    navigator.clipboard.writeText(shareUrl);
-                  }}
-                  className="flex-1 border border-border py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
-                >
-                  Copy Share Link
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                setStep("child");
-                setChildName("");
-                setLyrics("");
-                setAudioUrl(null);
-                setGeneratedSongId(null);
-              }}
-              className="flex-1 border border-border py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
-            >
-              Create Another
-            </button>
-            <button
-              onClick={() => router.push("/my-songs")}
-              className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              My Songs
-            </button>
-          </div>
         </div>
       )}
 
@@ -393,38 +320,36 @@ export default function CreateWizard({
       )}
 
       {/* Navigation */}
-      {step !== "result" && (
-        <div className="flex justify-between mt-10">
-          <button
-            onClick={goBack}
-            disabled={stepIndex === 0}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </button>
+      <div className="flex justify-between mt-10">
+        <button
+          onClick={goBack}
+          disabled={stepIndex === 0}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-0"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t("back")}
+        </button>
 
-          <button
-            onClick={goNext}
-            disabled={
-              loading ||
-              (step === "child" && !childName.trim()) ||
-              (step === "preview" && !hasCredits)
-            }
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-          >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {step === "style"
-              ? "Generate Lyrics"
-              : step === "preview"
-                ? "Generate Audio"
-                : "Next"}
-            {!loading && step !== "preview" && step !== "style" && (
-              <ArrowRight className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-      )}
+        <button
+          onClick={goNext}
+          disabled={
+            loading ||
+            (step === "child" && !childName.trim()) ||
+            (step === "preview" && !hasCredits)
+          }
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+        >
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {step === "style"
+            ? t("generateLyrics")
+            : step === "preview"
+              ? t("generateAudio")
+              : t("next")}
+          {!loading && step !== "preview" && step !== "style" && (
+            <ArrowRight className="h-4 w-4" />
+          )}
+        </button>
+      </div>
     </div>
   );
 }
