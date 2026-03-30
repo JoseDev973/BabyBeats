@@ -1,0 +1,80 @@
+{
+  "common": {
+    "appName": "BabyBeats",
+    "tagline": "Canciones hechas con AI para tu bebé",
+    "login": "Iniciar sesión",
+    "signup": "Registrarse",
+    "logout": "Cerrar sesión",
+    "profile": "Perfil",
+    "songs": "Canciones",
+    "pricing": "Planes",
+    "free": "Gratis",
+    "premium": "Premium",
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "favorite": "Favorito",
+    "unfavorite": "Quitar de favoritos",
+    "search": "Buscar canciones...",
+    "loading": "Cargando...",
+    "listenOn": "Escuchar en"
+  },
+  "home": {
+    "hero": {
+      "title": "Música hecha para tu bebé, con inteligencia artificial",
+      "subtitle": "Canciones de cuna, educativas y divertidas — creadas con IA y diseñadas para oídos pequeños.",
+      "cta": "Explorar Canciones",
+      "ctaSecondary": "Saber Más"
+    },
+    "categories": {
+      "title": "Canciones para cada momento",
+      "lullabies": "Canciones de Cuna",
+      "lullabiesDesc": "Melodías suaves para ayudar a tu bebé a dormir",
+      "educational": "Educativas",
+      "educationalDesc": "Aprende colores, números, animales y más a través de la música",
+      "fun": "Diversión",
+      "funDesc": "Canciones animadas para jugar y momentos felices"
+    },
+    "platforms": {
+      "title": "Escucha en cualquier lugar",
+      "subtitle": "Encuentra BabyBeats en tu plataforma de música favorita"
+    }
+  },
+  "songs": {
+    "catalog": "Catálogo de Canciones",
+    "filterByCategory": "Filtrar por categoría",
+    "filterByLanguage": "Filtrar por idioma",
+    "filterByAge": "Filtrar por edad",
+    "allCategories": "Todas las categorías",
+    "allLanguages": "Todos los idiomas",
+    "allAges": "Todas las edades",
+    "premiumBadge": "Premium",
+    "premiumLocked": "Hazte Premium para escuchar",
+    "noResults": "No se encontraron canciones"
+  },
+  "auth": {
+    "loginTitle": "Bienvenido de vuelta",
+    "signupTitle": "Crea tu cuenta",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "loginWithGoogle": "Continuar con Google",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?"
+  },
+  "pricing": {
+    "title": "Elige tu plan",
+    "subtitle": "Empieza gratis, mejora cuando quieras",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "subscribe": "Suscribirse",
+    "currentPlan": "Plan Actual",
+    "mostPopular": "Más Popular"
+  },
+  "player": {
+    "nowPlaying": "Reproduciendo",
+    "queue": "Cola",
+    "lyrics": "Letra"
+  }
+}

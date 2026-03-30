@@ -1,0 +1,80 @@
+{
+  "common": {
+    "appName": "BabyBeats",
+    "tagline": "AI-crafted songs for your little one",
+    "login": "Log in",
+    "signup": "Sign up",
+    "logout": "Log out",
+    "profile": "Profile",
+    "songs": "Songs",
+    "pricing": "Pricing",
+    "free": "Free",
+    "premium": "Premium",
+    "play": "Play",
+    "pause": "Pause",
+    "next": "Next",
+    "previous": "Previous",
+    "favorite": "Favorite",
+    "unfavorite": "Remove from favorites",
+    "search": "Search songs...",
+    "loading": "Loading...",
+    "listenOn": "Listen on"
+  },
+  "home": {
+    "hero": {
+      "title": "Music made for your baby, powered by AI",
+      "subtitle": "Lullabies, educational songs, and fun tunes — crafted with artificial intelligence and designed for little ears.",
+      "cta": "Explore Songs",
+      "ctaSecondary": "Learn More"
+    },
+    "categories": {
+      "title": "Songs for every moment",
+      "lullabies": "Lullabies",
+      "lullabiesDesc": "Gentle melodies to help your baby drift off to sleep",
+      "educational": "Educational",
+      "educationalDesc": "Learn colors, numbers, animals, and more through music",
+      "fun": "Fun & Play",
+      "funDesc": "Upbeat songs for playtime and happy moments"
+    },
+    "platforms": {
+      "title": "Listen anywhere",
+      "subtitle": "Find BabyBeats on your favorite music platform"
+    }
+  },
+  "songs": {
+    "catalog": "Song Catalog",
+    "filterByCategory": "Filter by category",
+    "filterByLanguage": "Filter by language",
+    "filterByAge": "Filter by age",
+    "allCategories": "All categories",
+    "allLanguages": "All languages",
+    "allAges": "All ages",
+    "premiumBadge": "Premium",
+    "premiumLocked": "Upgrade to Premium to listen",
+    "noResults": "No songs found"
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "signupTitle": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "loginWithGoogle": "Continue with Google",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "pricing": {
+    "title": "Choose your plan",
+    "subtitle": "Start free, upgrade when you're ready",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "subscribe": "Subscribe",
+    "currentPlan": "Current Plan",
+    "mostPopular": "Most Popular"
+  },
+  "player": {
+    "nowPlaying": "Now Playing",
+    "queue": "Queue",
+    "lyrics": "Lyrics"
+  }
+}
