@@ -6,39 +6,9 @@ export default function HomePage() {
   const t = useTranslations();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Navbar */}
-      <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Music className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">{t("common.appName")}</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/songs"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t("common.songs")}
-            </Link>
-            <Link
-              href="/pricing"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t("common.pricing")}
-            </Link>
-            <Link
-              href="/auth/login"
-              className="text-sm bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              {t("common.login")}
-            </Link>
-          </div>
-        </div>
-      </nav>
-
+    <>
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-4 py-24 sm:py-32 text-center bg-gradient-to-b from-secondary/50 to-background">
+      <section className="flex flex-col items-center justify-center px-4 py-24 sm:py-32 text-center bg-gradient-to-b from-secondary/50 to-background">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
             {t("home.hero.title")}
@@ -113,20 +83,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-8 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Music className="h-5 w-5 text-primary" />
-            <span className="font-semibold">{t("common.appName")}</span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} BabyBeats. All rights reserved.
-          </p>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }
 

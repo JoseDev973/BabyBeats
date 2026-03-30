@@ -3,6 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { PlayerProvider } from "@/hooks/usePlayer";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import AudioPlayer from "@/components/player/AudioPlayer";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -55,7 +59,12 @@ export default async function LocaleLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <PlayerProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <AudioPlayer />
+          </PlayerProvider>
         </NextIntlClientProvider>
       </body>
     </html>
