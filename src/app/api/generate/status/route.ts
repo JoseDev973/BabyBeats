@@ -57,22 +57,28 @@ export async function GET(request: Request) {
       const sunoStatus = data.data?.status;
 
       if (sunoStatus === "SUCCESS") {
-        const tracks = data.data.response?.data;
+        const tracks =
+          data.data.response?.sunoData || data.data.response?.data;
         const trackA = tracks?.[0];
         const trackB = tracks?.[1];
 
-        if (trackA?.audio_url) {
+        if (trackA?.audioUrl || trackA?.audio_url) {
+          const audioA = trackA.audioUrl || trackA.audio_url;
+          const audioB = trackB?.audioUrl || trackB?.audio_url || null;
+          const imageA = trackA.imageUrl || trackA.image_url || null;
+          const imageB = trackB?.imageUrl || trackB?.image_url || null;
+
           await supabase
             .from("generated_songs")
             .update({
               status: "completed",
-              audio_url: trackA.audio_url,
+              audio_url: audioA,
               duration_seconds: Math.round(trackA.duration || 0),
-              audio_url_b: trackB?.audio_url || null,
+              audio_url_b: audioB,
               duration_seconds_b: trackB
                 ? Math.round(trackB.duration || 0)
                 : null,
-              cover_image_url: trackA.image_url || trackB?.image_url || null,
+              cover_image_url: imageA || imageB,
               is_public: true,
               updated_at: new Date().toISOString(),
             })
@@ -80,9 +86,9 @@ export async function GET(request: Request) {
 
           return NextResponse.json({
             status: "completed",
-            audioUrlA: trackA.audio_url,
-            audioUrlB: trackB?.audio_url || null,
-            coverImage: trackA.image_url || trackB?.image_url || null,
+            audioUrlA: audioA,
+            audioUrlB: audioB,
+            coverImage: imageA || imageB,
             childName: song.child_name,
             shareToken: song.share_token,
           });
