@@ -79,6 +79,13 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-3">
               <Link
+                href="/my-songs"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <Music className="h-4 w-4" />
+                {t("mySongs")}
+              </Link>
+              <Link
                 href="/profile"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
               >
