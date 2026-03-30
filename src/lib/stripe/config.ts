@@ -4,37 +4,29 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 });
 
-export const PLANS = {
-  free: {
-    name: "Free",
-    price: 0,
-    features: [
-      "Access to 15 free songs",
-      "Basic categories",
-      "Standard audio quality",
-    ],
-  },
-  premium_monthly: {
-    name: "Premium Monthly",
+export const CREDIT_PACKS = {
+  starter: {
+    name: "Starter",
+    credits: 3,
     price: 4.99,
-    priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID!,
-    features: [
-      "Unlimited songs",
-      "All categories & age ranges",
-      "High quality audio",
-      "New songs every week",
-      "Create playlists",
-      "No ads",
-    ],
+    pricePerSong: 1.66,
+    priceId: process.env.STRIPE_STARTER_PACK_PRICE_ID!,
+    popular: false,
   },
-  premium_yearly: {
-    name: "Premium Yearly",
-    price: 39.99,
-    priceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID!,
-    features: [
-      "Everything in Premium Monthly",
-      "Save 33% vs monthly",
-      "Early access to new songs",
-    ],
+  popular: {
+    name: "Family Pack",
+    credits: 10,
+    price: 9.99,
+    pricePerSong: 1.0,
+    priceId: process.env.STRIPE_FAMILY_PACK_PRICE_ID!,
+    popular: true,
+  },
+  mega: {
+    name: "Mega Pack",
+    credits: 25,
+    price: 19.99,
+    pricePerSong: 0.8,
+    priceId: process.env.STRIPE_MEGA_PACK_PRICE_ID!,
+    popular: false,
   },
 } as const;

@@ -13,6 +13,8 @@ export interface Profile {
   preferred_language: string;
   subscription_tier: SubscriptionTier;
   stripe_customer_id: string | null;
+  credits: number;
+  total_songs_generated: number;
   created_at: string;
   updated_at: string;
 }
@@ -80,5 +82,45 @@ export interface Subscription {
   status: SubscriptionStatus;
   current_period_start: string | null;
   current_period_end: string | null;
+  created_at: string;
+}
+
+export type SongTheme = "lullaby" | "educational" | "fun";
+export type GenerationStatus =
+  | "draft"
+  | "lyrics_ready"
+  | "generating"
+  | "completed"
+  | "failed";
+
+export interface GeneratedSong {
+  id: string;
+  user_id: string;
+  child_name: string;
+  theme: SongTheme;
+  music_style: string;
+  language: string;
+  age_range: AgeRange;
+  custom_prompt: string | null;
+  lyrics: string | null;
+  audio_url: string | null;
+  cover_image_url: string | null;
+  duration_seconds: number | null;
+  share_token: string;
+  is_public: boolean;
+  status: GenerationStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CreditTransactionType = "purchase" | "usage" | "bonus";
+
+export interface CreditTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: CreditTransactionType;
+  description: string | null;
+  stripe_payment_id: string | null;
   created_at: string;
 }

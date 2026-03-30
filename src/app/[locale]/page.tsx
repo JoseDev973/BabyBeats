@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { Music, BookOpen, Moon, Headphones } from "lucide-react";
+import { Music, BookOpen, Moon, Headphones, Sparkles, Download, Share2 } from "lucide-react";
 
 export default function HomePage() {
   const t = useTranslations();
@@ -18,23 +18,63 @@ export default function HomePage() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
+              href="/create"
+              className="bg-primary text-primary-foreground px-8 py-3 rounded-lg text-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+            >
+              <Sparkles className="h-5 w-5" />
+              Create Your First Song Free
+            </Link>
+            <Link
               href="/songs"
-              className="bg-primary text-primary-foreground px-8 py-3 rounded-lg text-lg font-medium hover:bg-primary/90 transition-colors"
+              className="border border-border px-8 py-3 rounded-lg text-lg font-medium hover:bg-muted transition-colors"
             >
               {t("home.hero.cta")}
             </Link>
-            <a
-              href="#categories"
-              className="border border-border px-8 py-3 rounded-lg text-lg font-medium hover:bg-muted transition-colors"
-            >
-              {t("home.hero.ctaSecondary")}
-            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-24 px-4 bg-background">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            How it works
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {[
+              {
+                step: "1",
+                title: "Enter your baby's name",
+                desc: "Pick a theme, style, and language for the song",
+                icon: <Sparkles className="h-6 w-6 text-primary" />,
+              },
+              {
+                step: "2",
+                title: "Preview & generate",
+                desc: "Review the lyrics, then AI creates the full song with audio",
+                icon: <Music className="h-6 w-6 text-primary" />,
+              },
+              {
+                step: "3",
+                title: "Download & share",
+                desc: "Get your MP3 and share a link with family and friends",
+                icon: <Share2 className="h-6 w-6 text-primary" />,
+              },
+            ].map((item) => (
+              <div key={item.step} className="text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  {item.icon}
+                </div>
+                <h3 className="font-semibold mb-1">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Categories */}
-      <section id="categories" className="py-24 px-4 bg-background">
+      <section id="categories" className="py-24 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
             {t("home.categories.title")}

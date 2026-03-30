@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { Music, Menu, X, Globe, LogOut, User as UserIcon } from "lucide-react";
+import { Music, Menu, X, Globe, LogOut, User as UserIcon, Sparkles } from "lucide-react";
 
 export default function Navbar() {
   const t = useTranslations("common");
@@ -48,6 +48,13 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden sm:flex items-center gap-6">
+          <Link
+            href="/create"
+            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Create
+          </Link>
           <Link
             href="/songs"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -123,6 +130,13 @@ export default function Navbar() {
           </Link>
           {user ? (
             <>
+              <Link
+                href="/my-songs"
+                className="block text-sm py-2"
+                onClick={() => setMenuOpen(false)}
+              >
+                My Songs
+              </Link>
               <Link
                 href="/profile"
                 className="block text-sm py-2"
