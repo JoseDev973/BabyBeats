@@ -1,6 +1,47 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const SUNO_API_BASE = "https://api.sunoapi.org/api/v1";
+
+async function sunoFetch(path: string, options?: RequestInit) {
+  return fetch(`${SUNO_API_BASE}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${process.env.SUNO_API_KEY}`,
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+}
+
+async function pollForCompletion(taskId: string): Promise<{ audioUrl: string; duration: number }> {
+  const maxAttempts = 40; // ~5 minutes (40 * 8s)
+
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise((r) => setTimeout(r, 8000));
+
+    const res = await sunoFetch(`/generate/record-info?taskId=${taskId}`);
+    const data = await res.json();
+
+    if (data.data?.status === "SUCCESS") {
+      const track = data.data.response?.data?.[0];
+      if (track?.audio_url) {
+        return {
+          audioUrl: track.audio_url,
+          duration: Math.round(track.duration || 0),
+        };
+      }
+      throw new Error("Generation succeeded but no audio URL returned");
+    }
+
+    if (data.data?.status === "FAILED") {
+      throw new Error("Suno generation failed");
+    }
+  }
+
+  throw new Error("Generation timed out after 5 minutes");
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -56,40 +97,50 @@ export async function POST(request: Request) {
     .eq("id", songId);
 
   try {
-    // === SUNO API INTEGRATION ===
-    // When you have a Suno API key, replace this block with actual Suno API calls.
-    // Suno API: https://docs.suno.com/api
-    //
-    // Example Suno integration:
-    // const sunoResponse = await fetch("https://studio-api.suno.ai/api/external/generate/", {
-    //   method: "POST",
-    //   headers: {
-    //     "Authorization": `Bearer ${process.env.SUNO_API_KEY}`,
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     topic: song.lyrics,
-    //     tags: `${song.music_style}, children's music, baby song`,
-    //   }),
-    // });
+    // Build the Suno prompt with custom mode for lyrics
+    const styleMap: Record<string, string> = {
+      gentle: "gentle, soft, lullaby, children's music",
+      playful: "playful, upbeat, happy, children's music",
+      classical: "classical, orchestral, children's music",
+      pop: "pop, catchy, children's music",
+      acoustic: "acoustic, folk, warm, children's music",
+      reggaeton: "reggaeton, latin, kids, fun, children's music",
+    };
 
-    // For now, mark as completed with a placeholder
-    // In production, you would:
-    // 1. Call Suno API to generate audio
-    // 2. Upload the audio to Supabase Storage
-    // 3. Save the public URL
+    const style = styleMap[song.music_style] || "children's music, gentle";
 
-    // Simulate: store lyrics as completed (audio URL will be set when Suno is integrated)
-    const { error: updateError } = await supabase
+    const res = await sunoFetch("/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        prompt: song.lyrics,
+        customMode: true,
+        style,
+        title: `${song.child_name}'s Song`,
+        instrumental: false,
+        model: "V4",
+      }),
+    });
+
+    const result = await res.json();
+
+    if (result.code !== 200 || !result.data?.taskId) {
+      throw new Error(result.msg || "Failed to start Suno generation");
+    }
+
+    // Poll until complete
+    const { audioUrl, duration } = await pollForCompletion(result.data.taskId);
+
+    // Update song with audio URL
+    await supabase
       .from("generated_songs")
       .update({
         status: "completed",
-        // audio_url will be set when Suno API is integrated
+        audio_url: audioUrl,
+        duration_seconds: duration,
+        is_public: true,
         updated_at: new Date().toISOString(),
       })
       .eq("id", songId);
-
-    if (updateError) throw updateError;
 
     // Deduct credit (skip if first song)
     if (!isFirstSong) {
@@ -115,19 +166,15 @@ export async function POST(request: Request) {
       description: `Generated song for ${song.child_name}`,
     });
 
-    return NextResponse.json({
-      audioUrl: song.audio_url || null,
-      status: "completed",
-      message:
-        "Song generation complete. Audio will be available when Suno API is configured.",
-    });
+    return NextResponse.json({ audioUrl, status: "completed" });
   } catch (err) {
     await supabase
       .from("generated_songs")
       .update({ status: "failed" })
       .eq("id", songId);
 
-    const message = err instanceof Error ? err.message : "Audio generation failed";
+    const message =
+      err instanceof Error ? err.message : "Audio generation failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
