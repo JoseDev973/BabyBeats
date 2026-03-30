@@ -59,15 +59,15 @@ export async function POST(request: Request) {
 
   try {
     const styleMap: Record<string, string> = {
-      gentle: "gentle, soft, lullaby, children's music",
-      playful: "playful, upbeat, happy, children's music",
-      classical: "classical, orchestral, children's music",
-      pop: "pop, catchy, children's music",
-      acoustic: "acoustic, folk, warm, children's music",
-      reggaeton: "reggaeton, latin, kids, fun, children's music",
+      gentle: "gentle, soft, sweet lullaby, baby music, toddler song, nursery, soothing for infants",
+      playful: "playful, upbeat, happy, baby music, toddler song, nursery, fun for kids",
+      classical: "classical, orchestral, baby music, toddler song, nursery, soothing for infants",
+      pop: "pop, catchy, baby music, toddler song, nursery, fun for kids",
+      acoustic: "acoustic, folk, warm, baby music, toddler song, nursery, soothing for infants",
+      reggaeton: "reggaeton, latin, baby music, toddler song, nursery, fun for kids",
     };
 
-    const style = styleMap[song.music_style] || "children's music, gentle";
+    const style = styleMap[song.music_style] || "baby music, toddler song, nursery, soothing for infants";
 
     // Start Suno generation (non-blocking)
     const res = await fetch(`${SUNO_API_BASE}/generate`, {
