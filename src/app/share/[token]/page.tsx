@@ -21,14 +21,14 @@ const LABELS = {
     fun: "Fun & Play",
   },
   es: {
-    songFor: (name: string) => `Una cancion para ${name}`,
+    songFor: (name: string) => `Una canción para ${name}`,
     lyrics: "Letra",
     downloadMp3: "Descargar MP3",
-    createdWith: "Creado con BabyBeats — Canciones hechas con IA para tu bebe",
+    createdWith: "Creado con BabyBeats — Canciones hechas con IA para tu bebé",
     audioNotSupported: "Tu navegador no soporta audio.",
-    lullaby: "Cancion de cuna",
+    lullaby: "Canción de cuna",
     educational: "Educativa",
-    fun: "Diversion",
+    fun: "Diversión",
   },
 };
 
