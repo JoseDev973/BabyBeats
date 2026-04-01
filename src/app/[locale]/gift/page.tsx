@@ -61,6 +61,7 @@ export default function GiftPage() {
           buyer_id: user.id,
           pack_type: packType,
           total_songs: totalSongs,
+          child_name: "—",
           status: "personalizing",
         })
         .select("id")
