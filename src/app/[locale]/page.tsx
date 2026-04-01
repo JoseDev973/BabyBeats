@@ -1,10 +1,10 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Music, BookOpen, Moon, Headphones, Sparkles, Share2, Gift } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
-  const t = useTranslations();
+  const t = await getTranslations();
 
   // Check if user already used their free song
   let isFirstSong = true;
