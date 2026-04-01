@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Log In",
-  description:
-    "Log in to your BabyBeats account to create, manage, and listen to personalized baby songs.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata" });
+  return {
+    title: t("loginTitle"),
+    description: t("loginDescription"),
+  };
+}
 
 export default function LoginLayout({
   children,

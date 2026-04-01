@@ -61,6 +61,26 @@
     "platforms": {
       "title": "Listen anywhere",
       "subtitle": "Find BabyBeats on your favorite music platform"
+    },
+    "stats": {
+      "songsCount": "10,000+",
+      "songsLabel": "Songs created",
+      "familiesCount": "5,000+",
+      "familiesLabel": "Happy families",
+      "rating": "4.9 ★",
+      "ratingLabel": "Average rating"
+    },
+    "testimonials": {
+      "title": "Loved by parents everywhere",
+      "quote1": "My daughter falls asleep in minutes with her personalized lullaby. It's like magic having a song with her name in it.",
+      "author1": "María G.",
+      "role1": "Mom of Luna, 8 months",
+      "quote2": "We use the educational songs every morning. My son learned his colors in both Spanish and English!",
+      "author2": "Carlos R.",
+      "role2": "Dad of Mateo, 2 years",
+      "quote3": "I gifted a BabyBeats album to my sister for her baby shower. She cried happy tears. Best gift ever.",
+      "author3": "Ana P.",
+      "role3": "Aunt & gift-giver"
     }
   },
   "songs": {

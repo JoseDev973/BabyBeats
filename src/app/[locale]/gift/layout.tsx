@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Gift a Song",
-  description:
-    "Gift a personalized baby song to someone special. Choose a pack, add the baby's name, and share a unique musical gift.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata" });
+  return {
+    title: t("giftTitle"),
+    description: t("giftDescription"),
+  };
+}
 
 export default function GiftLayout({
   children,

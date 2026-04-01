@@ -1,13 +1,22 @@
+import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Check, Sparkles, Gift } from "lucide-react";
 import { CREDIT_PACKS } from "@/lib/stripe/config";
 
-export const metadata = {
-  title: "Pricing",
-  description:
-    "Affordable credit packs for personalized baby songs. Your first song is free — no credit card required.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata" });
+  return {
+    title: t("pricingTitle"),
+    description: t("pricingDescription"),
+  };
+}
 
 export default function PricingPage() {
   const t = useTranslations("pricing");
