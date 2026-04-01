@@ -2,8 +2,16 @@
 
 import { useTranslations } from "next-intl";
 import { usePlayer } from "@/hooks/usePlayer";
-import type { Song } from "@/types/database";
-import { Play, Pause, Lock, Music } from "lucide-react";
+import type { Song, SongTheme } from "@/types/database";
+import { Play, Pause, Lock } from "lucide-react";
+import SongCover from "@/components/songs/SongCover";
+
+function categoryToTheme(categoryName?: string): SongTheme {
+  const name = (categoryName || "").toLowerCase();
+  if (name.includes("lullab") || name.includes("cuna") || name.includes("sleep") || name.includes("dream")) return "lullaby";
+  if (name.includes("educ") || name.includes("learn") || name.includes("aprend")) return "educational";
+  return "fun";
+}
 
 interface SongCardProps {
   song: Song;
@@ -39,7 +47,7 @@ export default function SongCard({
       onClick={handlePlay}
     >
       {/* Cover art */}
-      <div className="relative h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+      <div className="relative h-12 w-12 rounded-lg shrink-0 overflow-hidden">
         {song.cover_image_url ? (
           <img
             src={song.cover_image_url}
@@ -47,7 +55,7 @@ export default function SongCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <Music className="h-5 w-5 text-primary" />
+          <SongCover theme={categoryToTheme(song.category?.name)} size="md" />
         )}
         {/* Play overlay */}
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

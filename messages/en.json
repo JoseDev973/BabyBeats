@@ -22,6 +22,8 @@
     "mySongs": "My Songs",
     "create": "Create",
     "allRights": "All rights reserved.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
     "history": "History",
     "upgrade": "Upgrade to {plan}",
     "favorites": "Favorites",
@@ -272,17 +274,20 @@
     "giftFrom": "A gift for you",
     "giftMessage": "Someone special created a personalized music album for {name}",
     "listenNow": "Listen now",
-<<<<<<< HEAD
-    "songs": "songs"
-=======
     "songs": "songs",
     "redeemTitle": "Redeem your gift",
     "redeemPlaceholder": "Enter your gift code",
     "redeemButton": "Redeem",
     "redeemSuccess": "Gift redeemed! You received {credits} credits",
     "redeemError": "Invalid or already redeemed code",
-    "redeemStartCreating": "Start creating songs"
->>>>>>> dev
+    "redeemStartCreating": "Start creating songs",
+    "howItWorks": "How it works",
+    "howStep1Title": "Choose a pack",
+    "howStep1Desc": "Pick the perfect album size for the baby",
+    "howStep2Title": "Personalize",
+    "howStep2Desc": "Enter the baby's name and customize each song",
+    "howStep3Title": "Share the gift",
+    "howStep3Desc": "Get a beautiful link to send to the parents"
   },
   "share": {
     "songFor": "A song for {name}",

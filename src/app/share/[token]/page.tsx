@@ -49,9 +49,24 @@ export async function generateMetadata({
 
   if (!song) return { title: "Song not found" };
 
+  const title = `${song.child_name}'s Song | BabyBeats`;
+  const description = `Listen to a personalized ${song.theme} song created for ${song.child_name} with AI`;
+
   return {
-    title: `${song.child_name}'s Song | BabyBeats`,
-    description: `Listen to a personalized ${song.theme} song created for ${song.child_name} with AI`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://babybeats.art/share/${token}`,
+      siteName: "BabyBeats",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
 }
 

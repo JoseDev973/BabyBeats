@@ -12,6 +12,20 @@ export default function Footer() {
           <Music className="h-5 w-5 text-primary" />
           <span className="font-semibold">{t("appName")}</span>
         </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/terms"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t("terms")}
+          </Link>
+          <Link
+            href="/privacy"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t("privacy")}
+          </Link>
+        </div>
         <p className="text-sm text-muted-foreground">
           &copy; {new Date().getFullYear()} BabyBeats. {t("allRights")}
         </p>

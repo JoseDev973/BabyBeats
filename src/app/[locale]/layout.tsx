@@ -41,6 +41,21 @@ export const metadata: Metadata = {
     "canciones para bebés",
     "música para bebés",
   ],
+  openGraph: {
+    title: "BabyBeats — AI-Crafted Songs for Babies",
+    description:
+      "Personalized lullabies, educational songs, and fun tunes for your baby — crafted with AI.",
+    url: "https://babybeats.art",
+    siteName: "BabyBeats",
+    locale: "es_CO",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BabyBeats — AI-Crafted Songs for Babies",
+    description:
+      "Personalized lullabies, educational songs, and fun tunes for your baby — crafted with AI.",
+  },
 };
 
 export default async function LocaleLayout({

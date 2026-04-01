@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Gift, Moon, BookOpen, Star, Loader2 } from "lucide-react";
+import { Gift, Moon, BookOpen, Star, Loader2, Music, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const PACKS = [
@@ -152,6 +152,46 @@ export default function GiftPage() {
           </div>
         ))}
       </div>
+
+      {/* How it works */}
+      <section className="mt-20">
+        <h2 className="text-3xl font-extrabold text-center mb-10">
+          {t("howItWorks")}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          {[
+            {
+              step: "1",
+              title: t("howStep1Title"),
+              desc: t("howStep1Desc"),
+              icon: <Gift className="h-6 w-6 text-primary" />,
+            },
+            {
+              step: "2",
+              title: t("howStep2Title"),
+              desc: t("howStep2Desc"),
+              icon: <Music className="h-6 w-6 text-primary" />,
+            },
+            {
+              step: "3",
+              title: t("howStep3Title"),
+              desc: t("howStep3Desc"),
+              icon: <Share2 className="h-6 w-6 text-primary" />,
+            },
+          ].map((item) => (
+            <div key={item.step} className="text-center group">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                {item.icon}
+              </div>
+              <div className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gold/30 text-xs font-bold text-accent-foreground mb-2">
+                {item.step}
+              </div>
+              <h3 className="font-bold mb-1">{item.title}</h3>
+              <p className="text-sm text-muted-foreground">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
