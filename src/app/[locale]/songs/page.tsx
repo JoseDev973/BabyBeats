@@ -1,13 +1,22 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import SongCatalog from "./SongCatalog";
 import type { Song, Category } from "@/types/database";
 
-export const metadata = {
-  title: "Song Catalog",
-  description:
-    "Browse our full catalog of AI-crafted baby songs — lullabies, educational tunes, and fun melodies for your little one.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata" });
+  return {
+    title: t("songsTitle"),
+    description: t("songsDescription"),
+  };
+}
 
 export default async function SongsPage() {
   const supabase = await createClient();
