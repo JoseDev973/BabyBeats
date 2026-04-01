@@ -108,6 +108,9 @@ export interface GeneratedSong {
   duration_seconds: number | null;
   share_token: string;
   is_public: boolean;
+  audio_url_b: string | null;
+  duration_seconds_b: number | null;
+  suno_task_id: string | null;
   status: GenerationStatus;
   created_at: string;
   updated_at: string;
