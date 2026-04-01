@@ -6,6 +6,13 @@ import { routing } from "@/i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Skip i18n for non-locale routes (auth callback, share, gift deliver)
+  if (pathname.startsWith("/auth/callback") || pathname.startsWith("/share/") || pathname.startsWith("/gift/deliver/")) {
+    return await updateSession(request);
+  }
+
   // First handle Supabase session refresh
   const supabaseResponse = await updateSession(request);
 
