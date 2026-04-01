@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getResend, FROM_ADDRESS } from "@/lib/resend";
+import {
+  giftReadyEmail,
+  getGiftReadySubject,
+} from "@/lib/emails/gift-ready";
 
 function getSupabase() {
   return createClient(
@@ -101,6 +106,52 @@ export async function POST(request: Request) {
             .update({ status: "ready", updated_at: new Date().toISOString() })
             .eq("id", giftSong.gift_id);
 
+<<<<<<< HEAD
+=======
+          // Send gift-ready email to the buyer
+          try {
+            const { data: gift } = await supabase
+              .from("gifts")
+              .select("buyer_id, child_name, total_songs, delivery_token, language")
+              .eq("id", giftSong.gift_id)
+              .single();
+
+            if (gift?.buyer_id) {
+              // Get buyer email from auth.users via service role
+              const { data: authUser } = await supabase.auth.admin.getUserById(
+                gift.buyer_id,
+              );
+
+              const buyerEmail = authUser?.user?.email;
+
+              if (buyerEmail) {
+                const lang = (gift.language === "en" ? "en" : "es") as "es" | "en";
+                const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://babybeats.art";
+                const deliveryUrl = `${appUrl}/gift/deliver/${gift.delivery_token}`;
+
+                await getResend().emails.send({
+                  from: FROM_ADDRESS,
+                  to: buyerEmail,
+                  subject: getGiftReadySubject(gift.child_name, lang),
+                  html: giftReadyEmail({
+                    childName: gift.child_name,
+                    totalSongs: gift.total_songs,
+                    deliveryUrl,
+                    lang,
+                  }),
+                });
+
+                console.log(
+                  `[Suno Webhook] Gift-ready email sent to ${buyerEmail} for gift ${giftSong.gift_id}`,
+                );
+              }
+            }
+          } catch (emailErr) {
+            // Don't fail the webhook if email sending fails
+            console.error("[Suno Webhook] Failed to send gift-ready email:", emailErr);
+          }
+
+>>>>>>> dev
           console.log(`[Suno Webhook] Gift ${giftSong.gift_id} fully completed`);
         }
 

@@ -5,6 +5,8 @@ import type { GeneratedSong } from "@/types/database";
 
 export const metadata = {
   title: "My Songs",
+  description:
+    "View and manage all the personalized songs you have created for your baby.",
 };
 
 export default async function MySongsPage() {

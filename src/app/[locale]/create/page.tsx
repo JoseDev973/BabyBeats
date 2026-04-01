@@ -4,6 +4,8 @@ import CreateWizard from "./CreateWizard";
 
 export const metadata = {
   title: "Create a Song",
+  description:
+    "Create a personalized AI-generated song for your baby. Choose a theme, add your child's name, and get a unique tune in minutes.",
 };
 
 export default async function CreatePage() {

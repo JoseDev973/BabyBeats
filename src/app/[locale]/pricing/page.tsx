@@ -5,6 +5,8 @@ import { CREDIT_PACKS } from "@/lib/stripe/config";
 
 export const metadata = {
   title: "Pricing",
+  description:
+    "Affordable credit packs for personalized baby songs. Your first song is free — no credit card required.",
 };
 
 export default function PricingPage() {

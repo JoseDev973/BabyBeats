@@ -272,7 +272,17 @@
     "giftFrom": "Un regalo para ti",
     "giftMessage": "Alguien especial creó un álbum de música personalizado para {name}",
     "listenNow": "Escuchar ahora",
+<<<<<<< HEAD
     "songs": "canciones"
+=======
+    "songs": "canciones",
+    "redeemTitle": "Canjea tu regalo",
+    "redeemPlaceholder": "Ingresa tu código de regalo",
+    "redeemButton": "Canjear",
+    "redeemSuccess": "¡Regalo canjeado! Recibiste {credits} créditos",
+    "redeemError": "Código inválido o ya canjeado",
+    "redeemStartCreating": "Empieza a crear canciones"
+>>>>>>> dev
   },
   "share": {
     "songFor": "Una canción para {name}",

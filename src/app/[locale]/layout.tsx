@@ -7,6 +7,7 @@ import { PlayerProvider } from "@/hooks/usePlayer";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AudioPlayer from "@/components/player/AudioPlayer";
+import { Analytics } from "@vercel/analytics/react";
 import "../globals.css";
 
 const nunito = Nunito({
@@ -28,6 +29,9 @@ export const metadata: Metadata = {
   },
   description:
     "Lullabies, educational songs, and fun tunes for your baby — crafted with artificial intelligence. Listen on Spotify, Apple Music, or our platform.",
+  icons: {
+    icon: "/icon.svg",
+  },
   keywords: [
     "baby songs",
     "AI music",
@@ -67,6 +71,7 @@ export default async function LocaleLayout({
             <Footer />
             <AudioPlayer />
           </PlayerProvider>
+          <Analytics />
         </NextIntlClientProvider>
       </body>
     </html>

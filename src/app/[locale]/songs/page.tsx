@@ -4,7 +4,9 @@ import SongCatalog from "./SongCatalog";
 import type { Song, Category } from "@/types/database";
 
 export const metadata = {
-  title: "Songs",
+  title: "Song Catalog",
+  description:
+    "Browse our full catalog of AI-crafted baby songs — lullabies, educational tunes, and fun melodies for your little one.",
 };
 
 export default async function SongsPage() {

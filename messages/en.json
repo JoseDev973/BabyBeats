@@ -272,7 +272,17 @@
     "giftFrom": "A gift for you",
     "giftMessage": "Someone special created a personalized music album for {name}",
     "listenNow": "Listen now",
+<<<<<<< HEAD
     "songs": "songs"
+=======
+    "songs": "songs",
+    "redeemTitle": "Redeem your gift",
+    "redeemPlaceholder": "Enter your gift code",
+    "redeemButton": "Redeem",
+    "redeemSuccess": "Gift redeemed! You received {credits} credits",
+    "redeemError": "Invalid or already redeemed code",
+    "redeemStartCreating": "Start creating songs"
+>>>>>>> dev
   },
   "share": {
     "songFor": "A song for {name}",

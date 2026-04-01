@@ -5,6 +5,8 @@ import type { Profile, Song } from "@/types/database";
 
 export const metadata = {
   title: "Profile",
+  description:
+    "Manage your BabyBeats profile, view your favorites, and check your listening history.",
 };
 
 export default async function ProfilePage() {
