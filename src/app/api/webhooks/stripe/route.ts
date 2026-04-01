@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getStripe } from "@/lib/stripe/config";
+import { getStripe, CREDIT_PACKS } from "@/lib/stripe/config";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 
@@ -34,7 +34,45 @@ export async function POST(request: Request) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.supabase_user_id;
-      if (userId && session.subscription) {
+
+      if (!userId) break;
+
+      // Handle one-time credit pack purchase
+      if (session.mode === "payment") {
+        const priceId = session.metadata?.price_id;
+        const pack = Object.values(CREDIT_PACKS).find(
+          (p) => p.priceId === priceId,
+        );
+
+        if (pack) {
+          // Atomic credit addition
+          const { data: profile } = await getSupabaseAdmin()
+            .from("profiles")
+            .select("credits")
+            .eq("id", userId)
+            .single();
+
+          const currentCredits = profile?.credits ?? 0;
+
+          await getSupabaseAdmin()
+            .from("profiles")
+            .update({ credits: currentCredits + pack.credits })
+            .eq("id", userId);
+
+          await getSupabaseAdmin()
+            .from("credit_transactions")
+            .insert({
+              user_id: userId,
+              amount: pack.credits,
+              type: "purchase",
+              description: `Purchased ${pack.name} (${pack.credits} credits)`,
+            });
+        }
+        break;
+      }
+
+      // Handle subscription (existing logic)
+      if (session.subscription) {
         const subscription = await getStripe().subscriptions.retrieve(
           session.subscription as string,
         );
