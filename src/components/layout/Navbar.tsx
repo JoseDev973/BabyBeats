@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { Music, Menu, X, Globe, LogOut, User as UserIcon, Sparkles } from "lucide-react";
+import { Music, Menu, X, LogOut, User as UserIcon, Sparkles } from "lucide-react";
 
 export default function Navbar() {
   const t = useTranslations("common");
+  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
@@ -34,8 +35,9 @@ export default function Navbar() {
     router.refresh();
   }
 
-  function switchLocale(locale: "en" | "es") {
-    router.replace(pathname, { locale });
+  function switchLocale() {
+    const next = locale === "es" ? "en" : "es";
+    router.replace(pathname, { locale: next });
   }
 
   return (
@@ -53,7 +55,7 @@ export default function Navbar() {
             className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Create
+            {t("create")}
           </Link>
           <Link
             href="/songs"
@@ -69,11 +71,11 @@ export default function Navbar() {
           </Link>
 
           <button
-            onClick={() => switchLocale(pathname ? "en" : "es")}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            title="Switch language"
+            onClick={switchLocale}
+            className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none"
+            title={locale === "es" ? "Switch to English" : "Cambiar a Espanol"}
           >
-            <Globe className="h-4 w-4" />
+            {locale === "es" ? "\u{1F1FA}\u{1F1F8}" : "\u{1F1EA}\u{1F1F8}"}
           </button>
 
           {user ? (
@@ -122,6 +124,14 @@ export default function Navbar() {
       {menuOpen && (
         <div className="sm:hidden border-t border-border px-4 py-4 space-y-3 bg-background">
           <Link
+            href="/create"
+            className="block text-sm py-2 font-medium text-primary flex items-center gap-2"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {t("create")}
+          </Link>
+          <Link
             href="/songs"
             className="block text-sm py-2"
             onClick={() => setMenuOpen(false)}
@@ -135,6 +145,20 @@ export default function Navbar() {
           >
             {t("pricing")}
           </Link>
+
+          <button
+            onClick={() => {
+              switchLocale();
+              setMenuOpen(false);
+            }}
+            className="flex items-center gap-2 text-sm py-2 text-muted-foreground"
+          >
+            <span className="text-lg leading-none">
+              {locale === "es" ? "\u{1F1FA}\u{1F1F8}" : "\u{1F1EA}\u{1F1F8}"}
+            </span>
+            {locale === "es" ? "English" : "Espanol"}
+          </button>
+
           {user ? (
             <>
               <Link
@@ -142,7 +166,7 @@ export default function Navbar() {
                 className="block text-sm py-2"
                 onClick={() => setMenuOpen(false)}
               >
-                My Songs
+                {t("mySongs")}
               </Link>
               <Link
                 href="/profile"

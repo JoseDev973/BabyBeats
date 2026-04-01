@@ -1,10 +1,10 @@
 {
   "common": {
     "appName": "BabyBeats",
-    "tagline": "Canciones hechas con AI para tu bebé",
-    "login": "Iniciar sesión",
+    "tagline": "Canciones hechas con AI para tu bebe",
+    "login": "Iniciar sesion",
     "signup": "Registrarse",
-    "logout": "Cerrar sesión",
+    "logout": "Cerrar sesion",
     "profile": "Perfil",
     "songs": "Canciones",
     "pricing": "Planes",
@@ -19,35 +19,52 @@
     "search": "Buscar canciones...",
     "loading": "Cargando...",
     "listenOn": "Escuchar en",
-    "mySongs": "Mis Canciones"
+    "mySongs": "Mis Canciones",
+    "create": "Crear",
+    "allRights": "Todos los derechos reservados.",
+    "history": "Historial",
+    "upgrade": "Mejorar a {plan}",
+    "favorites": "Favoritos",
+    "noFavorites": "Aun no tienes favoritos. Escucha canciones y agrega tus favoritos!",
+    "noHistory": "Aun no hay historial. Reproduce algunas canciones!"
   },
   "home": {
     "hero": {
-      "title": "Música hecha para tu bebé, con inteligencia artificial",
-      "subtitle": "Canciones de cuna, educativas y divertidas — creadas con IA y diseñadas para oídos pequeños.",
+      "title": "Musica hecha para tu bebe, con inteligencia artificial",
+      "subtitle": "Canciones de cuna, educativas y divertidas — creadas con IA y disenadas para oidos pequenos.",
       "cta": "Explorar Canciones",
-      "ctaSecondary": "Saber Más"
+      "ctaCreate": "Crea Tu Primera Cancion Gratis",
+      "ctaSecondary": "Saber Mas"
+    },
+    "howItWorks": {
+      "title": "Como funciona",
+      "step1Title": "Ingresa el nombre de tu bebe",
+      "step1Desc": "Elige un tema, estilo e idioma para la cancion",
+      "step2Title": "Vista previa y genera",
+      "step2Desc": "Revisa la letra, luego la IA crea la cancion completa con audio",
+      "step3Title": "Descarga y comparte",
+      "step3Desc": "Obten tu MP3 y comparte un link con familia y amigos"
     },
     "categories": {
       "title": "Canciones para cada momento",
       "lullabies": "Canciones de Cuna",
-      "lullabiesDesc": "Melodías suaves para ayudar a tu bebé a dormir",
+      "lullabiesDesc": "Melodias suaves para ayudar a tu bebe a dormir",
       "educational": "Educativas",
-      "educationalDesc": "Aprende colores, números, animales y más a través de la música",
-      "fun": "Diversión",
+      "educationalDesc": "Aprende colores, numeros, animales y mas a traves de la musica",
+      "fun": "Diversion",
       "funDesc": "Canciones animadas para jugar y momentos felices"
     },
     "platforms": {
       "title": "Escucha en cualquier lugar",
-      "subtitle": "Encuentra BabyBeats en tu plataforma de música favorita"
+      "subtitle": "Encuentra BabyBeats en tu plataforma de musica favorita"
     }
   },
   "songs": {
-    "catalog": "Catálogo de Canciones",
-    "filterByCategory": "Filtrar por categoría",
+    "catalog": "Catalogo de Canciones",
+    "filterByCategory": "Filtrar por categoria",
     "filterByLanguage": "Filtrar por idioma",
     "filterByAge": "Filtrar por edad",
-    "allCategories": "Todas las categorías",
+    "allCategories": "Todas las categorias",
     "allLanguages": "Todos los idiomas",
     "allAges": "Todas las edades",
     "premiumBadge": "Premium",
@@ -57,12 +74,12 @@
   "auth": {
     "loginTitle": "Bienvenido de vuelta",
     "signupTitle": "Crea tu cuenta",
-    "email": "Correo electrónico",
-    "password": "Contraseña",
-    "confirmPassword": "Confirmar contraseña",
+    "email": "Correo electronico",
+    "password": "Contrasena",
+    "confirmPassword": "Confirmar contrasena",
     "loginWithGoogle": "Continuar con Google",
-    "noAccount": "¿No tienes cuenta?",
-    "hasAccount": "¿Ya tienes cuenta?"
+    "noAccount": "No tienes cuenta?",
+    "hasAccount": "Ya tienes cuenta?"
   },
   "pricing": {
     "title": "Elige tu plan",
@@ -71,7 +88,21 @@
     "yearly": "Anual",
     "subscribe": "Suscribirse",
     "currentPlan": "Plan Actual",
-    "mostPopular": "Más Popular"
+    "mostPopular": "Mas Popular",
+    "heroTitle": "Crea canciones personalizadas para tu bebe",
+    "heroSubtitle": "Tu primera cancion es gratis. Compra packs de creditos para crear mas.",
+    "firstSongFree": "Primera Cancion Gratis",
+    "firstSongFreeDesc": "Registrate y crea tu primera cancion personalizada sin costo",
+    "createFreeSong": "Crear Cancion Gratis",
+    "needMoreSongs": "Necesitas mas canciones? Compra creditos",
+    "bestValue": "Mejor Precio",
+    "songsCount": "{count} canciones",
+    "personalizedSongs": "{count} canciones personalizadas",
+    "babyNameInLyrics": "El nombre de tu bebe en la letra",
+    "mp3Download": "Descarga MP3",
+    "shareableLink": "Link para compartir",
+    "creditsNeverExpire": "Los creditos nunca expiran",
+    "buyCredits": "Comprar {count} Creditos"
   },
   "player": {
     "nowPlaying": "Reproduciendo",
@@ -79,73 +110,104 @@
     "lyrics": "Letra"
   },
   "create": {
-    "title": "Crea una canción para tu bebé",
-    "firstFree": "Tu primera canción es gratis!",
-    "creditsRemaining": "{count} créditos restantes",
-    "childStep": "¿Cómo se llama tu bebé?",
-    "childHint": "Este nombre aparecerá en la letra de la canción",
-    "childPlaceholder": "Ej: Sofía, Mateo, Emma...",
-    "themeStep": "¿Qué tipo de canción para {name}?",
+    "title": "Crea una cancion para tu bebe",
+    "firstFree": "Tu primera cancion es gratis!",
+    "creditsRemaining": "{count} creditos restantes",
+    "childStep": "Como se llama tu bebe?",
+    "childHint": "Este nombre aparecera en la letra de la cancion",
+    "childPlaceholder": "Ej: Sofia, Mateo, Emma...",
+    "themeStep": "Que tipo de cancion para {name}?",
     "themeHint": "Elige un tema",
-    "lullaby": "Canción de cuna",
+    "lullaby": "Cancion de cuna",
     "educational": "Educativa",
-    "fun": "Diversión",
-    "customPrompt": "¿Algún pedido especial? (opcional)",
+    "fun": "Diversion",
+    "customPrompt": "Algun pedido especial? (opcional)",
     "customPlaceholder": "Ej: que incluya animales, que mencione la hora de dormir...",
     "styleStep": "Elige estilo y idioma",
     "musicStyle": "Estilo musical",
     "language": "Idioma",
     "generateLyrics": "Generar Letra",
-    "previewStep": "¡Aquí está la letra para {name}!",
+    "previewStep": "Aqui esta la letra para {name}!",
     "previewHint": "Revisa la letra, luego genera el audio",
     "generateAudio": "Generar Audio",
-    "needCredits": "Necesitas créditos para generar audio",
-    "buyCredits": "Comprar créditos",
-    "back": "Atrás",
+    "needCredits": "Necesitas creditos para generar audio",
+    "buyCredits": "Comprar creditos",
+    "back": "Atras",
     "next": "Siguiente"
   },
   "generating": {
-    "title": "Creando tu canción...",
+    "title": "Creando tu cancion...",
     "steps": {
-      "preparing": "Preparando tu canción...",
-      "composing": "Componiendo la melodía...",
+      "preparing": "Preparando tu cancion...",
+      "composing": "Componiendo la melodia...",
       "instruments": "Agregando instrumentos...",
       "vocals": "Grabando vocales...",
       "mixing": "Mezclando y masterizando...",
-      "almost": "Ya casi está..."
+      "almost": "Ya casi esta..."
     },
     "elapsed": "transcurrido",
-    "patience": "Esto suele tomar 1-3 minutos. Puedes salir y revisar \"Mis Canciones\" después.",
-    "ready": "¡La canción de {name} está lista!",
-    "created": "Tu canción personalizada ha sido creada",
+    "patience": "Esto suele tomar 1-3 minutos. Puedes salir y revisar \"Mis Canciones\" despues.",
+    "ready": "La cancion de {name} esta lista!",
+    "created": "Tu cancion personalizada ha sido creada",
     "download": "Descargar MP3",
     "shareLink": "Copiar Link",
-    "copied": "¡Copiado!",
+    "copied": "Copiado!",
     "createAnother": "Crear Otra",
     "mySongs": "Mis Canciones",
-    "failed": "Algo salió mal",
-    "failedHint": "La generación de audio falló. No se cobró tu crédito.",
-    "tryAgain": "Intentar de nuevo"
+    "failed": "Algo salio mal",
+    "failedHint": "La generacion de audio fallo. No se cobro tu credito.",
+    "tryAgain": "Intentar de nuevo",
+    "versionA": "Version A",
+    "versionB": "Version B"
   },
   "platforms": {
-    "title": "Escúchala en tu plataforma favorita",
-    "subtitle": "Descarga el MP3 y agrégalo a Spotify o Apple Music para escucharlo junto con tu música",
+    "title": "Escuchala en tu plataforma favorita",
+    "subtitle": "Descarga el MP3 y agregalo a Spotify o Apple Music para escucharlo junto con tu musica",
     "spotify": {
       "title": "Agregar a Spotify",
-      "step1": "Descarga el MP3 de tu canción",
+      "step1": "Descarga el MP3 de tu cancion",
       "step2": "Abre Spotify en tu computador (app de escritorio)",
-      "step3": "Ve a Configuración → Archivos locales → Activar",
+      "step3": "Ve a Configuracion > Archivos locales > Activar",
       "step4": "Agrega la carpeta donde guardaste el MP3",
-      "step5": "La canción aparece en \"Archivos locales\" — agrégala a cualquier playlist",
+      "step5": "La cancion aparece en \"Archivos locales\" — agregala a cualquier playlist",
       "step6": "En tu celular, descarga la playlist con WiFi para escucharla offline"
     },
     "apple": {
       "title": "Agregar a Apple Music",
-      "step1": "Descarga el MP3 de tu canción",
-      "step2": "Abre la app Música (o iTunes) en tu computador",
+      "step1": "Descarga el MP3 de tu cancion",
+      "step2": "Abre la app Musica (o iTunes) en tu computador",
       "step3": "Arrastra el MP3 a tu biblioteca",
-      "step4": "La canción se sincroniza automáticamente a todos tus dispositivos con iCloud",
-      "step5": "Agrégala a cualquier playlist junto con tu música"
+      "step4": "La cancion se sincroniza automaticamente a todos tus dispositivos con iCloud",
+      "step5": "Agregala a cualquier playlist junto con tu musica"
     }
+  },
+  "mySongs": {
+    "title": "Mis Canciones",
+    "creditsRemaining": "{credits} creditos restantes",
+    "createSong": "Crear Cancion",
+    "noSongsYet": "Aun no tienes canciones",
+    "createFirstPrompt": "Crea tu primera cancion personalizada para tu bebe!",
+    "createFirstSong": "Crea Tu Primera Cancion",
+    "songFor": "Cancion para {name}",
+    "lullaby": "Cancion de cuna",
+    "educational": "Educativa",
+    "fun": "Diversion",
+    "status": {
+      "draft": "Borrador",
+      "lyrics_ready": "Letra lista",
+      "generating": "Generando",
+      "completed": "Completada",
+      "failed": "Fallida"
+    }
+  },
+  "share": {
+    "songFor": "Una cancion para {name}",
+    "lyrics": "Letra",
+    "downloadMp3": "Descargar MP3",
+    "createdWith": "Creado con BabyBeats — Canciones hechas con IA para tu bebe",
+    "audioNotSupported": "Tu navegador no soporta audio.",
+    "lullaby": "Cancion de cuna",
+    "educational": "Educativa",
+    "fun": "Diversion"
   }
 }

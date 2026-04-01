@@ -168,7 +168,7 @@ export default function GeneratingPage() {
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                Version A
+                {t("versionA")}
               </button>
               <button
                 onClick={() => setSelected("b")}
@@ -178,7 +178,7 @@ export default function GeneratingPage() {
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                Version B
+                {t("versionB")}
               </button>
             </div>
           )}

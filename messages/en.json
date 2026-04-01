@@ -19,14 +19,31 @@
     "search": "Search songs...",
     "loading": "Loading...",
     "listenOn": "Listen on",
-    "mySongs": "My Songs"
+    "mySongs": "My Songs",
+    "create": "Create",
+    "allRights": "All rights reserved.",
+    "history": "History",
+    "upgrade": "Upgrade to {plan}",
+    "favorites": "Favorites",
+    "noFavorites": "No favorites yet. Start listening and add your favorites!",
+    "noHistory": "No listening history yet. Play some songs!"
   },
   "home": {
     "hero": {
       "title": "Music made for your baby, powered by AI",
       "subtitle": "Lullabies, educational songs, and fun tunes — crafted with artificial intelligence and designed for little ears.",
       "cta": "Explore Songs",
+      "ctaCreate": "Create Your First Song Free",
       "ctaSecondary": "Learn More"
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "step1Title": "Enter your baby's name",
+      "step1Desc": "Pick a theme, style, and language for the song",
+      "step2Title": "Preview & generate",
+      "step2Desc": "Review the lyrics, then AI creates the full song with audio",
+      "step3Title": "Download & share",
+      "step3Desc": "Get your MP3 and share a link with family and friends"
     },
     "categories": {
       "title": "Songs for every moment",
@@ -71,7 +88,21 @@
     "yearly": "Yearly",
     "subscribe": "Subscribe",
     "currentPlan": "Current Plan",
-    "mostPopular": "Most Popular"
+    "mostPopular": "Most Popular",
+    "heroTitle": "Create personalized songs for your baby",
+    "heroSubtitle": "Your first song is free. Buy credit packs to create more.",
+    "firstSongFree": "First Song Free",
+    "firstSongFreeDesc": "Sign up and create your first personalized baby song at no cost",
+    "createFreeSong": "Create Free Song",
+    "needMoreSongs": "Need more songs? Buy credits",
+    "bestValue": "Best Value",
+    "songsCount": "{count} songs",
+    "personalizedSongs": "{count} personalized songs",
+    "babyNameInLyrics": "Your baby's name in lyrics",
+    "mp3Download": "MP3 download",
+    "shareableLink": "Shareable link",
+    "creditsNeverExpire": "Credits never expire",
+    "buyCredits": "Buy {count} Credits"
   },
   "player": {
     "nowPlaying": "Now Playing",
@@ -125,7 +156,9 @@
     "mySongs": "My Songs",
     "failed": "Something went wrong",
     "failedHint": "The audio generation failed. Your credit has not been charged.",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "versionA": "Version A",
+    "versionB": "Version B"
   },
   "platforms": {
     "title": "Listen on your favorite platform",
@@ -134,7 +167,7 @@
       "title": "Add to Spotify",
       "step1": "Download your song's MP3",
       "step2": "Open Spotify on your computer (desktop app)",
-      "step3": "Go to Settings → Local Files → Turn on",
+      "step3": "Go to Settings > Local Files > Turn on",
       "step4": "Add the folder where you saved the MP3",
       "step5": "The song appears in \"Local Files\" — add it to any playlist",
       "step6": "On your phone, download the playlist on WiFi to listen offline"
@@ -147,5 +180,34 @@
       "step4": "The song syncs automatically to all your devices via iCloud",
       "step5": "Add it to any playlist alongside your music"
     }
+  },
+  "mySongs": {
+    "title": "My Songs",
+    "creditsRemaining": "{credits} credits remaining",
+    "createSong": "Create Song",
+    "noSongsYet": "No songs yet",
+    "createFirstPrompt": "Create your first personalized baby song!",
+    "createFirstSong": "Create Your First Song",
+    "songFor": "Song for {name}",
+    "lullaby": "Lullaby",
+    "educational": "Educational",
+    "fun": "Fun & Play",
+    "status": {
+      "draft": "Draft",
+      "lyrics_ready": "Lyrics ready",
+      "generating": "Generating",
+      "completed": "Completed",
+      "failed": "Failed"
+    }
+  },
+  "share": {
+    "songFor": "A song for {name}",
+    "lyrics": "Lyrics",
+    "downloadMp3": "Download MP3",
+    "createdWith": "Created with BabyBeats — AI-crafted songs for your baby",
+    "audioNotSupported": "Your browser does not support audio.",
+    "lullaby": "Lullaby",
+    "educational": "Educational",
+    "fun": "Fun & Play"
   }
 }

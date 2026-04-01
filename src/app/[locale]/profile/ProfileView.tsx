@@ -55,7 +55,7 @@ export default function ProfileView({
               href="/pricing"
               className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              Upgrade to {t("premium")}
+              {t("upgrade", { plan: t("premium") })}
             </Link>
           )}
         </div>
@@ -65,11 +65,11 @@ export default function ProfileView({
       <section className="mb-10">
         <h2 className="flex items-center gap-2 text-xl font-bold mb-4">
           <Heart className="h-5 w-5 text-primary" />
-          {t("favorite")}s
+          {t("favorites")}
         </h2>
         {favorites.length === 0 ? (
           <p className="text-muted-foreground text-sm py-8 text-center">
-            No favorites yet. Start listening and add your favorites!
+            {t("noFavorites")}
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -89,11 +89,11 @@ export default function ProfileView({
       <section>
         <h2 className="flex items-center gap-2 text-xl font-bold mb-4">
           <Clock className="h-5 w-5 text-primary" />
-          History
+          {t("history")}
         </h2>
         {history.length === 0 ? (
           <p className="text-muted-foreground text-sm py-8 text-center">
-            No listening history yet. Play some songs!
+            {t("noHistory")}
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { Music, BookOpen, Moon, Headphones, Sparkles, Download, Share2 } from "lucide-react";
+import { Music, BookOpen, Moon, Headphones, Sparkles, Share2 } from "lucide-react";
 
 export default function HomePage() {
   const t = useTranslations();
@@ -22,7 +22,7 @@ export default function HomePage() {
               className="bg-primary text-primary-foreground px-8 py-3 rounded-lg text-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
             >
               <Sparkles className="h-5 w-5" />
-              Create Your First Song Free
+              {t("home.hero.ctaCreate")}
             </Link>
             <Link
               href="/songs"
@@ -38,26 +38,26 @@ export default function HomePage() {
       <section className="py-24 px-4 bg-background">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
-            How it works
+            {t("home.howItWorks.title")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {[
               {
                 step: "1",
-                title: "Enter your baby's name",
-                desc: "Pick a theme, style, and language for the song",
+                title: t("home.howItWorks.step1Title"),
+                desc: t("home.howItWorks.step1Desc"),
                 icon: <Sparkles className="h-6 w-6 text-primary" />,
               },
               {
                 step: "2",
-                title: "Preview & generate",
-                desc: "Review the lyrics, then AI creates the full song with audio",
+                title: t("home.howItWorks.step2Title"),
+                desc: t("home.howItWorks.step2Desc"),
                 icon: <Music className="h-6 w-6 text-primary" />,
               },
               {
                 step: "3",
-                title: "Download & share",
-                desc: "Get your MP3 and share a link with family and friends",
+                title: t("home.howItWorks.step3Title"),
+                desc: t("home.howItWorks.step3Desc"),
                 icon: <Share2 className="h-6 w-6 text-primary" />,
               },
             ].map((item) => (
