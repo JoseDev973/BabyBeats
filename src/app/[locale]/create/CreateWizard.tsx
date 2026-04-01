@@ -28,20 +28,13 @@ const THEMES: { value: SongTheme; icon: typeof Moon; color: string }[] = [
   { value: "fun", icon: PartyPopper, color: "text-pink-500" },
 ];
 
-const STYLES = [
-  { value: "gentle", label: "Gentle & Soft" },
-  { value: "playful", label: "Playful & Upbeat" },
-  { value: "classical", label: "Classical" },
-  { value: "pop", label: "Pop" },
-  { value: "acoustic", label: "Acoustic" },
-  { value: "reggaeton", label: "Reggaeton Kids" },
-];
+const STYLE_KEYS = ["gentle", "playful", "classical", "pop", "acoustic", "reggaeton"] as const;
 
-const LANGUAGES = [
-  { value: "es", label: "Espa\u00f1ol" },
+const SONG_LANGUAGES = [
+  { value: "es", label: "Espanol" },
   { value: "en", label: "English" },
-  { value: "pt", label: "Portugu\u00eas" },
-  { value: "fr", label: "Fran\u00e7ais" },
+  { value: "pt", label: "Portugues" },
+  { value: "fr", label: "Francais" },
   { value: "de", label: "Deutsch" },
   { value: "it", label: "Italiano" },
 ];
@@ -89,13 +82,13 @@ export default function CreateWizard({
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate lyrics");
+      if (!res.ok) throw new Error(data.error || t("failedLyrics"));
 
       setLyrics(data.lyrics);
       setGeneratedSongId(data.songId);
       setStep("preview");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("somethingWrong"));
     } finally {
       setLoading(false);
     }
@@ -114,11 +107,11 @@ export default function CreateWizard({
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate audio");
+      if (!res.ok) throw new Error(data.error || t("failedAudio"));
 
       router.push(`/create/generating/${generatedSongId}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("somethingWrong"));
       setLoading(false);
     }
   }
@@ -241,17 +234,17 @@ export default function CreateWizard({
               {t("musicStyle")}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {STYLES.map((s) => (
+              {STYLE_KEYS.map((key) => (
                 <button
-                  key={s.value}
-                  onClick={() => setMusicStyle(s.value)}
+                  key={key}
+                  onClick={() => setMusicStyle(key)}
                   className={`px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                    musicStyle === s.value
+                    musicStyle === key
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   }`}
                 >
-                  {s.label}
+                  {t(key)}
                 </button>
               ))}
             </div>
@@ -262,7 +255,7 @@ export default function CreateWizard({
               {t("language")}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {LANGUAGES.map((l) => (
+              {SONG_LANGUAGES.map((l) => (
                 <button
                   key={l.value}
                   onClick={() => setLanguage(l.value)}

@@ -12,20 +12,20 @@ interface SongCatalogProps {
   isPremiumUser: boolean;
 }
 
-const AGE_RANGES = [
-  { value: "all", label: "All" },
-  { value: "0-6m", label: "0-6 months" },
-  { value: "6-12m", label: "6-12 months" },
-  { value: "1-2y", label: "1-2 years" },
-  { value: "2-3y", label: "2-3 years" },
+const AGE_RANGE_KEYS = [
+  { value: "all", key: "all" },
+  { value: "0-6m", key: "age0to6" },
+  { value: "6-12m", key: "age6to12" },
+  { value: "1-2y", key: "age1to2" },
+  { value: "2-3y", key: "age2to3" },
 ];
 
-const LANGUAGES = [
-  { value: "all", label: "All" },
-  { value: "es", label: "Espa\u00f1ol" },
-  { value: "en", label: "English" },
-  { value: "pt", label: "Portugu\u00eas" },
-  { value: "fr", label: "Fran\u00e7ais" },
+const CATALOG_LANGUAGES = [
+  { value: "all", key: "all" as const },
+  { value: "es", key: null, label: "Espanol" },
+  { value: "en", key: null, label: "English" },
+  { value: "pt", key: null, label: "Portugues" },
+  { value: "fr", key: null, label: "Francais" },
 ];
 
 export default function SongCatalog({
@@ -66,7 +66,7 @@ export default function SongCatalog({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder={t("catalog")}
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -91,9 +91,9 @@ export default function SongCatalog({
           onChange={(e) => setLanguageFilter(e.target.value)}
           className="px-3 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          {LANGUAGES.map((lang) => (
+          {CATALOG_LANGUAGES.map((lang) => (
             <option key={lang.value} value={lang.value}>
-              {lang.label}
+              {lang.key ? t(lang.key) : lang.label}
             </option>
           ))}
         </select>
@@ -103,9 +103,9 @@ export default function SongCatalog({
           onChange={(e) => setAgeFilter(e.target.value)}
           className="px-3 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          {AGE_RANGES.map((age) => (
+          {AGE_RANGE_KEYS.map((age) => (
             <option key={age.value} value={age.value}>
-              {age.label}
+              {t(age.key)}
             </option>
           ))}
         </select>

@@ -69,7 +69,13 @@
     "allAges": "All ages",
     "premiumBadge": "Premium",
     "premiumLocked": "Upgrade to Premium to listen",
-    "noResults": "No songs found"
+    "noResults": "No songs found",
+    "searchPlaceholder": "Search songs...",
+    "all": "All",
+    "age0to6": "0-6 months",
+    "age6to12": "6-12 months",
+    "age1to2": "1-2 years",
+    "age2to3": "2-3 years"
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -79,7 +85,11 @@
     "confirmPassword": "Confirm password",
     "loginWithGoogle": "Continue with Google",
     "noAccount": "Don't have an account?",
-    "hasAccount": "Already have an account?"
+    "hasAccount": "Already have an account?",
+    "passwordsMismatch": "Passwords don't match",
+    "googleError": "Could not connect to Google. Please try again.",
+    "or": "or",
+    "signupWithGoogle": "Sign up with Google"
   },
   "pricing": {
     "title": "Choose your plan",
@@ -133,7 +143,16 @@
     "needCredits": "You need credits to generate audio",
     "buyCredits": "Buy credits",
     "back": "Back",
-    "next": "Next"
+    "next": "Next",
+    "failedLyrics": "Failed to generate lyrics",
+    "failedAudio": "Failed to generate audio",
+    "somethingWrong": "Something went wrong",
+    "gentle": "Gentle & Soft",
+    "playful": "Playful & Upbeat",
+    "classical": "Classical",
+    "pop": "Pop",
+    "acoustic": "Acoustic",
+    "reggaeton": "Reggaeton Kids"
   },
   "generating": {
     "title": "Creating your song...",

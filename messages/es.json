@@ -69,7 +69,13 @@
     "allAges": "Todas las edades",
     "premiumBadge": "Premium",
     "premiumLocked": "Hazte Premium para escuchar",
-    "noResults": "No se encontraron canciones"
+    "noResults": "No se encontraron canciones",
+    "searchPlaceholder": "Buscar canciones...",
+    "all": "Todas",
+    "age0to6": "0-6 meses",
+    "age6to12": "6-12 meses",
+    "age1to2": "1-2 anos",
+    "age2to3": "2-3 anos"
   },
   "auth": {
     "loginTitle": "Bienvenido de vuelta",
@@ -79,7 +85,11 @@
     "confirmPassword": "Confirmar contrasena",
     "loginWithGoogle": "Continuar con Google",
     "noAccount": "No tienes cuenta?",
-    "hasAccount": "Ya tienes cuenta?"
+    "hasAccount": "Ya tienes cuenta?",
+    "passwordsMismatch": "Las contrasenas no coinciden",
+    "googleError": "No se pudo conectar con Google. Intenta de nuevo.",
+    "or": "o",
+    "signupWithGoogle": "Registrarse con Google"
   },
   "pricing": {
     "title": "Elige tu plan",
@@ -133,7 +143,16 @@
     "needCredits": "Necesitas creditos para generar audio",
     "buyCredits": "Comprar creditos",
     "back": "Atras",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "failedLyrics": "Error al generar la letra",
+    "failedAudio": "Error al generar el audio",
+    "somethingWrong": "Algo salio mal",
+    "gentle": "Suave & Tranquilo",
+    "playful": "Alegre & Divertido",
+    "classical": "Clasico",
+    "pop": "Pop",
+    "acoustic": "Acustico",
+    "reggaeton": "Reggaeton Kids"
   },
   "generating": {
     "title": "Creando tu cancion...",
