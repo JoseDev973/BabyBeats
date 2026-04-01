@@ -22,7 +22,7 @@ export default function PricingPage() {
       </div>
 
       {/* Free tier */}
-      <div className="max-w-md mx-auto mb-12 p-6 rounded-xl border-2 border-primary/30 bg-primary/5 text-center">
+      <div className="max-w-md mx-auto mb-12 p-6 rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-gold/10 text-center">
         <Gift className="h-8 w-8 text-primary mx-auto mb-3" />
         <h3 className="text-lg font-bold mb-1">{t("firstSongFree")}</h3>
         <p className="text-sm text-muted-foreground mb-4">
@@ -46,7 +46,7 @@ export default function PricingPage() {
         {Object.values(CREDIT_PACKS).map((pack) => (
           <div
             key={pack.name}
-            className={`rounded-xl bg-card p-8 flex flex-col relative ${
+            className={`rounded-2xl bg-card p-8 flex flex-col relative ${
               pack.popular
                 ? "border-2 border-primary shadow-lg"
                 : "border border-border"
@@ -95,7 +95,7 @@ export default function PricingPage() {
 
             <Link
               href="/auth/signup"
-              className={`py-2.5 rounded-lg text-sm font-medium text-center transition-colors ${
+              className={`py-2.5 rounded-xl text-sm font-bold text-center transition-colors ${
                 pack.popular
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "border border-border hover:bg-muted"
