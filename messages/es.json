@@ -28,7 +28,14 @@
     "upgrade": "Mejorar a {plan}",
     "favorites": "Favoritos",
     "noFavorites": "Aún no tienes favoritos. ¡Escucha canciones y agrega tus favoritos!",
-    "noHistory": "Aún no hay historial. ¡Reproduce algunas canciones!"
+    "noHistory": "Aún no hay historial. ¡Reproduce algunas canciones!",
+    "product": "Producto",
+    "legal": "Legal y Soporte",
+    "contact": "Contacto",
+    "madeWithLove": "Hecho con amor para oídos pequeños",
+    "catalog": "Catálogo de Canciones",
+    "giftAlbum": "Regala un Álbum",
+    "createSong": "Crear una Canción"
   },
   "home": {
     "hero": {
@@ -288,6 +295,21 @@
     "howStep2Desc": "Ingresa el nombre del bebé y personaliza cada canción",
     "howStep3Title": "Comparte el regalo",
     "howStep3Desc": "Recibe un link bonito para enviar a los papás"
+  },
+  "metadata": {
+    "defaultTitle": "BabyBeats — Canciones con IA para tu Bebé",
+    "defaultDescription": "Canciones de cuna, educativas y divertidas para tu bebé — creadas con inteligencia artificial. Escucha en Spotify, Apple Music o nuestra plataforma.",
+    "ogDescription": "Canciones de cuna, educativas y divertidas personalizadas para tu bebé — creadas con IA.",
+    "pricingTitle": "Planes",
+    "pricingDescription": "Packs de créditos accesibles para canciones personalizadas. Tu primera canción es gratis — sin tarjeta de crédito.",
+    "songsTitle": "Catálogo de Canciones",
+    "songsDescription": "Explora nuestro catálogo completo de canciones para bebés — canciones de cuna, educativas y divertidas, creadas con IA.",
+    "giftTitle": "Regala un Álbum Personalizado",
+    "giftDescription": "Un regalo único con su nombre en cada canción. Perfecto para baby showers, cumpleaños y momentos especiales.",
+    "loginTitle": "Iniciar Sesión",
+    "loginDescription": "Inicia sesión en tu cuenta de BabyBeats para crear, gestionar y escuchar canciones personalizadas.",
+    "signupTitle": "Crear Cuenta",
+    "signupDescription": "Crea tu cuenta gratis en BabyBeats y obtén tu primera canción personalizada sin costo."
   },
   "share": {
     "songFor": "Una canción para {name}",

@@ -28,7 +28,14 @@
     "upgrade": "Upgrade to {plan}",
     "favorites": "Favorites",
     "noFavorites": "No favorites yet. Start listening and add your favorites!",
-    "noHistory": "No listening history yet. Play some songs!"
+    "noHistory": "No listening history yet. Play some songs!",
+    "product": "Product",
+    "legal": "Legal & Support",
+    "contact": "Contact",
+    "madeWithLove": "Made with love for little ears",
+    "catalog": "Song Catalog",
+    "giftAlbum": "Gift an Album",
+    "createSong": "Create a Song"
   },
   "home": {
     "hero": {
@@ -288,6 +295,21 @@
     "howStep2Desc": "Enter the baby's name and customize each song",
     "howStep3Title": "Share the gift",
     "howStep3Desc": "Get a beautiful link to send to the parents"
+  },
+  "metadata": {
+    "defaultTitle": "BabyBeats — AI-Crafted Songs for Babies",
+    "defaultDescription": "Lullabies, educational songs, and fun tunes for your baby — crafted with artificial intelligence. Listen on Spotify, Apple Music, or our platform.",
+    "ogDescription": "Personalized lullabies, educational songs, and fun tunes for your baby — crafted with AI.",
+    "pricingTitle": "Pricing",
+    "pricingDescription": "Affordable credit packs for personalized baby songs. Your first song is free — no credit card required.",
+    "songsTitle": "Song Catalog",
+    "songsDescription": "Browse our full catalog of AI-crafted baby songs — lullabies, educational tunes, and fun melodies for your little one.",
+    "giftTitle": "Gift a Personalized Album",
+    "giftDescription": "A unique gift with their name in every song. Perfect for baby showers, birthdays, and special moments.",
+    "loginTitle": "Log In",
+    "loginDescription": "Log in to your BabyBeats account to create, manage, and listen to personalized baby songs.",
+    "signupTitle": "Sign Up",
+    "signupDescription": "Create a free BabyBeats account and get your first personalized baby song for free."
   },
   "share": {
     "songFor": "A song for {name}",
