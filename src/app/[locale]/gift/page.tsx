@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Gift, Music, Moon, BookOpen, PartyPopper, Sparkles, Star } from "lucide-react";
+import { Gift, Moon, BookOpen, Star, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const PACKS = [
@@ -40,35 +40,43 @@ export default function GiftPage() {
   const t = useTranslations("gift");
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   async function selectPack(packType: string, totalSongs: number) {
     setLoading(packType);
+    setError("");
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
+      if (!user) {
+        router.push("/auth/login");
+        return;
+      }
 
-    const { data: gift, error } = await supabase
-      .from("gifts")
-      .insert({
-        buyer_id: user.id,
-        pack_type: packType,
-        total_songs: totalSongs,
-        status: "personalizing",
-      })
-      .select("id")
-      .single();
+      const { data: gift, error: insertError } = await supabase
+        .from("gifts")
+        .insert({
+          buyer_id: user.id,
+          pack_type: packType,
+          total_songs: totalSongs,
+          status: "personalizing",
+        })
+        .select("id")
+        .single();
 
-    if (error || !gift) {
+      if (insertError || !gift) {
+        setError(insertError?.message || "Error creating gift");
+        setLoading(null);
+        return;
+      }
+
+      router.push(`/gift/create/${gift.id}`);
+    } catch {
+      setError("Something went wrong. Please try again.");
       setLoading(null);
-      return;
     }
-
-    router.push(`/gift/create/${gift.id}`);
   }
 
   return (
@@ -86,6 +94,13 @@ export default function GiftPage() {
           {t("heroSubtitle")}
         </p>
       </div>
+
+      {/* Error */}
+      {error && (
+        <p className="text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl text-center mb-8 max-w-md mx-auto">
+          {error}
+        </p>
+      )}
 
       {/* Packs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -124,17 +139,14 @@ export default function GiftPage() {
             <button
               onClick={() => selectPack(pack.type, pack.songs)}
               disabled={loading !== null}
-              className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${
+              className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                 pack.popular
                   ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md"
                   : "border-2 border-border hover:border-primary/30 hover:bg-white/50"
               } disabled:opacity-50`}
             >
-              {loading === pack.type ? (
-                <span className="animate-pulse">{t("continue")}...</span>
-              ) : (
-                t("free")
-              )}
+              {loading === pack.type && <Loader2 className="h-4 w-4 animate-spin" />}
+              {t("selectPack")}
             </button>
           </div>
         ))}

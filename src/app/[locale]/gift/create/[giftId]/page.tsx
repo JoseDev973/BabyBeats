@@ -59,6 +59,8 @@ export default function GiftCreatePage() {
   const [totalSongs, setTotalSongs] = useState(10);
   const [songConfigs, setSongConfigs] = useState<{ theme: SongTheme; style: string; prompt: string }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deliveryToken, setDeliveryToken] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -128,10 +130,17 @@ export default function GiftCreatePage() {
 
     await supabase.from("gift_songs").insert(songRows);
 
-    // TODO: trigger generation via API for each song
-    // For now, mark gift as ready with pending songs
+    // Fetch delivery token for the share link
+    const { data: giftData } = await supabase
+      .from("gifts")
+      .select("delivery_token")
+      .eq("id", giftId)
+      .single();
 
-    router.push(`/gift/create/${giftId}`);
+    if (giftData?.delivery_token) {
+      setDeliveryToken(giftData.delivery_token);
+    }
+
     setStep("confirm");
     setLoading(false);
   }
@@ -349,7 +358,7 @@ export default function GiftCreatePage() {
         </div>
       )}
 
-      {/* Step: Confirm / Generating */}
+      {/* Step: Confirm */}
       {step === "confirm" && (
         <div className="text-center space-y-6">
           <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
@@ -360,8 +369,44 @@ export default function GiftCreatePage() {
           <p className="text-sm text-muted-foreground">
             {totalSongs} {t("songs")}
           </p>
-          <div className="bg-card border border-border rounded-xl p-4 text-sm text-muted-foreground">
-            Las canciones se generarán cuando se conecte el pago con Stripe. Por ahora el gift quedó guardado.
+
+          {deliveryToken && (
+            <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+              <p className="text-xs text-muted-foreground font-semibold uppercase">{t("copyLink")}</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/gift/deliver/${deliveryToken}`}
+                  className="flex-1 px-3 py-2 rounded-lg border border-input bg-background text-sm truncate"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/gift/deliver/${deliveryToken}`);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all shrink-0"
+                >
+                  {copied ? t("copied") : t("copyLink")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={() => router.push("/gift")}
+              className="flex-1 border-2 border-border py-2.5 rounded-xl text-sm font-bold hover:bg-muted transition-all"
+            >
+              {t("heroTitle")}
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              className="flex-1 border-2 border-border py-2.5 rounded-xl text-sm font-bold hover:bg-muted transition-all"
+            >
+              Home
+            </button>
           </div>
         </div>
       )}

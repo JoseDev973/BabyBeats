@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { Music, BookOpen, Moon, Headphones, Sparkles, Share2 } from "lucide-react";
+import { Music, BookOpen, Moon, Headphones, Sparkles, Share2, Gift } from "lucide-react";
 
 export default function HomePage() {
   const t = useTranslations();
@@ -36,10 +36,11 @@ export default function HomePage() {
               {t("home.hero.ctaCreate")}
             </Link>
             <Link
-              href="/songs"
-              className="border-2 border-border px-8 py-3.5 rounded-2xl text-lg font-semibold hover:bg-card hover:border-primary/30 transition-all"
+              href="/gift"
+              className="bg-gradient-to-r from-accent to-gold text-accent-foreground px-8 py-3.5 rounded-2xl text-lg font-bold hover:shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
             >
-              {t("home.hero.cta")}
+              <Gift className="h-5 w-5" />
+              {t("home.hero.ctaGift")}
             </Link>
           </div>
         </div>
