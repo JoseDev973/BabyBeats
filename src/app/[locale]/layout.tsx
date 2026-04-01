@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     "Lullabies, educational songs, and fun tunes for your baby — crafted with artificial intelligence. Listen on Spotify, Apple Music, or our platform.",
   icons: {
     icon: "/icon.svg",
+    apple: "/apple-icon.svg",
   },
   keywords: [
     "baby songs",
