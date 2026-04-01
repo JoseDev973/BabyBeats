@@ -163,3 +163,32 @@ export interface CreditTransaction {
   stripe_payment_id: string | null;
   created_at: string;
 }
+
+// Coupons
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discount_percent: number | null;
+  discount_amount: number | null;
+  max_uses: number | null;
+  current_uses: number;
+  valid_from: string | null;
+  valid_until: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+// Referrals
+
+export type ReferralStatus = "pending" | "completed" | "rewarded";
+
+export interface Referral {
+  id: string;
+  referrer_id: string;
+  referred_email: string | null;
+  referral_code: string;
+  status: ReferralStatus;
+  reward_credits: number;
+  created_at: string;
+}
