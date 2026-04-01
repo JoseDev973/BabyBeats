@@ -1,9 +1,27 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Music, BookOpen, Moon, Headphones, Sparkles, Share2, Gift } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
-export default function HomePage() {
+export default async function HomePage() {
   const t = useTranslations();
+
+  // Check if user already used their free song
+  let isFirstSong = true;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("total_songs_generated")
+        .eq("id", user.id)
+        .single();
+      isFirstSong = (profile?.total_songs_generated ?? 0) === 0;
+    }
+  } catch {
+    // Not logged in, show free CTA
+  }
 
   return (
     <>
@@ -33,7 +51,7 @@ export default function HomePage() {
               className="bg-primary text-primary-foreground px-8 py-3.5 rounded-2xl text-lg font-bold hover:bg-primary/90 transition-all hover:scale-[1.02] hover:shadow-lg flex items-center justify-center gap-2"
             >
               <Sparkles className="h-5 w-5" />
-              {t("home.hero.ctaCreate")}
+              {isFirstSong ? t("home.hero.ctaCreateFree") : t("home.hero.ctaCreate")}
             </Link>
             <Link
               href="/gift"
