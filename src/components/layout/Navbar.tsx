@@ -5,10 +5,11 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { Music, Menu, X, LogOut, User as UserIcon, Sparkles } from "lucide-react";
+import { Music, Menu, X, LogOut, User as UserIcon, Sparkles, Gift } from "lucide-react";
 
 export default function Navbar() {
   const t = useTranslations("common");
+  const tg = useTranslations("gift");
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -58,6 +59,13 @@ export default function Navbar() {
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             {t("songs")}
+          </Link>
+          <Link
+            href="/gift"
+            className="text-sm font-medium text-accent-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Gift className="h-3.5 w-3.5" />
+            {tg("nav")}
           </Link>
           <Link
             href="/pricing"
@@ -148,6 +156,14 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
           >
             {t("songs")}
+          </Link>
+          <Link
+            href="/gift"
+            className="block text-sm py-2 font-medium text-accent-foreground flex items-center gap-2"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Gift className="h-3.5 w-3.5" />
+            {tg("nav")}
           </Link>
           <Link
             href="/pricing"

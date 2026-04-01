@@ -113,6 +113,45 @@ export interface GeneratedSong {
   updated_at: string;
 }
 
+export type GiftPackType = "first_album" | "sweet_dreams" | "learning" | "custom";
+export type GiftDeliveryMode = "link" | "redeem";
+export type GiftStatus = "draft" | "personalizing" | "generating" | "ready" | "delivered" | "redeemed";
+export type GiftSongStatus = "pending" | "generating" | "completed" | "failed";
+
+export interface Gift {
+  id: string;
+  buyer_id: string | null;
+  recipient_name: string | null;
+  recipient_email: string | null;
+  child_name: string;
+  pack_type: GiftPackType;
+  total_songs: number;
+  language: string;
+  delivery_mode: GiftDeliveryMode;
+  delivery_token: string;
+  status: GiftStatus;
+  stripe_payment_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GiftSong {
+  id: string;
+  gift_id: string;
+  position: number;
+  theme: SongTheme;
+  music_style: string;
+  language: string;
+  custom_prompt: string | null;
+  lyrics: string | null;
+  audio_url: string | null;
+  cover_image_url: string | null;
+  duration_seconds: number | null;
+  status: GiftSongStatus;
+  suno_task_id: string | null;
+  created_at: string;
+}
+
 export type CreditTransactionType = "purchase" | "usage" | "bonus";
 
 export interface CreditTransaction {
