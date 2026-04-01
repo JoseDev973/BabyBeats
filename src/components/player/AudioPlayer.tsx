@@ -21,6 +21,7 @@ function formatTime(seconds: number): string {
 
 export default function AudioPlayer() {
   const t = useTranslations("player");
+  const tc = useTranslations("common");
   const {
     currentSong,
     isPlaying,
@@ -35,8 +36,6 @@ export default function AudioPlayer() {
   } = usePlayer();
 
   if (!currentSong) return null;
-
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border z-50 px-4 py-2 sm:py-3">
@@ -68,12 +67,14 @@ export default function AudioPlayer() {
             <button
               onClick={previous}
               className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={tc("previous")}
             >
               <SkipBack className="h-4 w-4" />
             </button>
             <button
               onClick={togglePlay}
               className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+              aria-label={isPlaying ? tc("pause") : tc("play")}
             >
               {isPlaying ? (
                 <Pause className="h-4 w-4" />
@@ -84,12 +85,13 @@ export default function AudioPlayer() {
             <button
               onClick={next}
               className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={tc("next")}
             >
               <SkipForward className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Progress bar - compact on mobile, full on desktop */}
+          {/* Progress bar */}
           <div className="flex items-center gap-2 w-full">
             <span className="hidden sm:inline text-xs text-muted-foreground w-10 text-right">
               {formatTime(currentTime)}
@@ -100,7 +102,8 @@ export default function AudioPlayer() {
               max={duration || 0}
               value={currentTime}
               onChange={(e) => seek(Number(e.target.value))}
-              className="flex-1 h-1 accent-primary cursor-pointer"
+              className="flex-1"
+              aria-label="Song progress"
             />
             <span className="text-xs text-muted-foreground w-10">
               {formatTime(duration - currentTime)}
@@ -113,6 +116,7 @@ export default function AudioPlayer() {
           <button
             onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
             className="text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={volume === 0 ? "Unmute" : "Mute"}
           >
             {volume === 0 ? (
               <VolumeX className="h-4 w-4" />
@@ -127,7 +131,8 @@ export default function AudioPlayer() {
             step={0.05}
             value={volume}
             onChange={(e) => setVolume(Number(e.target.value))}
-            className="flex-1 h-1 accent-primary cursor-pointer"
+            className="flex-1"
+            aria-label="Volume"
           />
         </div>
       </div>

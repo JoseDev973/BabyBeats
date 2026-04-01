@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -12,7 +12,69 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
+  Play,
+  Pause,
 } from "lucide-react";
+
+function AudioPreview({ src }: { src: string }) {
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [dur, setDur] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const onTime = () => setProgress(audio.currentTime);
+    const onMeta = () => setDur(audio.duration);
+    const onEnd = () => { setPlaying(false); setProgress(0); };
+    audio.addEventListener("timeupdate", onTime);
+    audio.addEventListener("loadedmetadata", onMeta);
+    audio.addEventListener("ended", onEnd);
+    return () => {
+      audio.removeEventListener("timeupdate", onTime);
+      audio.removeEventListener("loadedmetadata", onMeta);
+      audio.removeEventListener("ended", onEnd);
+    };
+  }, [src]);
+
+  function togglePlay() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) { audio.pause(); } else { audio.play(); }
+    setPlaying(!playing);
+  }
+
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
+
+  return (
+    <>
+      <audio ref={audioRef} src={src} preload="metadata" />
+      <div className="flex items-center gap-3">
+        <button
+          onClick={togglePlay}
+          className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors shrink-0"
+          aria-label={playing ? "Pause" : "Play"}
+        >
+          {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
+        </button>
+        <div className="flex-1 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground w-10 text-right">{fmt(progress)}</span>
+          <input
+            type="range"
+            min={0}
+            max={dur || 0}
+            value={progress}
+            onChange={(e) => { const v = Number(e.target.value); if (audioRef.current) audioRef.current.currentTime = v; setProgress(v); }}
+            className="flex-1"
+            aria-label="Song progress"
+          />
+          <span className="text-xs text-muted-foreground w-10">{fmt(dur)}</span>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function GeneratingPage() {
   const { songId } = useParams<{ songId: string }>();
@@ -205,9 +267,7 @@ export default function GeneratingPage() {
                   <p className="text-xs text-muted-foreground">BabyBeats</p>
                 </div>
               </div>
-              <audio controls className="w-full" key={selectedUrl} src={selectedUrl}>
-                Your browser does not support audio.
-              </audio>
+              <AudioPreview key={selectedUrl} src={selectedUrl} />
             </div>
           )}
 
