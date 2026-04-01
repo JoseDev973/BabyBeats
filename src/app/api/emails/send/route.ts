@@ -1,4 +1,4 @@
-import { resend, FROM_ADDRESS } from "@/lib/resend";
+import { getResend, FROM_ADDRESS } from "@/lib/resend";
 import { giftReadyEmail, getGiftReadySubject } from "@/lib/emails/gift-ready";
 import { welcomeEmail, getWelcomeSubject } from "@/lib/emails/welcome";
 import { createClient } from "@/lib/supabase/server";
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
         );
     }
 
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
       from: FROM_ADDRESS,
       to,
       subject,
