@@ -15,6 +15,16 @@ function getSupabase() {
 
 export async function POST(request: Request) {
   try {
+    // Verify webhook secret
+    const webhookSecret = process.env.SUNO_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const authHeader = request.headers.get("authorization");
+      if (authHeader !== `Bearer ${webhookSecret}`) {
+        console.error("[Suno Webhook] Unauthorized request");
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+    }
+
     const body = await request.json();
     const taskId = body.data?.taskId || body.taskId;
     const status = body.data?.status || body.status;
@@ -106,8 +116,6 @@ export async function POST(request: Request) {
             .update({ status: "ready", updated_at: new Date().toISOString() })
             .eq("id", giftSong.gift_id);
 
-<<<<<<< HEAD
-=======
           // Send gift-ready email to the buyer
           try {
             const { data: gift } = await supabase
@@ -151,7 +159,6 @@ export async function POST(request: Request) {
             console.error("[Suno Webhook] Failed to send gift-ready email:", emailErr);
           }
 
->>>>>>> dev
           console.log(`[Suno Webhook] Gift ${giftSong.gift_id} fully completed`);
         }
 
