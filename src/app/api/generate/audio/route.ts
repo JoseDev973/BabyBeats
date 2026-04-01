@@ -113,14 +113,31 @@ export async function POST(request: Request) {
       })
       .eq("id", songId);
 
-    // Deduct credit
+    // Deduct credit (atomic: only succeeds if credits haven't changed)
     if (!isFirstSong) {
-      await supabase
+      const expectedCredits = profile?.credits ?? 1;
+      const { data: updated, error: creditError } = await supabase
         .from("profiles")
-        .update({ credits: (profile?.credits ?? 1) - 1 })
-        .eq("id", user.id);
+        .update({ credits: expectedCredits - 1 })
+        .eq("id", user.id)
+        .eq("credits", expectedCredits)
+        .select("credits")
+        .single();
+
+      if (creditError || !updated) {
+        // Credits changed between read and write — abort
+        await supabase
+          .from("generated_songs")
+          .update({ status: "failed" })
+          .eq("id", songId);
+        return NextResponse.json(
+          { error: "Credit conflict. Please try again." },
+          { status: 409 },
+        );
+      }
     }
 
+    // Increment total songs generated (separate, non-critical)
     await supabase
       .from("profiles")
       .update({
