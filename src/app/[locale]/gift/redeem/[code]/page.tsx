@@ -94,46 +94,21 @@ export default function GiftRedeemCodePage() {
         return;
       }
 
-      // Get current profile credits
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("credits")
-        .eq("id", user.id)
-        .single();
+      const res = await fetch("/api/gift/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
 
-      const currentCredits = profile?.credits ?? 0;
-      const newCredits = currentCredits + gift.total_songs;
+      const data = await res.json();
 
-      // Add credits to user profile
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ credits: newCredits })
-        .eq("id", user.id);
-
-      if (updateError) {
+      if (!res.ok) {
         setError(t("redeemError"));
         setRedeeming(false);
         return;
       }
 
-      // Record the credit transaction
-      await supabase.from("credit_transactions").insert({
-        user_id: user.id,
-        amount: gift.total_songs,
-        type: "bonus",
-        description: `Gift redeemed: ${gift.pack_type} for ${gift.child_name}`,
-      });
-
-      // Mark gift as redeemed
-      await supabase
-        .from("gifts")
-        .update({
-          status: "redeemed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", gift.id);
-
-      setCredits(gift.total_songs);
+      setCredits(data.credits);
       setRedeemed(true);
     } catch {
       setError(t("redeemError"));
