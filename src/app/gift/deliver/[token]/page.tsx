@@ -47,9 +47,25 @@ export async function generateMetadata({
     .single();
 
   if (!gift) return { title: "Gift not found" };
+
+  const title = `Album for ${gift.child_name} | BabyBeats`;
+  const description = `A personalized music album created for ${gift.child_name}`;
+
   return {
-    title: `Album for ${gift.child_name} | BabyBeats`,
-    description: `A personalized music album created for ${gift.child_name}`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://babybeats.art/gift/deliver/${token}`,
+      siteName: "BabyBeats",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
 }
 

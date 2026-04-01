@@ -22,6 +22,8 @@
     "mySongs": "Mis Canciones",
     "create": "Crear",
     "allRights": "Todos los derechos reservados.",
+    "terms": "Términos de Servicio",
+    "privacy": "Política de Privacidad",
     "history": "Historial",
     "upgrade": "Mejorar a {plan}",
     "favorites": "Favoritos",
@@ -272,17 +274,20 @@
     "giftFrom": "Un regalo para ti",
     "giftMessage": "Alguien especial creó un álbum de música personalizado para {name}",
     "listenNow": "Escuchar ahora",
-<<<<<<< HEAD
-    "songs": "canciones"
-=======
     "songs": "canciones",
     "redeemTitle": "Canjea tu regalo",
     "redeemPlaceholder": "Ingresa tu código de regalo",
     "redeemButton": "Canjear",
     "redeemSuccess": "¡Regalo canjeado! Recibiste {credits} créditos",
     "redeemError": "Código inválido o ya canjeado",
-    "redeemStartCreating": "Empieza a crear canciones"
->>>>>>> dev
+    "redeemStartCreating": "Empieza a crear canciones",
+    "howItWorks": "Cómo funciona",
+    "howStep1Title": "Elige un pack",
+    "howStep1Desc": "Elige el tamaño perfecto de álbum para el bebé",
+    "howStep2Title": "Personaliza",
+    "howStep2Desc": "Ingresa el nombre del bebé y personaliza cada canción",
+    "howStep3Title": "Comparte el regalo",
+    "howStep3Desc": "Recibe un link bonito para enviar a los papás"
   },
   "share": {
     "songFor": "Una canción para {name}",

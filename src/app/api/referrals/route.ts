@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 function generateReferralCode(displayName: string | null): string {
   const prefix = (displayName || "BABY")
@@ -11,6 +12,15 @@ function generateReferralCode(displayName: string | null): string {
 
 export async function GET(request: Request) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "anonymous";
+    const { success, remaining } = rateLimit(ip);
+    if (!success) {
+      return Response.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "X-RateLimit-Remaining": String(remaining) } },
+      );
+    }
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -66,6 +76,15 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "anonymous";
+    const { success, remaining } = rateLimit(ip);
+    if (!success) {
+      return Response.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "X-RateLimit-Remaining": String(remaining) } },
+      );
+    }
+
     const supabase = await createClient();
     const {
       data: { user },

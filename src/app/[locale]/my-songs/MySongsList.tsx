@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import type { GeneratedSong } from "@/types/database";
 import {
-  Music,
   Download,
   Share2,
   Plus,
@@ -16,6 +15,7 @@ import {
   Coins,
   Baby,
 } from "lucide-react";
+import SongCover from "@/components/songs/SongCover";
 
 interface MySongsListProps {
   songs: GeneratedSong[];
@@ -92,9 +92,7 @@ export default function MySongsList({ songs, credits }: MySongsListProps) {
                 key={song.id}
                 className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:shadow-sm transition-shadow"
               >
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Music className="h-5 w-5 text-primary" />
-                </div>
+                <SongCover theme={song.theme} size="md" childName={song.child_name} />
 
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">
