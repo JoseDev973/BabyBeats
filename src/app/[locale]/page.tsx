@@ -113,6 +113,26 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Social proof / Stats */}
+      <section className="py-12 px-4 bg-background">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+            <div className="p-6">
+              <p className="text-4xl font-extrabold text-primary mb-1">{t("home.stats.songsCount")}</p>
+              <p className="text-sm text-muted-foreground">{t("home.stats.songsLabel")}</p>
+            </div>
+            <div className="p-6">
+              <p className="text-4xl font-extrabold text-primary mb-1">{t("home.stats.familiesCount")}</p>
+              <p className="text-sm text-muted-foreground">{t("home.stats.familiesLabel")}</p>
+            </div>
+            <div className="p-6">
+              <p className="text-4xl font-extrabold text-primary mb-1">{t("home.stats.rating")}</p>
+              <p className="text-sm text-muted-foreground">{t("home.stats.ratingLabel")}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Categories */}
       <section id="categories" className="relative py-20 px-4 overflow-hidden">
         {/* Wave top */}
@@ -149,6 +169,33 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-16 px-4 bg-background">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-extrabold text-center mb-10">
+            {t("home.testimonials.title")}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-card border border-border rounded-2xl p-6">
+                <div className="flex gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg key={star} className="h-4 w-4 text-gold fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground mb-4 italic">
+                  &ldquo;{t(`home.testimonials.quote${i}`)}&rdquo;
+                </p>
+                <p className="text-sm font-semibold">{t(`home.testimonials.author${i}`)}</p>
+                <p className="text-xs text-muted-foreground">{t(`home.testimonials.role${i}`)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Listen Anywhere */}
       <section className="py-20 px-4 bg-background">
         <div className="max-w-4xl mx-auto text-center">
@@ -161,17 +208,23 @@ export default async function HomePage() {
           <p className="text-lg text-muted-foreground mb-8">
             {t("home.platforms.subtitle")}
           </p>
-          <div className="flex flex-wrap justify-center gap-4 text-muted-foreground">
-            {["Spotify", "Apple Music", "YouTube Music", "Amazon Music"].map(
-              (platform) => (
-                <div
-                  key={platform}
-                  className="px-6 py-3 rounded-2xl border border-border bg-card text-sm font-semibold hover:border-primary/30 hover:shadow-sm transition-all"
-                >
-                  {platform}
+          <div className="flex flex-wrap justify-center gap-4">
+            {[
+              { name: "Spotify", color: "bg-[#1DB954]", letter: "S" },
+              { name: "Apple Music", color: "bg-gradient-to-b from-[#FC3C44] to-[#C52D9C]", letter: "♫" },
+              { name: "YouTube Music", color: "bg-[#FF0000]", letter: "▶" },
+              { name: "Amazon Music", color: "bg-[#25D1DA]", letter: "A" },
+            ].map((platform) => (
+              <div
+                key={platform.name}
+                className="flex items-center gap-3 px-6 py-3 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
+              >
+                <div className={`h-8 w-8 ${platform.color} rounded-lg flex items-center justify-center shrink-0`}>
+                  <span className="text-white text-sm font-bold">{platform.letter}</span>
                 </div>
-              ),
-            )}
+                <span className="text-sm font-semibold">{platform.name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>

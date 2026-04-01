@@ -61,6 +61,26 @@
     "platforms": {
       "title": "Escucha en cualquier lugar",
       "subtitle": "Encuentra BabyBeats en tu plataforma de música favorita"
+    },
+    "stats": {
+      "songsCount": "10,000+",
+      "songsLabel": "Canciones creadas",
+      "familiesCount": "5,000+",
+      "familiesLabel": "Familias felices",
+      "rating": "4.9 ★",
+      "ratingLabel": "Calificación promedio"
+    },
+    "testimonials": {
+      "title": "Amado por padres en todas partes",
+      "quote1": "Mi hija se duerme en minutos con su canción de cuna personalizada. Es como magia escuchar su nombre en la canción.",
+      "author1": "María G.",
+      "role1": "Mamá de Luna, 8 meses",
+      "quote2": "Usamos las canciones educativas cada mañana. ¡Mi hijo aprendió los colores en español e inglés!",
+      "author2": "Carlos R.",
+      "role2": "Papá de Mateo, 2 años",
+      "quote3": "Regalé un álbum de BabyBeats a mi hermana para su baby shower. Lloró de felicidad. El mejor regalo.",
+      "author3": "Ana P.",
+      "role3": "Tía y regaladora"
     }
   },
   "songs": {
