@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe/config";
+import { getStripe } from "@/lib/stripe/config";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 
-// Use service role for webhook (bypasses RLS)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!,
@@ -34,12 +35,12 @@ export async function POST(request: Request) {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.supabase_user_id;
       if (userId && session.subscription) {
-        const subscription = await stripe.subscriptions.retrieve(
+        const subscription = await getStripe().subscriptions.retrieve(
           session.subscription as string,
         );
 
         const item = subscription.items.data[0];
-        await supabaseAdmin.from("subscriptions").upsert({
+        await getSupabaseAdmin().from("subscriptions").upsert({
           user_id: userId,
           stripe_subscription_id: subscription.id,
           status: subscription.status,
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
             : null,
         });
 
-        await supabaseAdmin
+        await getSupabaseAdmin()
           .from("profiles")
           .update({ subscription_tier: "premium" })
           .eq("id", userId);
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
     case "customer.subscription.updated":
     case "customer.subscription.deleted": {
       const subscription = event.data.object as Stripe.Subscription;
-      const { data: sub } = await supabaseAdmin
+      const { data: sub } = await getSupabaseAdmin()
         .from("subscriptions")
         .select("user_id")
         .eq("stripe_subscription_id", subscription.id)
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
 
       if (sub) {
         const item = subscription.items.data[0];
-        await supabaseAdmin
+        await getSupabaseAdmin()
           .from("subscriptions")
           .update({
             status: subscription.status,
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
 
         const tier =
           subscription.status === "active" ? "premium" : "free";
-        await supabaseAdmin
+        await getSupabaseAdmin()
           .from("profiles")
           .update({ subscription_tier: tier })
           .eq("id", sub.user_id);

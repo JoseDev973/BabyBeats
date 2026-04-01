@@ -19,7 +19,7 @@ export default function HomePage() {
         <div className="max-w-3xl mx-auto relative z-10">
           <div className="inline-flex items-center gap-2 bg-gold/20 text-accent-foreground px-4 py-1.5 rounded-full text-sm font-medium mb-6">
             <Sparkles className="h-4 w-4" />
-            {t("create.firstFree")}
+            {t("common.tagline")}
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
             {t("home.hero.title")}

@@ -79,7 +79,8 @@ export default function CreateWizard({
   const [albumStep, setAlbumStep] = useState<AlbumStep>("child");
   const [albumCount, setAlbumCount] = useState(5);
   const [albumMode, setAlbumMode] = useState<"quick" | "custom">("quick");
-  const [songConfigs, setSongConfigs] = useState<{ theme: SongTheme; style: string }[]>([]);
+  const [songConfigs, setSongConfigs] = useState<{ theme: SongTheme; style: string; prompt: string }[]>([]);
+  const [albumPrompt, setAlbumPrompt] = useState("");
 
   const isFirstSong = totalGenerated === 0;
   const hasCredits = credits > 0 || isFirstSong;
@@ -95,6 +96,7 @@ export default function CreateWizard({
       Array.from({ length: count }, (_, i) => ({
         theme: AUTO_THEMES[i % AUTO_THEMES.length],
         style: AUTO_STYLES[i % AUTO_STYLES.length],
+        prompt: "",
       }))
     );
   }
@@ -162,6 +164,7 @@ export default function CreateWizard({
       ? Array.from({ length: albumCount }, (_, i) => ({
           theme: AUTO_THEMES[i % AUTO_THEMES.length],
           style: AUTO_STYLES[i % AUTO_STYLES.length],
+          prompt: albumPrompt,
         }))
       : songConfigs;
 
@@ -177,7 +180,7 @@ export default function CreateWizard({
             theme: configs[i].theme,
             musicStyle: configs[i].style,
             language,
-            customPrompt: "",
+            customPrompt: configs[i].prompt || "",
           }),
         });
         const lyricsData = await lyricsRes.json();
@@ -227,12 +230,17 @@ export default function CreateWizard({
     <div className="max-w-2xl mx-auto px-4 py-8 sm:py-16">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 bg-gold/20 text-accent-foreground px-3 py-1 rounded-full text-sm font-bold mb-4">
-          <Sparkles className="h-4 w-4" />
-          {isFirstSong
-            ? t("firstFree")
-            : t("creditsRemaining", { count: credits })}
-        </div>
+        {isFirstSong ? (
+          <div className="inline-flex items-center gap-2 bg-gold/20 text-accent-foreground px-3 py-1 rounded-full text-sm font-bold mb-4">
+            <Sparkles className="h-4 w-4" />
+            {t("firstFree")}
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold mb-4">
+            <Coins className="h-4 w-4" />
+            {t("creditsRemaining", { count: credits })}
+          </div>
+        )}
         <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       </div>
 
@@ -464,6 +472,13 @@ export default function CreateWizard({
                   <div><p className="font-bold">{t("albumCustom")}</p><p className="text-sm text-muted-foreground">{t("albumCustomDesc")}</p></div>
                 </div>
               </button>
+
+              <div>
+                <label className="text-sm font-semibold mb-1.5 block text-muted-foreground">{t("customPrompt")}</label>
+                <textarea value={albumPrompt} onChange={(e) => setAlbumPrompt(e.target.value)}
+                  placeholder={t("customPlaceholder")} rows={2}
+                  className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
+              </div>
             </div>
           )}
 
@@ -486,9 +501,13 @@ export default function CreateWizard({
                   </div>
                   <select value={config.style}
                     onChange={(e) => { const u = [...songConfigs]; u[i].style = e.target.value; setSongConfigs(u); }}
-                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm">
+                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm mb-2">
                     {STYLE_KEYS.map((s) => (<option key={s} value={s}>{t(s)}</option>))}
                   </select>
+                  <input type="text" value={config.prompt}
+                    onChange={(e) => { const u = [...songConfigs]; u[i].prompt = e.target.value; setSongConfigs(u); }}
+                    placeholder={t("customPlaceholder")}
+                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-xs" />
                 </div>
               ))}
             </div>
