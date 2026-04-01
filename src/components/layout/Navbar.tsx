@@ -35,10 +35,6 @@ export default function Navbar() {
     router.refresh();
   }
 
-  function switchLocale() {
-    const next = locale === "es" ? "en" : "es";
-    router.replace(pathname, { locale: next });
-  }
 
   return (
     <nav className="border-b border-border bg-card/90 backdrop-blur-lg sticky top-0 z-50">
@@ -70,13 +66,28 @@ export default function Navbar() {
             {t("pricing")}
           </Link>
 
-          <button
-            onClick={switchLocale}
-            className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none"
-            title={locale === "es" ? "Switch to English" : "Cambiar a Espanol"}
-          >
-            {locale === "es" ? "\u{1F1FA}\u{1F1F8}" : "\u{1F1EA}\u{1F1F8}"}
-          </button>
+          <div className="flex items-center bg-muted rounded-full p-0.5 text-xs font-bold">
+            <button
+              onClick={() => locale !== "es" && router.replace(pathname, { locale: "es" })}
+              className={`px-2.5 py-1 rounded-full transition-all ${
+                locale === "es"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              ES
+            </button>
+            <button
+              onClick={() => locale !== "en" && router.replace(pathname, { locale: "en" })}
+              className={`px-2.5 py-1 rounded-full transition-all ${
+                locale === "en"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              EN
+            </button>
+          </div>
 
           {user ? (
             <div className="flex items-center gap-3">
@@ -146,18 +157,28 @@ export default function Navbar() {
             {t("pricing")}
           </Link>
 
-          <button
-            onClick={() => {
-              switchLocale();
-              setMenuOpen(false);
-            }}
-            className="flex items-center gap-2 text-sm py-2 text-muted-foreground"
-          >
-            <span className="text-lg leading-none">
-              {locale === "es" ? "\u{1F1FA}\u{1F1F8}" : "\u{1F1EA}\u{1F1F8}"}
-            </span>
-            {locale === "es" ? "English" : "Espanol"}
-          </button>
+          <div className="flex items-center bg-muted rounded-full p-0.5 text-xs font-bold w-fit">
+            <button
+              onClick={() => { if (locale !== "es") { router.replace(pathname, { locale: "es" }); setMenuOpen(false); } }}
+              className={`px-3 py-1.5 rounded-full transition-all ${
+                locale === "es"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              ES
+            </button>
+            <button
+              onClick={() => { if (locale !== "en") { router.replace(pathname, { locale: "en" }); setMenuOpen(false); } }}
+              className={`px-3 py-1.5 rounded-full transition-all ${
+                locale === "en"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              EN
+            </button>
+          </div>
 
           {user ? (
             <>
