@@ -441,7 +441,7 @@ export default function CreateWizard({
                       albumCount === n ? "border-primary bg-primary/5 shadow-md" : "border-border hover:border-primary/50"
                     }`}>
                     <p className="text-3xl font-extrabold">{n}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{t("next") === "Next" ? "songs" : "canciones"}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t("songsLabel")}</p>
                   </button>
                 ))}
               </div>
@@ -452,7 +452,7 @@ export default function CreateWizard({
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h2 className="text-xl font-bold">{albumCount} {t("next") === "Next" ? "songs" : "canciones"} para {childName}</h2>
+                <h2 className="text-xl font-bold">{t("songsForChild", { count: albumCount, name: childName })}</h2>
               </div>
               <button onClick={() => setAlbumMode("quick")}
                 className={`w-full p-6 rounded-2xl border-2 text-left transition-all ${albumMode === "quick" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
@@ -484,7 +484,7 @@ export default function CreateWizard({
 
           {albumStep === "albumCustom" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-center mb-4">{albumCount} {t("next") === "Next" ? "songs" : "canciones"} para {childName}</h2>
+              <h2 className="text-xl font-bold text-center mb-4">{t("songsForChild", { count: albumCount, name: childName })}</h2>
               {songConfigs.map((config, i) => (
                 <div key={i} className="p-4 rounded-xl border border-border bg-card">
                   <p className="font-bold text-sm mb-3">{t("albumSong", { number: i + 1 })}</p>
@@ -516,7 +516,7 @@ export default function CreateWizard({
           {albumStep === "albumConfirm" && (
             <div className="text-center space-y-6">
               <Disc3 className="h-16 w-16 text-primary mx-auto" />
-              <h2 className="text-2xl font-extrabold">{albumCount} {t("next") === "Next" ? "songs" : "canciones"} para {childName}</h2>
+              <h2 className="text-2xl font-extrabold">{t("songsForChild", { count: albumCount, name: childName })}</h2>
               <p className="text-muted-foreground">{t("language")}: {language.toUpperCase()}</p>
               {!albumHasCredits && (
                 <div className="bg-accent/20 border border-accent rounded-xl p-4">

@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -133,9 +134,29 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="login-password" className="text-sm font-medium mb-1.5 block">
-                {t("password")}
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="login-password" className="text-sm font-medium">
+                  {t("password")}
+                </label>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      setError(t("enterEmailFirst"));
+                      return;
+                    }
+                    const supabase = createClient();
+                    await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/auth/callback`,
+                    });
+                    setResetSent(true);
+                    setError("");
+                  }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  {t("forgotPassword")}
+                </button>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
@@ -150,6 +171,12 @@ export default function LoginPage() {
                 />
               </div>
             </div>
+
+            {resetSent && (
+              <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+                {t("resetEmailSent")}
+              </p>
+            )}
 
             {error && (
               <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
