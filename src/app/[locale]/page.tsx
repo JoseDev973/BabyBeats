@@ -8,7 +8,7 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center px-4 pt-24 pb-32 sm:pt-32 sm:pb-40 text-center overflow-hidden">
+      <section className="relative flex flex-col items-center justify-center px-4 pt-20 pb-16 sm:pt-28 sm:pb-20 text-center overflow-hidden">
         {/* Warm gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-secondary/60 via-background to-background" />
         {/* Decorative circles */}
@@ -46,17 +46,17 @@ export default function HomePage() {
         </div>
 
         {/* Wave separator */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 40C240 80 480 0 720 40C960 80 1200 0 1440 40V80H0V40Z" fill="var(--background)" />
+        <div className="absolute -bottom-1 left-0 right-0">
+          <svg viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+            <path d="M0 20C240 40 480 0 720 20C960 40 1200 0 1440 20V40H0V20Z" fill="var(--background)" />
           </svg>
         </div>
       </section>
 
       {/* How it works */}
-      <section className="py-20 px-4 bg-background">
+      <section className="py-12 sm:py-16 px-4 bg-background">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-center mb-12">
+          <h2 className="text-3xl font-extrabold text-center mb-10">
             {t("home.howItWorks.title")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
