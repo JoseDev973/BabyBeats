@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Use service role client (no auth context in webhooks)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
 
 export async function POST(request: Request) {
   try {
@@ -17,6 +18,8 @@ export async function POST(request: Request) {
       console.error("[Suno Webhook] No taskId in payload:", JSON.stringify(body).slice(0, 200));
       return NextResponse.json({ error: "Missing taskId" }, { status: 400 });
     }
+
+    const supabase = getSupabase();
 
     // Find the song by suno_task_id
     const { data: song } = await supabase

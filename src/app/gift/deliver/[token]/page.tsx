@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import { Music, Gift, Play } from "lucide-react";
 import type { Gift as GiftType, GiftSong } from "@/types/database";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+}
 
 const LABELS = {
   en: {
@@ -37,6 +39,7 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
+  const supabase = getSupabase();
   const { data: gift } = await supabase
     .from("gifts")
     .select("child_name")
@@ -57,6 +60,7 @@ export default async function GiftDeliverPage({
 }) {
   const { token } = await params;
 
+  const supabase = getSupabase();
   const { data: gift } = await supabase
     .from("gifts")
     .select("*")

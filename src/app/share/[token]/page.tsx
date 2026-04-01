@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import { Music } from "lucide-react";
 import type { GeneratedSong } from "@/types/database";
 
-// Use anon client (no auth needed for public shares)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+}
 
 const LABELS = {
   en: {
@@ -38,6 +39,7 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
+  const supabase = getSupabase();
   const { data: song } = await supabase
     .from("generated_songs")
     .select("child_name, theme")
@@ -60,6 +62,7 @@ export default async function SharePage({
 }) {
   const { token } = await params;
 
+  const supabase = getSupabase();
   const { data: song } = await supabase
     .from("generated_songs")
     .select("*")
