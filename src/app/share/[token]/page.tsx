@@ -3,11 +3,35 @@ import { notFound } from "next/navigation";
 import { Music } from "lucide-react";
 import type { GeneratedSong } from "@/types/database";
 
-// Use anon client (no auth needed for public shares)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+}
+
+const LABELS = {
+  en: {
+    songFor: (name: string) => `A song for ${name}`,
+    lyrics: "Lyrics",
+    downloadMp3: "Download MP3",
+    createdWith: "Created with BabyBeats — AI-crafted songs for your baby",
+    audioNotSupported: "Your browser does not support audio.",
+    lullaby: "Lullaby",
+    educational: "Educational",
+    fun: "Fun & Play",
+  },
+  es: {
+    songFor: (name: string) => `Una canción para ${name}`,
+    lyrics: "Letra",
+    downloadMp3: "Descargar MP3",
+    createdWith: "Creado con BabyBeats — Canciones hechas con IA para tu bebé",
+    audioNotSupported: "Tu navegador no soporta audio.",
+    lullaby: "Canción de cuna",
+    educational: "Educativa",
+    fun: "Diversión",
+  },
+};
 
 export async function generateMetadata({
   params,
@@ -15,6 +39,7 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
+  const supabase = getSupabase();
   const { data: song } = await supabase
     .from("generated_songs")
     .select("child_name, theme")
@@ -37,6 +62,7 @@ export default async function SharePage({
 }) {
   const { token } = await params;
 
+  const supabase = getSupabase();
   const { data: song } = await supabase
     .from("generated_songs")
     .select("*")
@@ -48,11 +74,13 @@ export default async function SharePage({
   }
 
   const s = song as GeneratedSong;
+  const lang = (s.language === "es" ? "es" : "en") as keyof typeof LABELS;
+  const l = LABELS[lang];
 
   const THEME_LABELS = {
-    lullaby: "Lullaby",
-    educational: "Educational",
-    fun: "Fun & Play",
+    lullaby: l.lullaby,
+    educational: l.educational,
+    fun: l.fun,
   };
 
   return (
@@ -64,7 +92,7 @@ export default async function SharePage({
             <span className="text-xl font-bold text-purple-900">BabyBeats</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
-            A song for {s.child_name}
+            {l.songFor(s.child_name)}
           </h1>
           <p className="text-gray-500 mt-1">
             {THEME_LABELS[s.theme]} &middot; {s.language.toUpperCase()}
@@ -74,14 +102,14 @@ export default async function SharePage({
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6">
           {s.audio_url && (
             <audio controls className="w-full" src={s.audio_url}>
-              Your browser does not support audio.
+              {l.audioNotSupported}
             </audio>
           )}
 
           {s.lyrics && (
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-medium text-gray-400 uppercase mb-2">
-                Lyrics
+                {l.lyrics}
               </p>
               <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
                 {s.lyrics}
@@ -95,13 +123,13 @@ export default async function SharePage({
               download={`${s.child_name}-babybeats.mp3`}
               className="block w-full bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium text-center hover:bg-purple-700 transition-colors"
             >
-              Download MP3
+              {l.downloadMp3}
             </a>
           )}
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Created with BabyBeats — AI-crafted songs for your baby
+          {l.createdWith}
         </p>
       </div>
     </div>

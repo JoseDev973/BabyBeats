@@ -89,9 +89,9 @@ export default function AudioPlayer() {
             </button>
           </div>
 
-          {/* Progress bar */}
-          <div className="hidden sm:flex items-center gap-2 w-full">
-            <span className="text-xs text-muted-foreground w-10 text-right">
+          {/* Progress bar - compact on mobile, full on desktop */}
+          <div className="flex items-center gap-2 w-full">
+            <span className="hidden sm:inline text-xs text-muted-foreground w-10 text-right">
               {formatTime(currentTime)}
             </span>
             <input
@@ -103,7 +103,7 @@ export default function AudioPlayer() {
               className="flex-1 h-1 accent-primary cursor-pointer"
             />
             <span className="text-xs text-muted-foreground w-10">
-              {formatTime(duration)}
+              {formatTime(duration - currentTime)}
             </span>
           </div>
         </div>

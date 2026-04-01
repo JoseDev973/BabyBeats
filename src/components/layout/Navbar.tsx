@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { Music, Menu, X, Globe, LogOut, User as UserIcon, Sparkles } from "lucide-react";
+import { Music, Menu, X, LogOut, User as UserIcon, Sparkles, Gift } from "lucide-react";
 
 export default function Navbar() {
   const t = useTranslations("common");
+  const tg = useTranslations("gift");
+  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
@@ -34,16 +36,13 @@ export default function Navbar() {
     router.refresh();
   }
 
-  function switchLocale(locale: "en" | "es") {
-    router.replace(pathname, { locale });
-  }
 
   return (
-    <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="border-b border-border bg-card/90 backdrop-blur-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Music className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">{t("appName")}</span>
+          <span className="text-xl font-extrabold tracking-tight">{t("appName")}</span>
         </Link>
 
         {/* Desktop nav */}
@@ -53,7 +52,7 @@ export default function Navbar() {
             className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Create
+            {t("create")}
           </Link>
           <Link
             href="/songs"
@@ -62,19 +61,41 @@ export default function Navbar() {
             {t("songs")}
           </Link>
           <Link
+            href="/gift"
+            className="text-sm font-medium text-accent-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Gift className="h-3.5 w-3.5" />
+            {tg("nav")}
+          </Link>
+          <Link
             href="/pricing"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             {t("pricing")}
           </Link>
 
-          <button
-            onClick={() => switchLocale(pathname ? "en" : "es")}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            title="Switch language"
-          >
-            <Globe className="h-4 w-4" />
-          </button>
+          <div className="flex items-center bg-muted rounded-full p-0.5 text-xs font-bold">
+            <button
+              onClick={() => locale !== "es" && router.replace(pathname, { locale: "es" })}
+              className={`px-2.5 py-1 rounded-full transition-all ${
+                locale === "es"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              ES
+            </button>
+            <button
+              onClick={() => locale !== "en" && router.replace(pathname, { locale: "en" })}
+              className={`px-2.5 py-1 rounded-full transition-all ${
+                locale === "en"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              EN
+            </button>
+          </div>
 
           {user ? (
             <div className="flex items-center gap-3">
@@ -102,7 +123,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/auth/login"
-              className="text-sm bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+              className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:bg-primary/90 transition-all hover:shadow-md"
             >
               {t("login")}
             </Link>
@@ -122,11 +143,27 @@ export default function Navbar() {
       {menuOpen && (
         <div className="sm:hidden border-t border-border px-4 py-4 space-y-3 bg-background">
           <Link
+            href="/create"
+            className="block text-sm py-2 font-medium text-primary flex items-center gap-2"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {t("create")}
+          </Link>
+          <Link
             href="/songs"
             className="block text-sm py-2"
             onClick={() => setMenuOpen(false)}
           >
             {t("songs")}
+          </Link>
+          <Link
+            href="/gift"
+            className="block text-sm py-2 font-medium text-accent-foreground flex items-center gap-2"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Gift className="h-3.5 w-3.5" />
+            {tg("nav")}
           </Link>
           <Link
             href="/pricing"
@@ -135,6 +172,30 @@ export default function Navbar() {
           >
             {t("pricing")}
           </Link>
+
+          <div className="flex items-center bg-muted rounded-full p-0.5 text-xs font-bold w-fit">
+            <button
+              onClick={() => { if (locale !== "es") { router.replace(pathname, { locale: "es" }); setMenuOpen(false); } }}
+              className={`px-3 py-1.5 rounded-full transition-all ${
+                locale === "es"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              ES
+            </button>
+            <button
+              onClick={() => { if (locale !== "en") { router.replace(pathname, { locale: "en" }); setMenuOpen(false); } }}
+              className={`px-3 py-1.5 rounded-full transition-all ${
+                locale === "en"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              EN
+            </button>
+          </div>
+
           {user ? (
             <>
               <Link
@@ -142,7 +203,7 @@ export default function Navbar() {
                 className="block text-sm py-2"
                 onClick={() => setMenuOpen(false)}
               >
-                My Songs
+                {t("mySongs")}
               </Link>
               <Link
                 href="/profile"

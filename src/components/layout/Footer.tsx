@@ -13,7 +13,7 @@ export default function Footer() {
           <span className="font-semibold">{t("appName")}</span>
         </Link>
         <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} BabyBeats. All rights reserved.
+          &copy; {new Date().getFullYear()} BabyBeats. {t("allRights")}
         </p>
       </div>
     </footer>

@@ -108,9 +108,51 @@ export interface GeneratedSong {
   duration_seconds: number | null;
   share_token: string;
   is_public: boolean;
+  audio_url_b: string | null;
+  duration_seconds_b: number | null;
+  suno_task_id: string | null;
   status: GenerationStatus;
   created_at: string;
   updated_at: string;
+}
+
+export type GiftPackType = "first_album" | "sweet_dreams" | "learning" | "custom";
+export type GiftDeliveryMode = "link" | "redeem";
+export type GiftStatus = "draft" | "personalizing" | "generating" | "ready" | "delivered" | "redeemed";
+export type GiftSongStatus = "pending" | "generating" | "completed" | "failed";
+
+export interface Gift {
+  id: string;
+  buyer_id: string | null;
+  recipient_name: string | null;
+  recipient_email: string | null;
+  child_name: string;
+  pack_type: GiftPackType;
+  total_songs: number;
+  language: string;
+  delivery_mode: GiftDeliveryMode;
+  delivery_token: string;
+  status: GiftStatus;
+  stripe_payment_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GiftSong {
+  id: string;
+  gift_id: string;
+  position: number;
+  theme: SongTheme;
+  music_style: string;
+  language: string;
+  custom_prompt: string | null;
+  lyrics: string | null;
+  audio_url: string | null;
+  cover_image_url: string | null;
+  duration_seconds: number | null;
+  status: GiftSongStatus;
+  suno_task_id: string | null;
+  created_at: string;
 }
 
 export type CreditTransactionType = "purchase" | "usage" | "bonus";
@@ -122,5 +164,34 @@ export interface CreditTransaction {
   type: CreditTransactionType;
   description: string | null;
   stripe_payment_id: string | null;
+  created_at: string;
+}
+
+// Coupons
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discount_percent: number | null;
+  discount_amount: number | null;
+  max_uses: number | null;
+  current_uses: number;
+  valid_from: string | null;
+  valid_until: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+// Referrals
+
+export type ReferralStatus = "pending" | "completed" | "rewarded";
+
+export interface Referral {
+  id: string;
+  referrer_id: string;
+  referred_email: string | null;
+  referral_code: string;
+  status: ReferralStatus;
+  reward_credits: number;
   created_at: string;
 }

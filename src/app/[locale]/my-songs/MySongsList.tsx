@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import type { GeneratedSong } from "@/types/database";
 import {
@@ -37,13 +38,8 @@ const STATUS_COLORS = {
   failed: "text-destructive",
 };
 
-const THEME_LABELS = {
-  lullaby: "Lullaby",
-  educational: "Educational",
-  fun: "Fun & Play",
-};
-
 export default function MySongsList({ songs, credits }: MySongsListProps) {
+  const t = useTranslations("mySongs");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   function copyShareLink(song: GeneratedSong) {
@@ -57,10 +53,10 @@ export default function MySongsList({ songs, credits }: MySongsListProps) {
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">My Songs</h1>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="text-muted-foreground mt-1 flex items-center gap-2">
             <Coins className="h-4 w-4" />
-            {credits} credits remaining
+            {t("creditsRemaining", { credits })}
           </p>
         </div>
         <Link
@@ -68,23 +64,23 @@ export default function MySongsList({ songs, credits }: MySongsListProps) {
           className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          Create Song
+          {t("createSong")}
         </Link>
       </div>
 
       {songs.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border rounded-xl">
           <Baby className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-lg font-medium mb-2">No songs yet</h2>
+          <h2 className="text-lg font-medium mb-2">{t("noSongsYet")}</h2>
           <p className="text-muted-foreground mb-6">
-            Create your first personalized baby song!
+            {t("createFirstPrompt")}
           </p>
           <Link
             href="/create"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Create Your First Song
+            {t("createFirstSong")}
           </Link>
         </div>
       ) : (
@@ -102,10 +98,10 @@ export default function MySongsList({ songs, credits }: MySongsListProps) {
 
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">
-                    Song for {song.child_name}
+                    {t("songFor", { name: song.child_name })}
                   </p>
                   <p className="text-xs text-muted-foreground flex items-center gap-2">
-                    <span>{THEME_LABELS[song.theme]}</span>
+                    <span>{t(song.theme)}</span>
                     <span>&middot;</span>
                     <span>{song.language.toUpperCase()}</span>
                     <span>&middot;</span>
@@ -113,7 +109,7 @@ export default function MySongsList({ songs, credits }: MySongsListProps) {
                       <StatusIcon
                         className={`h-3 w-3 ${STATUS_COLORS[song.status]}`}
                       />
-                      {song.status}
+                      {t(`status.${song.status}`)}
                     </span>
                   </p>
                 </div>
