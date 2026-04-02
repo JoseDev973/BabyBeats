@@ -79,6 +79,31 @@ export async function POST(request: Request) {
 
     const style = styleMap[song.music_style] || "baby music, toddler song, nursery, soothing for infants";
 
+    // Atomic increment to prevent race condition on first free song
+    // Done BEFORE Suno call so parallel requests see total_songs_generated > 0
+    const currentTotal = profile?.total_songs_generated ?? 0;
+    const { data: lockResult, error: lockError } = await supabase
+      .from("profiles")
+      .update({
+        total_songs_generated: currentTotal + 1,
+      })
+      .eq("id", user.id)
+      .eq("total_songs_generated", currentTotal)
+      .select("total_songs_generated")
+      .single();
+
+    if (lockError || !lockResult) {
+      // Another request already incremented — abort to prevent double free song
+      await supabase
+        .from("generated_songs")
+        .update({ status: "failed" })
+        .eq("id", songId);
+      return NextResponse.json(
+        { error: "Concurrent request conflict. Please try again." },
+        { status: 409 },
+      );
+    }
+
     // Start Suno generation (non-blocking)
     const res = await fetch(`${SUNO_API_BASE}/generate`, {
       method: "POST",
@@ -137,13 +162,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // Increment total songs generated (separate, non-critical)
-    await supabase
-      .from("profiles")
-      .update({
-        total_songs_generated: (profile?.total_songs_generated ?? 0) + 1,
-      })
-      .eq("id", user.id);
+    // total_songs_generated already incremented above (optimistic lock)
 
     await supabase.from("credit_transactions").insert({
       user_id: user.id,

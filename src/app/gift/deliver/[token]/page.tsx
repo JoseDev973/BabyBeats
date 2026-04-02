@@ -81,11 +81,13 @@ export default async function GiftDeliverPage({
     .from("gifts")
     .select("*")
     .eq("delivery_token", token)
+    .in("status", ["ready", "delivered", "redeemed"])
     .single();
 
   if (!gift) notFound();
 
   const g = gift as GiftType;
+  const safeName = g.child_name.replace(/[<>"'&]/g, '');
   const lang = (g.language === "es" ? "es" : "en") as keyof typeof LABELS;
   const l = LABELS[lang];
 
@@ -109,10 +111,10 @@ export default async function GiftDeliverPage({
           </div>
           <p className="text-sm font-semibold text-purple-600 mb-2">{l.giftFrom}</p>
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
-            {g.child_name}
+            {safeName}
           </h1>
           <p className="text-gray-500">
-            {l.giftMessage(g.child_name)}
+            {l.giftMessage(safeName)}
           </p>
           <p className="text-sm text-gray-400 mt-2">
             {giftSongs.length} {l.songs}

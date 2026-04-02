@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   // Look up gift
   const { data: gift, error: fetchError } = await supabase
     .from("gifts")
-    .select("id, child_name, total_songs, pack_type, status, delivery_mode")
+    .select("id, child_name, total_songs, pack_type, status, delivery_mode, created_at")
     .eq("delivery_token", code)
     .eq("delivery_mode", "redeem")
     .single();
@@ -29,6 +29,14 @@ export async function POST(request: Request) {
 
   if (gift.status === "redeemed") {
     return NextResponse.json({ error: "Already redeemed" }, { status: 400 });
+  }
+
+  // Check expiration (gifts expire after 90 days)
+  const createdAt = new Date(gift.created_at);
+  const now = new Date();
+  const daysSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+  if (daysSinceCreation > 90) {
+    return NextResponse.json({ error: "Gift code has expired" }, { status: 410 });
   }
 
   // Get current credits

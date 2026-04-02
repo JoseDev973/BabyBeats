@@ -51,18 +51,24 @@ async function generateLyrics(
 ): Promise<string> {
   const anthropic = getAnthropic();
 
+  // Sanitize inputs - strip anything that looks like prompt injection
+  const sanitizedName = childName.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, '').slice(0, 50);
+  const sanitizedPrompt = customPrompt
+    ? customPrompt.replace(/ignore|previous|instructions|system|prompt/gi, '').slice(0, 300)
+    : '';
+
   const prompt = `You are a professional songwriter specializing in children's music.
 
 ${THEME_PROMPTS[theme]}
 
 Requirements:
-- The song MUST include the child's name "${childName}" naturally in the lyrics (at least 3-4 times)
+- The song MUST include the child's name "${sanitizedName}" naturally in the lyrics (at least 3-4 times)
 - Write in ${LANGUAGE_NAMES[language] || "Spanish"}
 - Style: ${musicStyle}
 - Keep it short (2-3 verses + chorus, ~1-2 minutes when sung)
 - Make it age-appropriate for babies/toddlers
 - Include simple, repetitive phrases that are easy to sing along
-${customPrompt ? `- Additional request: ${customPrompt}` : ""}
+${sanitizedPrompt ? `- Additional request: ${sanitizedPrompt}` : ""}
 
 Write ONLY the song lyrics, with clear verse/chorus structure. Use [Verse], [Chorus], [Bridge] markers.`;
 

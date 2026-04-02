@@ -111,13 +111,22 @@ export async function POST(request: Request) {
     .update({ credits: currentCredits + selectedPack.credits })
     .eq("id", userId);
 
-  await supabaseAdmin.from("credit_transactions").insert({
-    user_id: userId,
-    amount: selectedPack.credits,
-    type: "purchase",
-    description: `Purchased ${selectedPack.name} (${selectedPack.credits} credits) via Mercado Pago`,
-    mp_payment_id: String(paymentId),
-  });
+  try {
+    await supabaseAdmin.from("credit_transactions").insert({
+      user_id: userId,
+      amount: selectedPack.credits,
+      type: "purchase",
+      description: `Purchased ${selectedPack.name} (${selectedPack.credits} credits) via Mercado Pago`,
+      mp_payment_id: String(paymentId),
+    });
+  } catch (insertErr) {
+    // Handle duplicate key gracefully (unique constraint on mp_payment_id)
+    const errMsg = insertErr instanceof Error ? insertErr.message : String(insertErr);
+    if (errMsg.includes("duplicate") || errMsg.includes("unique")) {
+      return NextResponse.json({ received: true });
+    }
+    throw insertErr;
+  }
 
   return NextResponse.json({ received: true });
 }

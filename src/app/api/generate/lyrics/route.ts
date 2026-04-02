@@ -42,6 +42,12 @@ export async function POST(request: Request) {
     );
   }
 
+  // Sanitize inputs - strip anything that looks like prompt injection
+  const sanitizedName = childName.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, '').slice(0, 50);
+  const sanitizedPrompt = customPrompt
+    ? customPrompt.replace(/ignore|previous|instructions|system|prompt/gi, '').slice(0, 300)
+    : '';
+
   const languageNames: Record<string, string> = {
     es: "Spanish",
     en: "English",
@@ -56,13 +62,13 @@ export async function POST(request: Request) {
 ${THEME_PROMPTS[theme as keyof typeof THEME_PROMPTS]}
 
 Requirements:
-- The song MUST include the child's name "${childName}" naturally in the lyrics (at least 3-4 times)
+- The song MUST include the child's name "${sanitizedName}" naturally in the lyrics (at least 3-4 times)
 - Write in ${languageNames[language] || "Spanish"}
 - Style: ${musicStyle}
 - Keep it short (2-3 verses + chorus, ~1-2 minutes when sung)
 - Make it age-appropriate for babies/toddlers
 - Include simple, repetitive phrases that are easy to sing along
-${customPrompt ? `- Additional request: ${customPrompt}` : ""}
+${sanitizedPrompt ? `- Additional request: ${sanitizedPrompt}` : ""}
 
 Write ONLY the song lyrics, with clear verse/chorus structure. Use [Verse], [Chorus], [Bridge] markers.`;
 

@@ -19,14 +19,16 @@ function getSupabase() {
 
 export async function POST(request: Request) {
   try {
-    // Verify webhook secret
+    // Verify webhook secret (mandatory)
     const webhookSecret = process.env.SUNO_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const authHeader = request.headers.get("authorization");
-      if (authHeader !== `Bearer ${webhookSecret}`) {
-        console.error("[Suno Webhook] Unauthorized request");
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+    if (!webhookSecret) {
+      console.error("[Suno Webhook] SUNO_WEBHOOK_SECRET not configured");
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
+    }
+    const authHeader = request.headers.get("authorization");
+    if (authHeader !== `Bearer ${webhookSecret}`) {
+      console.error("[Suno Webhook] Unauthorized request");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -92,7 +94,7 @@ export async function POST(request: Request) {
           })
           .eq("id", song.id);
 
-        console.log(`[Suno Webhook] Song ${song.id} completed (${song.child_name})`);
+        console.log(`[Suno Webhook] Song ${song.id} completed`);
 
         // Send song-ready email to the user
         try {
@@ -121,7 +123,7 @@ export async function POST(request: Request) {
               });
 
               console.log(
-                `[Suno Webhook] Song-ready email sent to ${userEmail} for song ${song.id}`,
+                `[Suno Webhook] Song-ready email sent for song ${song.id}`,
               );
             }
           }
@@ -189,7 +191,7 @@ export async function POST(request: Request) {
                 });
 
                 console.log(
-                  `[Suno Webhook] Gift-ready email sent to ${buyerEmail} for gift ${giftSong.gift_id}`,
+                  `[Suno Webhook] Gift-ready email sent for gift ${giftSong.gift_id}`,
                 );
               }
             }

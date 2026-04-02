@@ -60,6 +60,11 @@ export async function POST(request: Request) {
       );
     }
 
+    // TODO: The checkout endpoint that applies this coupon should use an atomic increment
+    // (e.g., supabase.rpc('increment_coupon_uses', { coupon_id: coupon.id }))
+    // to prevent race conditions when multiple users redeem the same coupon simultaneously.
+    // This validate-only endpoint intentionally does NOT increment current_uses.
+
     return Response.json({
       valid: true,
       coupon: {

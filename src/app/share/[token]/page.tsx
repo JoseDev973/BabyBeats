@@ -82,6 +82,7 @@ export default async function SharePage({
     .from("generated_songs")
     .select("*")
     .eq("share_token", token)
+    .eq("is_public", true)
     .single();
 
   if (!song) {
@@ -89,6 +90,7 @@ export default async function SharePage({
   }
 
   const s = song as GeneratedSong;
+  const safeName = s.child_name.replace(/[<>"'&]/g, '');
   const lang = (s.language === "es" ? "es" : "en") as keyof typeof LABELS;
   const l = LABELS[lang];
 
@@ -107,7 +109,7 @@ export default async function SharePage({
             <span className="text-xl font-bold text-purple-900">BabyBeats</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {l.songFor(s.child_name)}
+            {l.songFor(safeName)}
           </h1>
           <p className="text-gray-500 mt-1">
             {THEME_LABELS[s.theme]} &middot; {s.language.toUpperCase()}
@@ -135,7 +137,7 @@ export default async function SharePage({
           {s.audio_url && (
             <a
               href={s.audio_url}
-              download={`${s.child_name}-babybeats.mp3`}
+              download={`${safeName}-babybeats.mp3`}
               className="block w-full bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium text-center hover:bg-purple-700 transition-colors"
             >
               {l.downloadMp3}
