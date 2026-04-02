@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Check, Sparkles, Gift } from "lucide-react";
@@ -20,8 +19,13 @@ export async function generateMetadata({
   };
 }
 
-export default async function PricingPage() {
-  const t = useTranslations("pricing");
+export default async function PricingPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "pricing" });
 
   let isLoggedIn = false;
   try {
