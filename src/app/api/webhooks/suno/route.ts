@@ -15,6 +15,16 @@ function getSupabase() {
 
 export async function POST(request: Request) {
   try {
+    // Verify webhook secret
+    const webhookSecret = process.env.SUNO_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const authHeader = request.headers.get("authorization");
+      if (authHeader !== `Bearer ${webhookSecret}`) {
+        console.error("[Suno Webhook] Unauthorized request");
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+    }
+
     const body = await request.json();
     const taskId = body.data?.taskId || body.taskId;
     const status = body.data?.status || body.status;

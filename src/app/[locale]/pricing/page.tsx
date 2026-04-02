@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Check, Sparkles, Gift } from "lucide-react";
 import { CREDIT_PACKS } from "@/lib/stripe/config";
+import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({
   params,
@@ -18,8 +19,17 @@ export async function generateMetadata({
   };
 }
 
-export default function PricingPage() {
+export default async function PricingPage() {
   const t = useTranslations("pricing");
+
+  let isLoggedIn = false;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    isLoggedIn = !!user;
+  } catch {
+    // Not logged in
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-16 sm:py-24">
@@ -54,7 +64,7 @@ export default function PricingPage() {
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {Object.values(CREDIT_PACKS).map((pack) => (
+        {Object.entries(CREDIT_PACKS).map(([packKey, pack]) => (
           <div
             key={pack.name}
             className={`rounded-2xl bg-card p-8 flex flex-col relative ${
@@ -104,16 +114,29 @@ export default function PricingPage() {
               </li>
             </ul>
 
-            <Link
-              href="/auth/signup"
-              className={`py-2.5 rounded-xl text-sm font-bold text-center transition-colors ${
-                pack.popular
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "border border-border hover:bg-muted"
-              }`}
-            >
-              {t("buyCredits", { count: pack.credits })}
-            </Link>
+            {isLoggedIn ? (
+              <a
+                href={`/api/checkout?pack=${packKey}`}
+                className={`block py-2.5 rounded-xl text-sm font-bold text-center transition-colors ${
+                  pack.popular
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "border border-border hover:bg-muted"
+                }`}
+              >
+                {t("buyCredits", { count: pack.credits })}
+              </a>
+            ) : (
+              <Link
+                href="/auth/signup"
+                className={`py-2.5 rounded-xl text-sm font-bold text-center transition-colors ${
+                  pack.popular
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "border border-border hover:bg-muted"
+                }`}
+              >
+                {t("buyCredits", { count: pack.credits })}
+              </Link>
+            )}
           </div>
         ))}
       </div>

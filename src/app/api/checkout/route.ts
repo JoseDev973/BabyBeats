@@ -39,10 +39,10 @@ export async function POST(request: Request) {
   const session = await getStripe().checkout.sessions.create({
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    mode: "subscription",
+    mode: "payment",
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?success=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
-    metadata: { supabase_user_id: user.id },
+    metadata: { supabase_user_id: user.id, price_id: priceId },
   });
 
   return NextResponse.json({ url: session.url });
