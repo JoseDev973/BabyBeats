@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
+import { routing, LOCALE_LABELS } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { Music, Menu, X, LogOut, User as UserIcon, Sparkles, Gift, Coins, Sun, Moon } from "lucide-react";
@@ -76,8 +77,19 @@ export default function Navbar() {
           </button>
 
           <div className="flex items-center bg-muted rounded-full p-0.5 text-xs font-bold">
-            <button onClick={() => locale !== "es" && router.replace(pathname, { locale: "es" })} className={`px-2.5 py-1 rounded-full transition-all ${locale === "es" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>ES</button>
-            <button onClick={() => locale !== "en" && router.replace(pathname, { locale: "en" })} className={`px-2.5 py-1 rounded-full transition-all ${locale === "en" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>EN</button>
+            {routing.locales.map((loc) => (
+              <button
+                key={loc}
+                onClick={() => locale !== loc && router.replace(pathname, { locale: loc })}
+                className={`px-2.5 py-1 rounded-full transition-all ${
+                  locale === loc
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {LOCALE_LABELS[loc] ?? loc.toUpperCase()}
+              </button>
+            ))}
           </div>
 
           {user ? (
@@ -132,8 +144,19 @@ export default function Navbar() {
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <div className="flex items-center bg-muted rounded-full p-0.5 text-xs font-bold">
-              <button onClick={() => { if (locale !== "es") { router.replace(pathname, { locale: "es" }); setMenuOpen(false); } }} className={`px-3 py-1.5 rounded-full transition-all ${locale === "es" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>ES</button>
-              <button onClick={() => { if (locale !== "en") { router.replace(pathname, { locale: "en" }); setMenuOpen(false); } }} className={`px-3 py-1.5 rounded-full transition-all ${locale === "en" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>EN</button>
+              {routing.locales.map((loc) => (
+                <button
+                  key={loc}
+                  onClick={() => { if (locale !== loc) { router.replace(pathname, { locale: loc }); setMenuOpen(false); } }}
+                  className={`px-3 py-1.5 rounded-full transition-all ${
+                    locale === loc
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {LOCALE_LABELS[loc] ?? loc.toUpperCase()}
+                </button>
+              ))}
             </div>
           </div>
 
