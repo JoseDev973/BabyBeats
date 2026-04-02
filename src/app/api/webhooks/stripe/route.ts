@@ -39,10 +39,8 @@ export async function POST(request: Request) {
 
       // Handle one-time credit pack purchase
       if (session.mode === "payment") {
-        const priceId = session.metadata?.price_id;
-        const pack = Object.values(CREDIT_PACKS).find(
-          (p) => p.priceId === priceId,
-        );
+        const packKey = session.metadata?.pack as keyof typeof CREDIT_PACKS | undefined;
+        const pack = packKey ? CREDIT_PACKS[packKey] : undefined;
 
         if (pack) {
           // Atomic credit addition

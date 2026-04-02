@@ -156,7 +156,18 @@
     "creditsNeverExpire": "Credits never expire",
     "buyCredits": "Buy {count} Credits",
     "payWithStripe": "Pay with card",
-    "payWithMP": "Pay with Mercado Pago"
+    "payWithMP": "Pay with Mercado Pago",
+    "choosePlan": "Choose plan",
+    "currencyUSD": "USD — Dollar",
+    "currencyCOP": "COP — Peso"
+  },
+  "checkout": {
+    "title": "Complete your purchase",
+    "orderSummary": "Order summary",
+    "credits": "{count} credits",
+    "payWithStripe": "Pay with card (Stripe)",
+    "payWithMP": "Pay with Mercado Pago",
+    "backToPricing": "Back to pricing"
   },
   "player": {
     "nowPlaying": "Now Playing",

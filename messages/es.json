@@ -156,7 +156,18 @@
     "creditsNeverExpire": "Los créditos nunca expiran",
     "buyCredits": "Comprar {count} Créditos",
     "payWithStripe": "Pagar con tarjeta",
-    "payWithMP": "Pagar con Mercado Pago"
+    "payWithMP": "Pagar con Mercado Pago",
+    "choosePlan": "Elegir",
+    "currencyUSD": "USD — Dólar",
+    "currencyCOP": "COP — Peso"
+  },
+  "checkout": {
+    "title": "Completa tu compra",
+    "orderSummary": "Resumen del pedido",
+    "credits": "{count} créditos",
+    "payWithStripe": "Pagar con tarjeta (Stripe)",
+    "payWithMP": "Pagar con Mercado Pago",
+    "backToPricing": "Volver a precios"
   },
   "player": {
     "nowPlaying": "Reproduciendo",
