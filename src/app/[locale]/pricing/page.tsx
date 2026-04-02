@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Check, Sparkles, Gift } from "lucide-react";
-import { CREDIT_PACKS } from "@/lib/stripe/config";
+import { CREDIT_PACKS } from "@/lib/stripe/credit-packs";
 import { CREDIT_PACKS_COP } from "@/lib/mercado-pago/config";
 import { createClient } from "@/lib/supabase/server";
 
