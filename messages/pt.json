@@ -114,7 +114,10 @@
     "passwordsMismatch": "As senhas não coincidem",
     "googleError": "Não foi possível conectar ao Google. Tente novamente.",
     "or": "ou",
-    "signupWithGoogle": "Registrar com Google"
+    "signupWithGoogle": "Registrar com Google",
+    "forgotPassword": "Esqueceu a senha?",
+    "resetEmailSent": "Email de recuperação enviado. Verifique sua caixa de entrada.",
+    "enterEmailFirst": "Digite seu email primeiro"
   },
   "pricing": {
     "title": "Escolha seu plano",
@@ -142,7 +145,10 @@
     "mp3Download": "Download MP3",
     "shareableLink": "Link para compartilhar",
     "creditsNeverExpire": "Os créditos nunca expiram",
-    "buyCredits": "Comprar {count} Créditos"
+    "buyCredits": "Comprar {count} Créditos",
+    "payWithStripe": "Pagar com cartão (Stripe)",
+    "payWithMP": "Pagar com Mercado Pago",
+    "choosePlan": "Escolher plano"
   },
   "player": {
     "nowPlaying": "Reproduzindo",

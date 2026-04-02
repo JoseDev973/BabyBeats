@@ -114,7 +114,10 @@
     "passwordsMismatch": "Les mots de passe ne correspondent pas",
     "googleError": "Impossible de se connecter à Google. Veuillez réessayer.",
     "or": "ou",
-    "signupWithGoogle": "S'inscrire avec Google"
+    "signupWithGoogle": "S'inscrire avec Google",
+    "forgotPassword": "Mot de passe oublié ?",
+    "resetEmailSent": "Email de réinitialisation envoyé. Vérifiez votre boîte de réception.",
+    "enterEmailFirst": "Veuillez d'abord entrer votre email"
   },
   "pricing": {
     "title": "Choisissez votre forfait",
@@ -142,7 +145,10 @@
     "mp3Download": "Téléchargement MP3",
     "shareableLink": "Lien partageable",
     "creditsNeverExpire": "Les crédits n'expirent jamais",
-    "buyCredits": "Acheter {count} Crédits"
+    "buyCredits": "Acheter {count} Crédits",
+    "payWithStripe": "Payer par carte (Stripe)",
+    "payWithMP": "Payer avec Mercado Pago",
+    "choosePlan": "Choisir un plan"
   },
   "player": {
     "nowPlaying": "En lecture",
