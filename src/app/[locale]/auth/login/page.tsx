@@ -134,7 +134,6 @@ export default function LoginPage() {
             </div>
 
             <div>
-<<<<<<< HEAD
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="login-password" className="text-sm font-medium">
                   {t("password")}
@@ -158,11 +157,6 @@ export default function LoginPage() {
                   {t("forgotPassword")}
                 </button>
               </div>
-=======
-              <label htmlFor="login-password" className="text-sm font-medium mb-1.5 block">
-                {t("password")}
-              </label>
->>>>>>> b386f3c (fix: localize metadata per locale and improve login/signup form accessibility)
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
