@@ -164,6 +164,7 @@ export interface CreditTransaction {
   type: CreditTransactionType;
   description: string | null;
   stripe_payment_id: string | null;
+  mp_payment_id: string | null;
   created_at: string;
 }
 

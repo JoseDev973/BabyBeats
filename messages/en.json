@@ -139,7 +139,9 @@
     "mp3Download": "MP3 download",
     "shareableLink": "Shareable link",
     "creditsNeverExpire": "Credits never expire",
-    "buyCredits": "Buy {count} Credits"
+    "buyCredits": "Buy {count} Credits",
+    "payWithStripe": "Pay with card",
+    "payWithMP": "Pay with Mercado Pago"
   },
   "player": {
     "nowPlaying": "Now Playing",
