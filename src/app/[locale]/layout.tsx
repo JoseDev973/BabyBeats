@@ -28,8 +28,6 @@ const quicksand = Quicksand({
 const OG_LOCALE_MAP: Record<string, string> = {
   es: "es_CO",
   en: "en_US",
-  pt: "pt_BR",
-  fr: "fr_FR",
 };
 
 export async function generateMetadata({
