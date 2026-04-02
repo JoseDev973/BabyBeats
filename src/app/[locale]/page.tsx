@@ -60,6 +60,12 @@ export default async function HomePage() {
               <Gift className="h-5 w-5" />
               {t("home.hero.ctaGift")}
             </Link>
+            <Link
+              href="/pricing"
+              className="border-2 border-primary text-primary px-8 py-3.5 rounded-2xl text-lg font-bold hover:bg-primary/5 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+            >
+              {t("home.hero.ctaBuyCredits")}
+            </Link>
           </div>
         </div>
 

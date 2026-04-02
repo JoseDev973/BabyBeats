@@ -38,6 +38,7 @@
       "ctaCreate": "Criar uma Música",
       "ctaCreateFree": "Crie Sua Primeira Música Grátis",
       "ctaGift": "Presenteie um Álbum",
+      "ctaBuyCredits": "Comprar Créditos",
       "ctaSecondary": "Saiba Mais"
     },
     "howItWorks": {
@@ -127,7 +128,12 @@
     "heroSubtitle": "Sua primeira música é grátis. Compre pacotes de créditos para criar mais.",
     "firstSongFree": "Primeira Música Grátis",
     "firstSongFreeDesc": "Cadastre-se e crie sua primeira música personalizada sem custo",
+    "firstSongFreeDescLoggedIn": "Crie sua primeira música personalizada sem custo",
     "createFreeSong": "Criar Música Grátis",
+    "createFirstSong": "Crie Sua Primeira Música",
+    "pack_starter": "Starter",
+    "pack_popular": "Pack Família",
+    "pack_mega": "Mega Pack",
     "needMoreSongs": "Precisa de mais músicas? Compre créditos",
     "bestValue": "Melhor Preço",
     "songsCount": "{count} músicas",
@@ -165,6 +171,8 @@
     "previewHint": "Revise a letra, depois gere o áudio",
     "generateAudio": "Gerar Áudio",
     "needCredits": "Você precisa de créditos para gerar áudio",
+    "noCredits": "Sem créditos — compre mais",
+    "albumNeedCredits": "Compre créditos para criar álbuns",
     "buyCredits": "Comprar créditos",
     "modeTitle": "O que você quer criar?",
     "modeSingle": "Uma música",
@@ -188,7 +196,9 @@
     "classical": "Clássico",
     "pop": "Pop",
     "acoustic": "Acústico",
-    "reggaeton": "Reggaeton Kids"
+    "reggaeton": "Reggaeton Kids",
+    "songsLabel": "músicas",
+    "songsForChild": "{count} músicas para {name}"
   },
   "generating": {
     "title": "Criando sua música...",
@@ -299,6 +309,7 @@
     "redeemPlaceholder": "Digite seu código de presente",
     "redeemButton": "Resgatar",
     "redeemSuccess": "Presente resgatado! Você recebeu {credits} créditos",
+    "giftAlreadyProcessing": "Este presente já foi criado. As músicas estão sendo geradas ou já estão prontas.",
     "redeemError": "Código inválido ou já resgatado",
     "redeemStartCreating": "Comece a criar músicas",
     "howItWorks": "Como funciona",

@@ -56,7 +56,7 @@ export function PricingPacks({ locale }: { locale: string }) {
                 </div>
               )}
 
-              <h3 className="text-xl font-bold mb-1">{pack.name}</h3>
+              <h3 className="text-xl font-bold mb-1">{t(`pack_${packKey}` as any)}</h3>
               <p className="text-muted-foreground text-sm mb-4">
                 {t("songsCount", { count: pack.credits })}
               </p>

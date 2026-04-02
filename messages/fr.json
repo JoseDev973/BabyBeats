@@ -38,6 +38,7 @@
       "ctaCreate": "Créer une Chanson",
       "ctaCreateFree": "Créez Votre Première Chanson Gratuite",
       "ctaGift": "Offrir un Album",
+      "ctaBuyCredits": "Acheter des Crédits",
       "ctaSecondary": "En savoir plus"
     },
     "howItWorks": {
@@ -127,7 +128,12 @@
     "heroSubtitle": "Votre première chanson est gratuite. Achetez des crédits pour en créer plus.",
     "firstSongFree": "Première Chanson Gratuite",
     "firstSongFreeDesc": "Inscrivez-vous et créez votre première chanson personnalisée sans frais",
+    "firstSongFreeDescLoggedIn": "Créez votre première chanson personnalisée sans frais",
     "createFreeSong": "Créer Chanson Gratuite",
+    "createFirstSong": "Créez Votre Première Chanson",
+    "pack_starter": "Starter",
+    "pack_popular": "Pack Famille",
+    "pack_mega": "Mega Pack",
     "needMoreSongs": "Besoin de plus de chansons ? Achetez des crédits",
     "bestValue": "Meilleur Prix",
     "songsCount": "{count} chansons",
@@ -165,6 +171,8 @@
     "previewHint": "Vérifiez les paroles, puis générez l'audio",
     "generateAudio": "Générer l'Audio",
     "needCredits": "Vous avez besoin de crédits pour générer l'audio",
+    "noCredits": "Pas de crédits — achetez-en plus",
+    "albumNeedCredits": "Achetez des crédits pour créer des albums",
     "buyCredits": "Acheter des crédits",
     "modeTitle": "Que voulez-vous créer ?",
     "modeSingle": "Une chanson",
@@ -188,7 +196,9 @@
     "classical": "Classique",
     "pop": "Pop",
     "acoustic": "Acoustique",
-    "reggaeton": "Reggaeton Kids"
+    "reggaeton": "Reggaeton Kids",
+    "songsLabel": "chansons",
+    "songsForChild": "{count} chansons pour {name}"
   },
   "generating": {
     "title": "Création de votre chanson...",
@@ -299,6 +309,7 @@
     "redeemPlaceholder": "Entrez votre code cadeau",
     "redeemButton": "Utiliser",
     "redeemSuccess": "Cadeau utilisé ! Vous avez reçu {credits} crédits",
+    "giftAlreadyProcessing": "Ce cadeau a déjà été créé. Les chansons sont en cours de génération ou sont prêtes.",
     "redeemError": "Code invalide ou déjà utilisé",
     "redeemStartCreating": "Commencez à créer des chansons",
     "howItWorks": "Comment ça marche",

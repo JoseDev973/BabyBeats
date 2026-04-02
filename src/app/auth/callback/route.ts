@@ -33,9 +33,12 @@ export async function GET(request: Request) {
           // Only send welcome email if user was created within the last 10 minutes
           if (isNewUser && minutesSinceCreation < 10) {
             const lang = profile?.preferred_language === "en" ? "en" : "es";
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+            // Use the request origin (not NEXT_PUBLIC_APP_URL which may be localhost)
+            const emailUrl = `${origin}/api/emails/send`;
 
-            fetch(`${appUrl}/api/emails/send`, {
+            console.log(`[Auth Callback] Sending welcome email to ${user.email} via ${emailUrl}`);
+
+            fetch(emailUrl, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -52,6 +55,8 @@ export async function GET(request: Request) {
                     null,
                 },
               }),
+            }).then((res) => {
+              console.log(`[Auth Callback] Welcome email response: ${res.status}`);
             }).catch((err) => {
               console.error("[Auth Callback] Failed to send welcome email:", err);
             });

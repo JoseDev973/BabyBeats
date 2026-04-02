@@ -76,7 +76,7 @@ export default function GiftCreatePage() {
         if (data) {
           setPackType(data.pack_type);
           setTotalSongs(data.total_songs);
-          if (data.child_name) setChildName(data.child_name);
+          if (data.child_name && data.child_name !== "—") setChildName(data.child_name);
           if (data.language) setLanguage(data.language);
         }
       });
@@ -158,7 +158,11 @@ export default function GiftCreatePage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setGenerationError(data.error || "Generation failed");
+        if (data.error === "GIFT_ALREADY_PROCESSING") {
+          setGenerationError(t("giftAlreadyProcessing"));
+        } else {
+          setGenerationError(data.error || "Generation failed");
+        }
         setGenerating(false);
         return;
       }
@@ -212,10 +216,14 @@ export default function GiftCreatePage() {
 
           <div>
             <label className="text-sm font-bold mb-2 block">{t("language")}</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
                 { value: "es", label: "Espa\u00f1ol" },
                 { value: "en", label: "English" },
+                { value: "pt", label: "Portugu\u00eas" },
+                { value: "fr", label: "Fran\u00e7ais" },
+                { value: "de", label: "Deutsch" },
+                { value: "it", label: "Italiano" },
               ].map((l) => (
                 <button
                   key={l.value}

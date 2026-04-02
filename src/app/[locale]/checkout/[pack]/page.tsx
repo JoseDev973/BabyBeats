@@ -73,7 +73,7 @@ export default async function CheckoutPage({
 
         <a
           href={`/api/checkout-mp?pack=${pack}`}
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-[#009ee3] text-[#009ee3] text-sm font-bold hover:bg-[#009ee3]/10 transition-colors"
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-primary text-primary text-sm font-bold hover:bg-primary/10 transition-colors"
         >
           {t("payWithMP")} — ${selectedPackCOP.price.toLocaleString("es-CO")} COP
         </a>

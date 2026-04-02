@@ -5,6 +5,10 @@ import {
   giftReadyEmail,
   getGiftReadySubject,
 } from "@/lib/emails/gift-ready";
+import {
+  songReadyEmail,
+  getSongReadySubject,
+} from "@/lib/emails/song-ready";
 
 function getSupabase() {
   return createClient(
@@ -39,7 +43,7 @@ export async function POST(request: Request) {
     // Find the song by suno_task_id
     const { data: song } = await supabase
       .from("generated_songs")
-      .select("id, child_name, share_token")
+      .select("id, child_name, share_token, user_id, language")
       .eq("suno_task_id", taskId)
       .single();
 
@@ -89,6 +93,41 @@ export async function POST(request: Request) {
           .eq("id", song.id);
 
         console.log(`[Suno Webhook] Song ${song.id} completed (${song.child_name})`);
+
+        // Send song-ready email to the user
+        try {
+          if (song.user_id) {
+            const { data: authUser } = await supabase.auth.admin.getUserById(
+              song.user_id,
+            );
+            const userEmail = authUser?.user?.email;
+
+            if (userEmail) {
+              const lang = (song.language === "en" ? "en" : "es") as "es" | "en";
+              const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://babybeats.art";
+              const songUrl = song.share_token
+                ? `${appUrl}/share/${song.share_token}`
+                : `${appUrl}/my-songs`;
+
+              await getResend().emails.send({
+                from: FROM_ADDRESS,
+                to: userEmail,
+                subject: getSongReadySubject(song.child_name, lang),
+                html: songReadyEmail({
+                  childName: song.child_name,
+                  songUrl,
+                  lang,
+                }),
+              });
+
+              console.log(
+                `[Suno Webhook] Song-ready email sent to ${userEmail} for song ${song.id}`,
+              );
+            }
+          }
+        } catch (emailErr) {
+          console.error("[Suno Webhook] Failed to send song-ready email:", emailErr);
+        }
       }
 
       // Update gift_songs

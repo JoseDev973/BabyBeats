@@ -143,7 +143,7 @@ export async function POST(request: Request) {
 
   if (gift.status === "generating" || gift.status === "ready") {
     return NextResponse.json(
-      { error: "Gift songs are already being generated or are ready" },
+      { error: "GIFT_ALREADY_PROCESSING" },
       { status: 400 },
     );
   }

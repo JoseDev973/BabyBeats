@@ -17,6 +17,7 @@ import {
   Disc3,
   Wand2,
   Settings2,
+  Lock,
 } from "lucide-react";
 import type { SongTheme } from "@/types/database";
 
@@ -235,10 +236,15 @@ export default function CreateWizard({
             <Sparkles className="h-4 w-4" />
             {t("firstFree")}
           </div>
-        ) : (
+        ) : credits > 0 ? (
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold mb-4">
             <Coins className="h-4 w-4" />
             {t("creditsRemaining", { count: credits })}
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2 bg-destructive/10 text-destructive px-3 py-1 rounded-full text-sm font-bold mb-4">
+            <Coins className="h-4 w-4" />
+            <button onClick={() => router.push("/pricing")} className="hover:underline">{t("noCredits")}</button>
           </div>
         )}
         <h1 className="text-3xl font-extrabold">{t("title")}</h1>
@@ -248,7 +254,7 @@ export default function CreateWizard({
       {mode === "choose" && (
         <div className="space-y-4 mt-8">
           <h2 className="text-xl font-bold text-center mb-6">{t("modeTitle")}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-1 ${!isFirstSong ? "sm:grid-cols-2" : ""} gap-4`}>
             <button
               onClick={() => { setMode("single"); setSingleStep("child"); }}
               className="p-6 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-lg transition-all text-center group"
@@ -259,16 +265,31 @@ export default function CreateWizard({
               <p className="font-bold text-lg">{t("modeSingle")}</p>
               <p className="text-sm text-muted-foreground mt-1">{t("modeSingleDesc")}</p>
             </button>
-            <button
-              onClick={() => { setMode("album"); setAlbumStep("child"); }}
-              className="p-6 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-lg transition-all text-center group"
-            >
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-gold/20 to-accent/20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Disc3 className="h-7 w-7 text-accent-foreground" />
-              </div>
-              <p className="font-bold text-lg">{t("modeAlbum")}</p>
-              <p className="text-sm text-muted-foreground mt-1">{t("modeAlbumDesc")}</p>
-            </button>
+            {!isFirstSong && (
+              <button
+                onClick={() => { if (credits > 0) { setMode("album"); setAlbumStep("child"); } }}
+                disabled={credits === 0}
+                className={`p-6 rounded-2xl border-2 transition-all text-center group ${
+                  credits === 0
+                    ? "border-border opacity-60 cursor-not-allowed"
+                    : "border-border hover:border-primary/50 hover:shadow-lg"
+                }`}
+              >
+                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-gold/20 to-accent/20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  {credits === 0 ? <Lock className="h-7 w-7 text-muted-foreground" /> : <Disc3 className="h-7 w-7 text-accent-foreground" />}
+                </div>
+                <p className="font-bold text-lg">{t("modeAlbum")}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t("modeAlbumDesc")}</p>
+                {credits === 0 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); router.push("/pricing"); }}
+                    className="mt-2 text-sm text-primary font-semibold hover:underline"
+                  >
+                    {t("albumNeedCredits")}
+                  </button>
+                )}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -416,8 +437,8 @@ export default function CreateWizard({
                 autoFocus onKeyDown={(e) => e.key === "Enter" && albumGoNext()} />
               <div>
                 <label className="text-sm font-semibold mb-2 block">{t("language")}</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {SONG_LANGUAGES.slice(0, 2).map((l) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {SONG_LANGUAGES.map((l) => (
                     <button key={l.value} onClick={() => setLanguage(l.value)}
                       className={`px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
                         language === l.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
