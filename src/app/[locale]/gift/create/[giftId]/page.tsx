@@ -59,8 +59,11 @@ export default function GiftCreatePage() {
   const [totalSongs, setTotalSongs] = useState(10);
   const [songConfigs, setSongConfigs] = useState<{ theme: SongTheme; style: string; prompt: string }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState("");
   const [deliveryToken, setDeliveryToken] = useState("");
   const [copied, setCopied] = useState(false);
+  const [giftStatus, setGiftStatus] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
@@ -130,7 +133,7 @@ export default function GiftCreatePage() {
 
     await supabase.from("gift_songs").insert(songRows);
 
-    // Fetch delivery token for the share link
+    // Fetch delivery token
     const { data: giftData } = await supabase
       .from("gifts")
       .select("delivery_token")
@@ -143,6 +146,48 @@ export default function GiftCreatePage() {
 
     setStep("confirm");
     setLoading(false);
+
+    // Trigger song generation
+    setGenerating(true);
+    setGenerationError("");
+    try {
+      const res = await fetch("/api/gift/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ giftId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setGenerationError(data.error || "Generation failed");
+        setGenerating(false);
+        return;
+      }
+
+      // Poll for gift completion
+      const pollInterval = setInterval(async () => {
+        const { data: g } = await supabase
+          .from("gifts")
+          .select("status")
+          .eq("id", giftId)
+          .single();
+
+        if (g?.status === "ready") {
+          setGiftStatus("ready");
+          setGenerating(false);
+          clearInterval(pollInterval);
+        } else if (g?.status === "failed") {
+          setGenerationError("Some songs failed to generate");
+          setGenerating(false);
+          clearInterval(pollInterval);
+        }
+      }, 5000);
+
+      // Stop polling after 10 minutes
+      setTimeout(() => clearInterval(pollInterval), 600000);
+    } catch {
+      setGenerationError("Failed to start generation");
+      setGenerating(false);
+    }
   }
 
   return (
@@ -369,56 +414,88 @@ export default function GiftCreatePage() {
         </div>
       )}
 
-      {/* Step: Confirm */}
+      {/* Step: Confirm — Generating or Ready */}
       {step === "confirm" && (
         <div className="text-center space-y-6">
-          <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <Gift className="h-10 w-10 text-green-600" />
-          </div>
-          <h1 className="text-2xl font-extrabold">{t("ready")}</h1>
-          <p className="text-muted-foreground">{t("readyDesc", { name: childName })}</p>
-          <p className="text-sm text-muted-foreground">
-            {totalSongs} {t("songs")}
-          </p>
+          {generating ? (
+            <>
+              <div className="relative h-24 w-24 mx-auto mb-4">
+                <div className="absolute inset-0 rounded-full border-4 border-muted" />
+                <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" style={{ animationDuration: "2s" }} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
+              </div>
+              <h1 className="text-2xl font-extrabold">{t("generating")}</h1>
+              <p className="text-muted-foreground">{t("generatingDesc", { count: totalSongs })}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("songs")}: {totalSongs} para {childName}
+              </p>
+            </>
+          ) : generationError ? (
+            <>
+              <div className="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                <Gift className="h-10 w-10 text-red-600" />
+              </div>
+              <h1 className="text-2xl font-extrabold text-destructive">{generationError}</h1>
+              <button
+                onClick={() => router.push("/gift")}
+                className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all"
+              >
+                {t("heroTitle")}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <Gift className="h-10 w-10 text-green-600" />
+              </div>
+              <h1 className="text-2xl font-extrabold">{t("ready")}</h1>
+              <p className="text-muted-foreground">{t("readyDesc", { name: childName })}</p>
+              <p className="text-sm text-muted-foreground">
+                {totalSongs} {t("songs")}
+              </p>
 
-          {deliveryToken && (
-            <div className="bg-card border border-border rounded-xl p-5 space-y-3">
-              <p className="text-xs text-muted-foreground font-semibold uppercase">{t("copyLink")}</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/gift/deliver/${deliveryToken}`}
-                  className="flex-1 px-3 py-2 rounded-lg border border-input bg-background text-sm truncate"
-                />
+              {deliveryToken && (
+                <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+                  <p className="text-xs text-muted-foreground font-semibold uppercase">{t("copyLink")}</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={`${typeof window !== "undefined" ? window.location.origin : ""}/gift/deliver/${deliveryToken}`}
+                      className="flex-1 px-3 py-2 rounded-lg border border-input bg-background text-sm truncate"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/gift/deliver/${deliveryToken}`);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all shrink-0"
+                    >
+                      {copied ? t("copied") : t("copyLink")}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/gift/deliver/${deliveryToken}`);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  }}
-                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all shrink-0"
+                  onClick={() => router.push("/gift")}
+                  className="flex-1 border-2 border-border py-2.5 rounded-xl text-sm font-bold hover:bg-muted transition-all"
                 >
-                  {copied ? t("copied") : t("copyLink")}
+                  {t("heroTitle")}
+                </button>
+                <button
+                  onClick={() => router.push("/")}
+                  className="flex-1 border-2 border-border py-2.5 rounded-xl text-sm font-bold hover:bg-muted transition-all"
+                >
+                  Home
                 </button>
               </div>
-            </div>
+            </>
           )}
-
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => router.push("/gift")}
-              className="flex-1 border-2 border-border py-2.5 rounded-xl text-sm font-bold hover:bg-muted transition-all"
-            >
-              {t("heroTitle")}
-            </button>
-            <button
-              onClick={() => router.push("/")}
-              className="flex-1 border-2 border-border py-2.5 rounded-xl text-sm font-bold hover:bg-muted transition-all"
-            >
-              Home
-            </button>
-          </div>
         </div>
       )}
     </div>
