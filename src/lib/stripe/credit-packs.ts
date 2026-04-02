@@ -7,7 +7,6 @@ export const CREDIT_PACKS = {
     credits: 3,
     price: 4.99,
     pricePerSong: 1.66,
-    priceId: process.env.STRIPE_STARTER_PACK_PRICE_ID || "",
     popular: false,
   },
   popular: {
@@ -15,7 +14,6 @@ export const CREDIT_PACKS = {
     credits: 10,
     price: 9.99,
     pricePerSong: 1.0,
-    priceId: process.env.STRIPE_FAMILY_PACK_PRICE_ID || "",
     popular: true,
   },
   mega: {
@@ -23,7 +21,8 @@ export const CREDIT_PACKS = {
     credits: 25,
     price: 19.99,
     pricePerSong: 0.8,
-    priceId: process.env.STRIPE_MEGA_PACK_PRICE_ID || "",
     popular: false,
   },
 } as const;
+
+export type CreditPackKey = keyof typeof CREDIT_PACKS;
