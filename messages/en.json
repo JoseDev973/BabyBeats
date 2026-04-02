@@ -113,7 +113,10 @@
     "passwordsMismatch": "Passwords don't match",
     "googleError": "Could not connect to Google. Please try again.",
     "or": "or",
-    "signupWithGoogle": "Sign up with Google"
+    "signupWithGoogle": "Sign up with Google",
+    "forgotPassword": "Forgot your password?",
+    "resetEmailSent": "Password reset email sent. Check your inbox.",
+    "enterEmailFirst": "Enter your email address first"
   },
   "pricing": {
     "title": "Choose your plan",
@@ -188,7 +191,9 @@
     "classical": "Classical",
     "pop": "Pop",
     "acoustic": "Acoustic",
-    "reggaeton": "Reggaeton Kids"
+    "reggaeton": "Reggaeton Kids",
+    "songsLabel": "songs",
+    "songsForChild": "{count} songs for {name}"
   },
   "generating": {
     "title": "Creating your song...",
