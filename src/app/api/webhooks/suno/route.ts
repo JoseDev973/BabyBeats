@@ -106,8 +106,6 @@ export async function POST(request: Request) {
             .update({ status: "ready", updated_at: new Date().toISOString() })
             .eq("id", giftSong.gift_id);
 
-<<<<<<< HEAD
-=======
           // Send gift-ready email to the buyer
           try {
             const { data: gift } = await supabase
@@ -151,7 +149,6 @@ export async function POST(request: Request) {
             console.error("[Suno Webhook] Failed to send gift-ready email:", emailErr);
           }
 
->>>>>>> dev
           console.log(`[Suno Webhook] Gift ${giftSong.gift_id} fully completed`);
         }
 
