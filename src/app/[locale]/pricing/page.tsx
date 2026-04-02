@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Check, Sparkles, Gift } from "lucide-react";
-import { CREDIT_PACKS } from "@/lib/stripe/config";
+import { CREDIT_PACKS } from "@/lib/stripe/credit-packs";
 
 export const metadata = {
   title: "Pricing",
