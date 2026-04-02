@@ -337,12 +337,23 @@ export default function GiftCreatePage() {
                     updated[i].style = e.target.value;
                     setSongConfigs(updated);
                   }}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm mb-2"
                 >
                   {STYLE_KEYS.map((s) => (
                     <option key={s} value={s}>{tc(s)}</option>
                   ))}
                 </select>
+                <input
+                  type="text"
+                  value={config.prompt}
+                  onChange={(e) => {
+                    const updated = [...songConfigs];
+                    updated[i].prompt = e.target.value;
+                    setSongConfigs(updated);
+                  }}
+                  placeholder={tc("customPlaceholder")}
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-xs"
+                />
               </div>
             ))}
           </div>
