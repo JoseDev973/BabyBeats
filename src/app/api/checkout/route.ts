@@ -1,39 +1,36 @@
 import { NextResponse } from "next/server";
-import { getStripe } from "@/lib/stripe/config";
+import { getStripe, CREDIT_PACKS } from "@/lib/stripe/config";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST(request: Request) {
-  const { priceId } = await request.json();
+type PackKey = keyof typeof CREDIT_PACKS;
 
+async function createCheckoutSession(
+  request: Request,
+  userId: string,
+  email: string | undefined,
+  priceId: string,
+) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  // Get or create Stripe customer
   const { data: profile } = await supabase
     .from("profiles")
     .select("stripe_customer_id")
-    .eq("id", user.id)
+    .eq("id", userId)
     .single();
 
   let customerId = profile?.stripe_customer_id;
 
   if (!customerId) {
     const customer = await getStripe().customers.create({
-      email: user.email,
-      metadata: { supabase_user_id: user.id },
+      email,
+      metadata: { supabase_user_id: userId },
     });
     customerId = customer.id;
 
     await supabase
       .from("profiles")
       .update({ stripe_customer_id: customerId })
-      .eq("id", user.id);
+      .eq("id", userId);
   }
 
   const session = await getStripe().checkout.sessions.create({
@@ -42,8 +39,41 @@ export async function POST(request: Request) {
     mode: "payment",
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?success=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
-    metadata: { supabase_user_id: user.id, price_id: priceId },
+    metadata: { supabase_user_id: userId, price_id: priceId },
   });
 
-  return NextResponse.json({ url: session.url });
+  return NextResponse.redirect(session.url!);
+}
+
+// Called from pricing page as GET /api/checkout?pack=starter
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const pack = searchParams.get("pack") as PackKey | null;
+
+  if (!pack || !(pack in CREDIT_PACKS)) {
+    return NextResponse.json({ error: "Invalid pack" }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.redirect(new URL("/auth/login", request.url));
+  }
+
+  return createCheckoutSession(request, user.id, user.email, CREDIT_PACKS[pack].priceId);
+}
+
+// POST kept for backwards compatibility (called via fetch from other clients)
+export async function POST(request: Request) {
+  const { priceId } = await request.json();
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  return createCheckoutSession(request, user.id, user.email, priceId);
 }

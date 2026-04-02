@@ -118,6 +118,21 @@
     "resetEmailSent": "Password reset email sent. Check your inbox.",
     "enterEmailFirst": "Enter your email address first"
   },
+  "metadata": {
+    "defaultTitle": "BabyBeats — Personalized songs for your baby",
+    "defaultDescription": "Create unique songs with your baby's name using artificial intelligence.",
+    "ogDescription": "Lullabies, educational songs, and fun tunes crafted with AI for your baby.",
+    "pricingTitle": "Pricing — BabyBeats",
+    "pricingDescription": "First song free. Buy credit packs to create more personalized songs.",
+    "songsTitle": "Songs — BabyBeats",
+    "songsDescription": "Explore the catalog of baby songs created with artificial intelligence.",
+    "loginTitle": "Log in — BabyBeats",
+    "loginDescription": "Access your account to listen to and create personalized songs.",
+    "signupTitle": "Create account — BabyBeats",
+    "signupDescription": "Sign up for free and create your first personalized song for your baby.",
+    "giftTitle": "Gift BabyBeats",
+    "giftDescription": "The perfect gift: a personalized song album with the baby's name."
+  },
   "pricing": {
     "title": "Choose your plan",
     "subtitle": "Start free, upgrade when you're ready",
@@ -139,7 +154,9 @@
     "mp3Download": "MP3 download",
     "shareableLink": "Shareable link",
     "creditsNeverExpire": "Credits never expire",
-    "buyCredits": "Buy {count} Credits"
+    "buyCredits": "Buy {count} Credits",
+    "payWithStripe": "Pay with card",
+    "payWithMP": "Pay with Mercado Pago"
   },
   "player": {
     "nowPlaying": "Now Playing",

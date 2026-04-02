@@ -118,6 +118,21 @@
     "resetEmailSent": "Email de recuperación enviado. Revisa tu bandeja de entrada.",
     "enterEmailFirst": "Ingresa tu email primero"
   },
+  "metadata": {
+    "defaultTitle": "BabyBeats — Canciones personalizadas para tu bebé",
+    "defaultDescription": "Crea canciones únicas con el nombre de tu bebé usando inteligencia artificial.",
+    "ogDescription": "Canciones de cuna, educativas y divertidas creadas con IA para tu bebé.",
+    "pricingTitle": "Planes y precios — BabyBeats",
+    "pricingDescription": "Primera canción gratis. Compra packs de créditos para crear más canciones personalizadas.",
+    "songsTitle": "Canciones — BabyBeats",
+    "songsDescription": "Explora el catálogo de canciones para bebés creadas con inteligencia artificial.",
+    "loginTitle": "Iniciar sesión — BabyBeats",
+    "loginDescription": "Accede a tu cuenta para escuchar y crear canciones personalizadas.",
+    "signupTitle": "Crear cuenta — BabyBeats",
+    "signupDescription": "Regístrate gratis y crea tu primera canción personalizada para tu bebé.",
+    "giftTitle": "Regala BabyBeats",
+    "giftDescription": "El regalo perfecto: un álbum de canciones personalizadas con el nombre del bebé."
+  },
   "pricing": {
     "title": "Elige tu plan",
     "subtitle": "Empieza gratis, mejora cuando quieras",
@@ -139,7 +154,9 @@
     "mp3Download": "Descarga MP3",
     "shareableLink": "Link para compartir",
     "creditsNeverExpire": "Los créditos nunca expiran",
-    "buyCredits": "Comprar {count} Créditos"
+    "buyCredits": "Comprar {count} Créditos",
+    "payWithStripe": "Pagar con tarjeta",
+    "payWithMP": "Pagar con Mercado Pago"
   },
   "player": {
     "nowPlaying": "Reproduciendo",
