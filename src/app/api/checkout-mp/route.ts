@@ -11,6 +11,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid pack" }, { status: 400 });
   }
 
+  if (!process.env.MP_ACCESS_TOKEN) {
+    console.error("[checkout-mp] MP_ACCESS_TOKEN not configured");
+    return NextResponse.json({ error: "Payment service not configured" }, { status: 503 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,32 +28,46 @@ export async function GET(request: Request) {
   }
 
   const selectedPack = CREDIT_PACKS_COP[pack];
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/+$/, "");
 
-  const preference = await new Preference(getMercadoPago()).create({
-    body: {
-      items: [
-        {
-          id: pack,
-          title: `BabyBeats ${selectedPack.name} — ${selectedPack.credits} créditos`,
-          quantity: 1,
-          unit_price: selectedPack.price,
-          currency_id: "COP",
+  try {
+    const preference = await new Preference(getMercadoPago()).create({
+      body: {
+        items: [
+          {
+            id: pack,
+            title: `BabyBeats ${selectedPack.name} — ${selectedPack.credits} créditos`,
+            quantity: 1,
+            unit_price: selectedPack.price,
+            currency_id: "COP",
+          },
+        ],
+        external_reference: JSON.stringify({
+          user_id: user.id,
+          pack,
+        }),
+        back_urls: {
+          success: `${appUrl}/profile?success=true`,
+          failure: `${appUrl}/pricing?canceled=true`,
+          pending: `${appUrl}/profile?pending=true`,
         },
-      ],
-      external_reference: JSON.stringify({
-        user_id: user.id,
-        pack,
-      }),
-      back_urls: {
-        success: `${appUrl}/profile?success=true`,
-        failure: `${appUrl}/pricing?canceled=true`,
-        pending: `${appUrl}/profile?pending=true`,
+        auto_return: "approved",
+        notification_url: `${appUrl}/api/webhooks/mercado-pago`,
       },
-      auto_return: "approved",
-      notification_url: `${appUrl}/api/webhooks/mercado-pago`,
-    },
-  });
+    });
 
-  return NextResponse.redirect(preference.init_point!);
+    if (!preference.init_point) {
+      console.error("[checkout-mp] No init_point in preference response:", preference);
+      return NextResponse.json({ error: "Failed to create payment link" }, { status: 502 });
+    }
+
+    return NextResponse.redirect(preference.init_point);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : JSON.stringify(err);
+    console.error("[checkout-mp] Mercado Pago error:", errMsg, err);
+    return NextResponse.json(
+      { error: "Payment service error", details: errMsg },
+      { status: 500 }
+    );
+  }
 }
