@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe, CREDIT_PACKS } from "@/lib/stripe/config";
 import { createClient } from "@/lib/supabase/server";
+import { getAppUrl } from "@/lib/utils";
 
 type PackKey = keyof typeof CREDIT_PACKS;
 
@@ -48,8 +49,8 @@ async function createCheckoutSession(
       quantity: 1,
     }],
     mode: "payment",
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?success=true`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
+    success_url: `${getAppUrl()}/profile?success=true`,
+    cancel_url: `${getAppUrl()}/pricing?canceled=true`,
     metadata: { supabase_user_id: userId, pack },
   });
 

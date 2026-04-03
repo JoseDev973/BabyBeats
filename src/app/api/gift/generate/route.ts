@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getAppUrl } from "@/lib/utils";
 import type { GiftSong, SongTheme } from "@/types/database";
 
 const SUNO_API_BASE = "https://api.sunoapi.org/api/v1";
@@ -103,7 +104,7 @@ async function startSunoGeneration(
       title: `${childName}'s Song`,
       instrumental: false,
       model: "V4",
-      callBackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/suno`,
+      callBackUrl: `${getAppUrl()}/api/webhooks/suno`,
     }),
   });
 

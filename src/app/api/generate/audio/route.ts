@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getAppUrl } from "@/lib/utils";
 import { rateLimit } from "@/lib/rate-limit";
 
 const SUNO_API_BASE = "https://api.sunoapi.org/api/v1";
@@ -118,7 +119,7 @@ export async function POST(request: Request) {
         title: `${song.child_name}'s Song`,
         instrumental: false,
         model: "V4",
-        callBackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/suno`,
+        callBackUrl: `${getAppUrl()}/api/webhooks/suno`,
       }),
     });
 

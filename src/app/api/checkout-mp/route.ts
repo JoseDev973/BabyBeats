@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Preference } from "mercadopago";
 import { getMercadoPago, CREDIT_PACKS_COP, CreditPackKey } from "@/lib/mercado-pago/config";
 import { createClient } from "@/lib/supabase/server";
+import { getAppUrl } from "@/lib/utils";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
   }
 
   const selectedPack = CREDIT_PACKS_COP[pack];
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/+$/, "");
+  const appUrl = getAppUrl();
 
   try {
     const preference = await new Preference(getMercadoPago()).create({

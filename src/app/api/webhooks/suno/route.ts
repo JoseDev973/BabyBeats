@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAppUrl } from "@/lib/utils";
 import { getResend, FROM_ADDRESS } from "@/lib/resend";
 import {
   giftReadyEmail,
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
 
             if (userEmail) {
               const lang = (song.language === "en" ? "en" : "es") as "es" | "en";
-              const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://babybeats.art";
+              const appUrl = getAppUrl();
               const songUrl = song.share_token
                 ? `${appUrl}/share/${song.share_token}`
                 : `${appUrl}/my-songs`;
@@ -175,7 +176,7 @@ export async function POST(request: Request) {
 
               if (buyerEmail) {
                 const lang = (gift.language === "en" ? "en" : "es") as "es" | "en";
-                const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://babybeats.art";
+                const appUrl = getAppUrl();
                 const deliveryUrl = `${appUrl}/gift/deliver/${gift.delivery_token}`;
 
                 await getResend().emails.send({

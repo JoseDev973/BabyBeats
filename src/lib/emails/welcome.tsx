@@ -50,7 +50,7 @@ export function getWelcomeSubject(lang: "es" | "en") {
 
 export function welcomeEmail({ displayName, lang }: WelcomeEmailProps): string {
   const t = translations[lang];
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://babybeats.art";
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://babybeats.art").trim().replace(/\/+$/, "");
 
   return `<!DOCTYPE html>
 <html lang="${lang}">
