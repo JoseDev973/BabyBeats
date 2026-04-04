@@ -65,7 +65,7 @@ export default function Navbar() {
             <Sparkles className="h-3.5 w-3.5" />{t("create")}
           </Link>
           <Link href="/songs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t("songs")}</Link>
-          <Link href="/gift" className="text-sm font-medium text-accent-foreground hover:text-foreground transition-colors flex items-center gap-1">
+          <Link href="/gift" className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1">
             <Gift className="h-3.5 w-3.5" />{tg("nav")}
           </Link>
           {!user && (
@@ -134,7 +134,7 @@ export default function Navbar() {
             <Sparkles className="h-3.5 w-3.5" />{t("create")}
           </Link>
           <Link href="/songs" className="block text-sm py-2" onClick={() => setMenuOpen(false)}>{t("songs")}</Link>
-          <Link href="/gift" className="block text-sm py-2 font-medium text-accent-foreground flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+          <Link href="/gift" className="block text-sm py-2 font-medium text-foreground flex items-center gap-2" onClick={() => setMenuOpen(false)}>
             <Gift className="h-3.5 w-3.5" />{tg("nav")}
           </Link>
           <Link href="/pricing" className="block text-sm py-2" onClick={() => setMenuOpen(false)}>{t("pricing")}</Link>

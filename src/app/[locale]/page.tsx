@@ -108,7 +108,7 @@ export default async function HomePage() {
                 <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                   {item.icon}
                 </div>
-                <div className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gold/30 text-xs font-bold text-accent-foreground mb-2">
+                <div className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 text-xs font-bold text-primary mb-2">
                   {item.step}
                 </div>
                 <h3 className="font-bold mb-1">{item.title}</h3>
@@ -157,19 +157,19 @@ export default async function HomePage() {
               icon={<Moon className="h-8 w-8 text-primary" />}
               title={t("home.categories.lullabies")}
               description={t("home.categories.lullabiesDesc")}
-              gradient="from-indigo-50 to-purple-50"
+              gradient="from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50"
             />
             <CategoryCard
               icon={<BookOpen className="h-8 w-8 text-emerald-500" />}
               title={t("home.categories.educational")}
               description={t("home.categories.educationalDesc")}
-              gradient="from-emerald-50 to-teal-50"
+              gradient="from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50"
             />
             <CategoryCard
               icon={<Music className="h-8 w-8 text-pink-500" />}
               title={t("home.categories.fun")}
               description={t("home.categories.funDesc")}
-              gradient="from-pink-50 to-orange-50"
+              gradient="from-pink-50 to-orange-50 dark:from-pink-950/50 dark:to-orange-950/50"
             />
           </div>
         </div>
@@ -251,7 +251,7 @@ function CategoryCard({
 }) {
   return (
     <div className={`flex flex-col items-center text-center p-8 rounded-2xl border border-border bg-gradient-to-br ${gradient} hover:shadow-lg hover:scale-[1.02] transition-all cursor-default`}>
-      <div className="mb-4 h-16 w-16 rounded-2xl bg-white/80 flex items-center justify-center shadow-sm">
+      <div className="mb-4 h-16 w-16 rounded-2xl bg-white/80 dark:bg-white/10 flex items-center justify-center shadow-sm">
         {icon}
       </div>
       <h3 className="text-xl font-bold mb-2">{title}</h3>
