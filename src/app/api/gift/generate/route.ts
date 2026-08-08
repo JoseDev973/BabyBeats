@@ -79,7 +79,8 @@ Write ONLY the song lyrics, with clear verse/chorus structure. Use [Verse], [Cho
     messages: [{ role: "user", content: prompt }],
   });
 
-  return message.content[0].type === "text" ? message.content[0].text : "";
+  const textBlock = message.content.find((b) => b.type === "text");
+  return textBlock?.type === "text" ? textBlock.text : "";
 }
 
 async function startSunoGeneration(
