@@ -75,7 +75,8 @@ Write ONLY the song lyrics, with clear verse/chorus structure. Use [Verse], [Cho
   try {
     const message = await anthropic.messages.create({
       model: "claude-opus-5",
-      max_tokens: 1024,
+      // max_tokens covers thinking + text on claude-opus-5; 1024 left no room for lyrics
+      max_tokens: 10000,
       messages: [{ role: "user", content: prompt }],
     });
 
