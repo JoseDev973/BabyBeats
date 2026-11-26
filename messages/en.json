@@ -387,9 +387,9 @@
     "playerNow": "Now playing",
     "play": "Play",
     "pause": "Pause",
-    "demoCuna": "A lullaby for Sofía",
-    "demoEdu": "Counting with Sofía",
-    "demoJugar": "Dance, Sofía",
+    "demoCuna": "A lullaby for Emma",
+    "demoEdu": "Counting with Emma",
+    "demoJugar": "Dance, Emma",
     "kindsTitle": "Three songs for their whole day.",
     "cunaTitle": "For sleep",
     "cunaBody": "Slow, with a music box and a warm voice. Their name stays in the chorus so they recognize it every night.",
@@ -417,6 +417,12 @@
     "closingTitle": "Their name sounds better sung.",
     "closingCta": "Create their song",
     "footerNote": "BabyBeats · Songs made with AI, written for each baby.",
-    "footerOld": "Back to the current website"
+    "footerOld": "Back to the current website",
+    "kindCta": "Make one for my baby",
+    "howCta": "Create their song free",
+    "howNote": "Takes about 2 minutes. The first one is free.",
+    "buy": "Buy",
+    "popular": "Most popular",
+    "stickyCta": "Create their song free"
   }
 }

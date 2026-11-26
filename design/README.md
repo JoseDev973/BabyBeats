@@ -1,6 +1,6 @@
 # Diseño — web nueva (vista previa en /new)
 
-Dirección: un cancionero ilustrado. Papel crema que coincide con las ilustraciones, tinta ciruela `#2E2350`, el violeta de la marca como única acción llena, una franja pastel por tipo de canción, títulos en Fraunces cursiva (local, `src/app/fonts/fraunces-italic-latin.woff2`) y texto en Quicksand. Inspirada en la landing de Tonadia (`~/app-crianza/docs/diseno/sistema-visual.md`).
+Dirección: un cancionero ilustrado con la voz de BabyBeats. Títulos en Nunito 900 (la fuente de la marca), texto en Quicksand, papel crema que coincide con las ilustraciones, tinta ciruela `#2E2350`, el violeta como acción llena y un pastel por tipo de canción (tarjetas, no franjas). Toma de Tonadia el método de ilustración, no su tipografía ni su composición. Es una landing de venta: CTA en el hero, en cada tarjeta, después de "Así de fácil", en regalos, "Comprar" en cada pack, cierre, y una barra fija en el celular que aparece al pasar el hero.
 
 Código: `src/app/[locale]/new/` (página y `new.module.css`), `src/components/new-web/DemoPlayer.tsx`. `ChromeGate` esconde la barra y el footer actuales solo en `/new`. La página no se indexa (`robots: noindex`).
 
@@ -20,4 +20,4 @@ Prompt del hero (`02-hero-melodia.jpeg`): el mismo estilo, 16:9, "a long soft la
 
 ## Demos de audio
 
-`public/new-web/demos/`: tres canciones de "Sofía" generadas con los prompts nuevos de Suno (los que ganaron la prueba a ciegas). Los demos del catálogo actual (`songs.audio_url`) apuntan a URLs temporales de Suno que ya caducaron.
+`public/new-web/demos/`: tres canciones de "Sofía" (y tres de "Emma" para `/en`) generadas con los prompts nuevos de Suno (los que ganaron la prueba a ciegas). Los demos del catálogo actual (`songs.audio_url`) apuntan a URLs temporales de Suno que ya caducaron.

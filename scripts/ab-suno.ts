@@ -24,8 +24,10 @@ if (process.env.ENV_FILE) loadEnv(process.env.ENV_FILE);
 
 const SUNO = "https://api.sunoapi.org/api/v1";
 const OUT = process.argv[2] ?? "ab-out";
-const CHILD = "Sofía";
-const LANG = "es";
+const CHILD = process.env.CHILD ?? "Sofía";
+const LANG = process.env.LANG_CODE ?? "es";
+// VARIANTS=new to skip the old prompts
+const VARIANTS = (process.env.VARIANTS ?? "old,new").split(",") as ("old" | "new")[];
 
 const ALL_CASES: { style: string; theme: Theme }[] = [
   { style: "gentle", theme: "lullaby" },
@@ -125,7 +127,7 @@ async function runVariant(variant: "old" | "new", c: (typeof CASES)[number]) {
       : {
           prompt: text,
           style: tags,
-          title: `Canción para ${CHILD}`,
+          title: `${LANG === "en" ? "A song for" : "Canción para"} ${CHILD}`,
           model: SUNO_MODEL,
           negativeTags: buildNegativeTags(c.style),
           ...SUNO_PARAMS,
@@ -142,7 +144,7 @@ async function runVariant(variant: "old" | "new", c: (typeof CASES)[number]) {
 
 async function main() {
   mkdirSync(OUT, { recursive: true });
-  const jobs = CASES.flatMap((c) => (["old", "new"] as const).map((v) => ({ v, c })));
+  const jobs = CASES.flatMap((c) => VARIANTS.map((v) => ({ v, c })));
   const results = await Promise.allSettled(jobs.map(({ v, c }) => runVariant(v, c)));
   const out = results.map((r, i) =>
     r.status === "fulfilled" ? r.value : { variant: jobs[i].v, ...jobs[i].c, error: String(r.reason) },
