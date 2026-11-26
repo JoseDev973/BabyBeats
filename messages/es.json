@@ -359,6 +359,13 @@
     "confirmingPayment": "Confirmando tu pago...",
     "confirmingPaymentDesc": "Esto suele tardar unos segundos. No cierres esta página.",
     "paymentPendingTimeout": "Tu pago sigue en proceso. Te avisaremos por correo; puedes volver a esta página más tarde.",
+    "preparingCode": "Preparando el regalo…",
+    "codeUsed": "Este regalo ya fue canjeado",
+    "codeReady": "¡El enlace de canje está listo!",
+    "shareRedeemLink": "Comparte este enlace para que la familia cree las canciones de {name}.",
+    "resumeGift": "Continuar con este regalo",
+    "checkAlbumStatus": "El álbum sigue en proceso. Puedes volver a consultar su estado.",
+    "albumFor": "{count} canciones para {name}",
     "generationFailed": "No pudimos crear las canciones. Intenta de nuevo; no se te cobrará otra vez.",
     "payWithCard": "Pagar con tarjeta (USD)"
   },

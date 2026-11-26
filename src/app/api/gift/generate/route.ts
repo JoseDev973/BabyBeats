@@ -49,7 +49,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { giftId } = await request.json().catch(() => ({}));
+  const body = await request.json().catch(() => null);
+  const { giftId, settings } = body ?? {};
 
   if (!giftId || typeof giftId !== "string") {
     return NextResponse.json(
@@ -60,49 +61,60 @@ export async function POST(request: Request) {
 
   const admin = getSupabaseAdmin();
 
-  const { data: gift } = await admin
+  const { data: draftGift } = await admin
     .from("gifts")
-    .select("*")
+    .select("paid_at, pack_type")
     .eq("id", giftId)
     .eq("buyer_id", user.id)
     .maybeSingle();
 
-  if (!gift) {
+  if (!draftGift) {
     return NextResponse.json({ error: "Gift not found" }, { status: 404 });
   }
 
   // #21: no generation without a confirmed payment
-  if (!gift.paid_at) {
+  if (!draftGift.paid_at) {
     return NextResponse.json({ error: "PAYMENT_REQUIRED" }, { status: 402 });
   }
 
-  const packType: unknown = gift.pack_type;
+  const packType: unknown = draftGift.pack_type;
   if (!isGiftPack(packType)) {
     return NextResponse.json({ error: "Invalid pack" }, { status: 400 });
   }
 
-  if (!gift.child_name || gift.child_name === "—") {
-    return NextResponse.json({ error: "Missing child name" }, { status: 400 });
-  }
-
-  // Claim the gift atomically so concurrent/double requests can't generate twice
-  const { data: claimed } = await admin
-    .from("gifts")
-    .update({ status: "generating", updated_at: new Date().toISOString() })
-    .eq("id", giftId)
-    .in("status", ["draft", "personalizing"])
-    .select("id")
-    .maybeSingle();
-
-  if (!claimed) {
-    return NextResponse.json(
-      { error: "GIFT_ALREADY_PROCESSING" },
-      { status: 400 },
-    );
-  }
-
-  // Only as many songs as the pack paid for; skip ones already started
   const maxSongs = GIFT_PACKS_COP[packType].songs;
+  if (settings != null && (
+    typeof settings.childName !== "string" || !settings.childName.trim() || settings.childName.length > 100 ||
+    typeof settings.language !== "string" || !settings.language.trim() || settings.language.length > 32 ||
+    !["link", "redeem"].includes(settings.deliveryMode) ||
+    (settings.deliveryMode === "link" && (
+      !Array.isArray(settings.songs) || settings.songs.length !== maxSongs ||
+      !settings.songs.every((song: { theme?: string; style?: string; prompt?: string } | null) =>
+        song && ["lullaby", "educational", "fun"].includes(song.theme ?? "") &&
+        typeof song.style === "string" && song.style.trim() && song.style.length <= 64 &&
+        typeof song.prompt === "string" && song.prompt.length <= 500
+      )
+    ))
+  )) {
+    return NextResponse.json({ error: "Invalid gift settings" }, { status: 400 });
+  }
+
+  const { data: gift, error: prepareError } = await admin.rpc("prepare_paid_gift", {
+    p_gift_id: giftId,
+    p_buyer_id: user.id,
+    p_settings: settings ?? null,
+    p_song_count: maxSongs,
+  });
+  if (prepareError || !gift) {
+    console.error("[gift/generate] Could not prepare gift", prepareError?.code);
+    return NextResponse.json({ error: "Could not prepare gift" }, { status: 500 });
+  }
+  if (gift.status !== "started") {
+    return NextResponse.json({
+      giftId, status: gift.status, deliveryToken: gift.delivery_token, deliveryMode: gift.delivery_mode,
+    });
+  }
+
   const { data: giftSongs } = await admin
     .from("gift_songs")
     .select("*")
@@ -115,7 +127,7 @@ export async function POST(request: Request) {
   );
 
   if (!giftSongs || giftSongs.length === 0) {
-    await admin.from("gifts").update({ status: "personalizing" }).eq("id", giftId);
+    await admin.from("gifts").update({ status: "personalizing" }).eq("id", giftId).eq("status", "generating");
     return NextResponse.json(
       { error: "No songs found for this gift" },
       { status: 404 },
@@ -143,10 +155,11 @@ export async function POST(request: Request) {
         childName: gift.child_name,
       });
 
-      await admin
+      const { error: taskError } = await admin
         .from("gift_songs")
         .update({ suno_task_id: taskId, status: "generating" })
         .eq("id", song.id);
+      if (taskError) throw taskError;
     }),
   );
 
@@ -159,7 +172,8 @@ export async function POST(request: Request) {
     await admin
       .from("gifts")
       .update({ status: "personalizing", updated_at: new Date().toISOString() })
-      .eq("id", giftId);
+      .eq("id", giftId)
+      .eq("status", "generating");
     return NextResponse.json(
       { error: "GENERATION_FAILED", failed: failed.length, total: songs.length },
       { status: 502 },
@@ -169,6 +183,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     giftId,
     status: "generating",
+    deliveryMode: gift.delivery_mode,
     totalSongs: giftSongs.length,
   });
 }

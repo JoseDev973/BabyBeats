@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { notFound } from "next/navigation";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 import { Music, Gift, Play } from "lucide-react";
 import type { Gift as GiftType, GiftSong } from "@/types/database";
 
@@ -11,7 +12,7 @@ const LABELS = {
     giftFrom: "A gift for you",
     giftMessage: (name: string) => `Someone special created a personalized music album for ${name}`,
     songs: "songs",
-    listenNow: "Listen now",
+    redeem: "Redeem your song credits",
     createdWith: "Created with BabyBeats",
     lullaby: "Lullaby",
     educational: "Educational",
@@ -21,7 +22,7 @@ const LABELS = {
     giftFrom: "Un regalo para ti",
     giftMessage: (name: string) => `Alguien especial cre\u00f3 un \u00e1lbum de m\u00fasica personalizado para ${name}`,
     songs: "canciones",
-    listenNow: "Escuchar ahora",
+    redeem: "Canjea tus créditos para crear canciones",
     createdWith: "Creado con BabyBeats",
     lullaby: "Canci\u00f3n de cuna",
     educational: "Educativa",
@@ -95,6 +96,8 @@ export default async function GiftDeliverPage({
     .order("position");
 
   const giftSongs = (songs as GiftSong[]) || [];
+  const redeemPath = `/gift/redeem/${encodeURIComponent(token)}`;
+  if (g.delivery_mode === "redeem" && songs?.length === 0) redirect(redeemPath);
 
   const THEME_LABELS = { lullaby: l.lullaby, educational: l.educational, fun: l.fun };
 
@@ -150,6 +153,12 @@ export default async function GiftDeliverPage({
             </div>
           )}
         </div>
+
+        {g.delivery_mode === "redeem" && g.status !== "redeemed" && (
+          <Link href={redeemPath} className="block mt-6 text-center font-semibold text-purple-600 underline">
+            {l.redeem}
+          </Link>
+        )}
 
         <p className="text-center text-xs text-gray-400 mt-6">
           {l.createdWith}

@@ -334,6 +334,13 @@
     "confirmingPayment": "Confirmation de votre paiement...",
     "confirmingPaymentDesc": "Cela prend généralement quelques secondes. Ne fermez pas cette page.",
     "paymentPendingTimeout": "Votre paiement est toujours en cours. Vous pouvez revenir sur cette page plus tard.",
+    "preparingCode": "Préparation du cadeau…",
+    "codeUsed": "Ce cadeau a déjà été utilisé",
+    "codeReady": "Le lien pour utiliser le cadeau est prêt !",
+    "shareRedeemLink": "Partagez ce lien pour que la famille crée les chansons de {name}.",
+    "resumeGift": "Continuer avec ce cadeau",
+    "checkAlbumStatus": "La création de l’album est en cours. Vous pouvez vérifier à nouveau son état.",
+    "albumFor": "{count} chansons pour {name}",
     "generationFailed": "Impossible de créer les chansons. Réessayez — vous ne serez pas débité à nouveau.",
     "payWithCard": "Payer par carte (USD)"
   },

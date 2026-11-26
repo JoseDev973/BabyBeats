@@ -359,6 +359,13 @@
     "confirmingPayment": "Confirming your payment...",
     "confirmingPaymentDesc": "This usually takes a few seconds. Please don't close this page.",
     "paymentPendingTimeout": "Your payment is still processing. You can come back to this page later.",
+    "preparingCode": "Preparing your gift…",
+    "codeUsed": "This gift has been redeemed",
+    "codeReady": "Your redemption link is ready!",
+    "shareRedeemLink": "Share this link so the family can create songs for {name}.",
+    "resumeGift": "Continue with this gift",
+    "checkAlbumStatus": "The album is still processing. You can check its status again.",
+    "albumFor": "{count} songs for {name}",
     "generationFailed": "We couldn't create the songs. Please try again — you won't be charged again.",
     "payWithCard": "Pay with card (USD)"
   },
