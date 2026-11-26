@@ -117,6 +117,10 @@
     "signupWithGoogle": "S'inscrire avec Google",
     "forgotPassword": "Mot de passe oublié ?",
     "resetEmailSent": "Email de réinitialisation envoyé. Vérifiez votre boîte de réception.",
+    "setPassword": "Enregistrer le nouveau mot de passe",
+    "linkFailed": "Ce lien n’est plus valide. Reconnectez-vous ou demandez un nouvel e-mail de récupération.",
+    "requestFailed": "La demande a échoué. Veuillez réessayer.",
+    "confirmEmail": "Consultez votre messagerie et ouvrez le lien pour confirmer votre compte.",
     "enterEmailFirst": "Veuillez d'abord entrer votre email"
   },
   "pricing": {

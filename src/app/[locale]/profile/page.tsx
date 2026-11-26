@@ -1,3 +1,4 @@
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import ProfileView from "./ProfileView";
@@ -16,7 +17,8 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    const locale = await getLocale();
+    redirect(`/${locale}/auth/login?next=/profile`);
   }
 
   const [profileResult, favoritesResult, historyResult] = await Promise.all([

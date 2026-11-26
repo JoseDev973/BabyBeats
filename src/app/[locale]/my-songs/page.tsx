@@ -1,3 +1,4 @@
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import MySongsList from "./MySongsList";
@@ -16,7 +17,8 @@ export default async function MySongsPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    const locale = await getLocale();
+    redirect(`/${locale}/auth/login?next=/my-songs`);
   }
 
   const { data: songs } = await supabase

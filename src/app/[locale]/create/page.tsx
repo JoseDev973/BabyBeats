@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import CreateWizard from "./CreateWizard";
 
 export const metadata = {
@@ -15,7 +16,8 @@ export default async function CreatePage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    const locale = await getLocale();
+    redirect(`/${locale}/auth/login?next=/create`);
   }
 
   const { data: profile } = await supabase
