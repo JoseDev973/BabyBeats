@@ -33,27 +33,28 @@
 }
 
 :root {
+  /* New BabyBeats palette (same as the home page): cream paper, plum ink, deep violet action */
   --background: #FFF8F0;
-  --foreground: #2D2235;
-  --card: #FFFFFF;
-  --card-foreground: #2D2235;
-  --popover: #FFFFFF;
-  --popover-foreground: #2D2235;
-  --primary: #8B7EC8;
+  --foreground: #2E2350;
+  --card: #FFFDF9;
+  --card-foreground: #2E2350;
+  --popover: #FFFDF9;
+  --popover-foreground: #2E2350;
+  --primary: #5B4CA8;
   --primary-foreground: #FFFFFF;
-  --secondary: #F0ECFF;
-  --secondary-foreground: #5B4A9E;
-  --muted: #F5F0EC;
-  --muted-foreground: #8A7F8F;
+  --secondary: #EBE6FB;
+  --secondary-foreground: #4A3C95;
+  --muted: #FBF0DF;
+  --muted-foreground: #5B5277;
   --accent: #FBBF8E;
-  --accent-foreground: #7C4A1A;
-  --destructive: #ef4444;
+  --accent-foreground: #6B3A12;
+  --destructive: #B3261E;
   --destructive-foreground: #ffffff;
-  --border: #E8E0D8;
-  --input: #E8E0D8;
+  --border: #E4D6C2;
+  --input: #E4D6C2;
   --ring: #8B7EC8;
-  --gold: #F5D394;
-  --radius: 1rem;
+  --gold: #F6D98B;
+  --radius: 1.25rem;
 }
 
 .dark {
@@ -89,5 +90,10 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), "Nunito", Arial, Helvetica, sans-serif;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  h1, h2 {
+    font-weight: 900;
   }
 }

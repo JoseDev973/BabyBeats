@@ -5,10 +5,9 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { PlayerProvider } from "@/hooks/usePlayer";
-import Navbar from "@/components/layout/Navbar";
+import SiteHeader from "@/components/layout/SiteHeader";
 import Footer from "@/components/layout/Footer";
 import AudioPlayer from "@/components/player/AudioPlayer";
-import ChromeGate from "@/components/layout/ChromeGate";
 import { Analytics } from "@vercel/analytics/react";
 import "../globals.css";
 
@@ -114,14 +113,10 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <NextIntlClientProvider messages={messages}>
           <PlayerProvider>
-            <ChromeGate>
-              <Navbar />
-            </ChromeGate>
+            <SiteHeader />
             <main className="flex-1">{children}</main>
-            <ChromeGate>
-              <Footer />
-              <AudioPlayer />
-            </ChromeGate>
+            <Footer />
+            <AudioPlayer />
           </PlayerProvider>
           <Analytics />
         </NextIntlClientProvider>

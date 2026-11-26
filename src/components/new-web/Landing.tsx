@@ -5,7 +5,6 @@ import { CREDIT_PACKS, GIFT_PACKS_USD } from "@/lib/stripe/credit-packs";
 import { CREDIT_PACKS_COP, GIFT_PACKS_COP } from "@/lib/mercado-pago/config";
 import DemoPlayer from "./DemoPlayer";
 import StickyCta from "./StickyCta";
-import { routing } from "@/i18n/routing";
 import styles from "./landing.module.css";
 
 // Demo songs made with the current Suno prompts: Emma in English, Sofía otherwise
@@ -47,40 +46,6 @@ export default async function Landing({ locale }: { locale: string }) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <Link href="/" className={styles.logo}>
-            <svg viewBox="0 0 28 20" aria-hidden="true" className={styles.logoMark}>
-              <path d="M2 14c4-8 8-8 12 0s8 8 12 0" fill="none" strokeWidth="2.2" strokeLinecap="round" />
-              <circle cx="8" cy="9" r="2.2" />
-              <circle cx="20" cy="15" r="2.2" />
-            </svg>
-            BabyBeats
-          </Link>
-          <nav className={styles.nav}>
-            <Link href="/songs">{t("navSongs")}</Link>
-            <Link href="/pricing">{t("navPricing")}</Link>
-            <Link href="/gift">{t("navGift")}</Link>
-            <Link href="/create" className={styles.navCta}>
-              {t("navCta")}
-            </Link>
-          </nav>
-          <div className={styles.langs} aria-label={t("language")}>
-            {routing.locales.map((loc) => (
-              <Link
-                key={loc}
-                href="/"
-                locale={loc}
-                aria-current={loc === locale ? "true" : undefined}
-                className={loc === locale ? styles.langOn : undefined}
-              >
-                {loc.toUpperCase()}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </header>
-
       {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
@@ -262,13 +227,6 @@ export default async function Landing({ locale }: { locale: string }) {
         </Link>
       </StickyCta>
 
-      <footer className={styles.footer}>
-        <span>{t("footerNote")}</span>
-        <span className={styles.footerLinks}>
-          <Link href="/terms">{t("footerTerms")}</Link>
-          <Link href="/privacy">{t("footerPrivacy")}</Link>
-        </span>
-      </footer>
     </div>
   );
 }

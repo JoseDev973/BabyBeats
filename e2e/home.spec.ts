@@ -39,9 +39,9 @@ test.describe("Home page", () => {
 
   test("navigation links work", async ({ page }) => {
     await page.goto("/es");
-    const nav = page.getByRole("navigation");
-    for (const label of ["Crear", "Canciones", "Regalar", "Precios"]) {
-      await expect(nav.getByRole("link", { name: new RegExp(label, "i") }).first()).toBeVisible();
+    const header = page.getByRole("banner");
+    for (const label of ["Crear", "Canciones", "Regalar", "Precios", "Iniciar sesión"]) {
+      await expect(header.getByRole("link", { name: new RegExp(label, "i") }).first()).toBeVisible();
     }
   });
 

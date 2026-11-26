@@ -415,6 +415,10 @@
     "navSongs": "Chansons",
     "language": "Langue",
     "footerTerms": "Conditions",
-    "footerPrivacy": "Confidentialité"
+    "footerPrivacy": "Confidentialité",
+    "account": "Mon compte",
+    "creditsLeft": "{count, plural, one {# crédit} other {# crédits}}",
+    "buyCredits": "Acheter des crédits",
+    "menu": "Menu"
   }
 }
