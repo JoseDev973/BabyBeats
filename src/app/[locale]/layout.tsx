@@ -8,6 +8,7 @@ import { PlayerProvider } from "@/hooks/usePlayer";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AudioPlayer from "@/components/player/AudioPlayer";
+import ChromeGate from "@/components/layout/ChromeGate";
 import { Analytics } from "@vercel/analytics/react";
 import "../globals.css";
 
@@ -113,10 +114,14 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <NextIntlClientProvider messages={messages}>
           <PlayerProvider>
-            <Navbar />
+            <ChromeGate>
+              <Navbar />
+            </ChromeGate>
             <main className="flex-1">{children}</main>
-            <Footer />
-            <AudioPlayer />
+            <ChromeGate>
+              <Footer />
+              <AudioPlayer />
+            </ChromeGate>
           </PlayerProvider>
           <Analytics />
         </NextIntlClientProvider>
