@@ -46,6 +46,7 @@ export async function GET(request: Request) {
         external_reference: JSON.stringify({
           user_id: user.id,
           pack,
+          amount_cop: selectedPack.price,
         }),
         back_urls: {
           success: `${appUrl}/profile?success=true`,
