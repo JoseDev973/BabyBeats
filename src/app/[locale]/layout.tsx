@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Nunito, Quicksand } from "next/font/google";
+import localFont from "next/font/local";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -13,16 +13,20 @@ import "../globals.css";
 
 const BASE_URL = "https://babybeats.art";
 
-const nunito = Nunito({
+// Self-hosted (variable, latin subset): next/font/google intermittently
+// failed Vercel builds with "queries have exactly one entry".
+const nunito = localFont({
+  src: "../fonts/nunito-latin.woff2",
   variable: "--font-nunito",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: "400 800",
+  display: "swap",
 });
 
-const quicksand = Quicksand({
+const quicksand = localFont({
+  src: "../fonts/quicksand-latin.woff2",
   variable: "--font-quicksand",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "400 700",
+  display: "swap",
 });
 
 const OG_LOCALE_MAP: Record<string, string> = {
