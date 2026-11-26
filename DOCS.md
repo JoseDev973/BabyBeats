@@ -241,7 +241,7 @@ supabase/migrations/
 |---|---|---|---|
 | `/api/webhooks/stripe` | POST | Signature | Maneja checkout.session.completed, subscription updates |
 | `/api/webhooks/mercado-pago` | POST | HMAC | Verifica firma HMAC. Maneja pagos aprobados. Unique constraint en mp_payment_id. |
-| `/api/webhooks/suno` | POST | Bearer | SUNO_WEBHOOK_SECRET obligatorio. Actualiza generated_songs Y gift_songs. Envia email cuando completa. |
+| `/api/webhooks/suno` | POST | HMAC | URL firmada con SUNO_WEBHOOK_SECRET por canción. Confirma el resultado con record-info y guarda las pistas. |
 
 ### Gifts
 
@@ -425,7 +425,7 @@ Cancion completada → share_token generado automaticamente
 ### Webhooks
 - **Stripe:** Verificacion de firma con `stripe.webhooks.constructEvent`
 - **Mercado Pago:** HMAC signature verification
-- **Suno:** Bearer token obligatorio (SUNO_WEBHOOK_SECRET), retorna 503 si no configurado
+- **Suno:** URL firmada por canción (SUNO_WEBHOOK_SECRET). Las consultas autenticadas de estado recuperan resultados si el callback falla.
 
 ### Rate Limiting
 - In-memory Map, 60 req/min por IP

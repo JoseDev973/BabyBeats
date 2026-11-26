@@ -136,6 +136,7 @@ export async function POST(request: Request) {
       await admin.from("gift_songs").update({ lyrics }).eq("id", song.id);
 
       const taskId = await startSunoGeneration({
+        callbackTarget: { kind: "gift", id: song.id },
         lyrics,
         musicStyle: song.music_style,
         theme: song.theme,

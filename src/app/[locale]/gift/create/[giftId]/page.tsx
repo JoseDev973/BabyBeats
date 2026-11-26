@@ -77,14 +77,10 @@ export default function GiftCreatePage() {
 
   const pollUntilReady = useCallback(() => {
     stopPolling();
-    const supabase = createClient();
     const startedAt = Date.now();
     pollRef.current = setInterval(async () => {
-      const { data: g } = await supabase
-        .from("gifts")
-        .select("status, delivery_token")
-        .eq("id", giftId)
-        .single();
+      const g = await fetch(`/api/gift/status?giftId=${encodeURIComponent(giftId)}`)
+        .then((res) => res.ok ? res.json() : null).catch(() => null);
 
       if (g?.status === "ready" || g?.status === "delivered") {
         if (g.delivery_token) setDeliveryToken(g.delivery_token);
@@ -94,7 +90,7 @@ export default function GiftCreatePage() {
       } else if (Date.now() - startedAt > 15 * 60_000) {
         stopPolling();
       }
-    }, 5000);
+    }, 30000);
   }, [giftId, stopPolling]);
 
   useEffect(() => stopPolling, [stopPolling]);

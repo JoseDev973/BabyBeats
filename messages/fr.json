@@ -240,7 +240,12 @@
     "createAnother": "Créer une Autre",
     "mySongs": "Mes Chansons",
     "failed": "Quelque chose s'est mal passé",
-    "failedHint": "La génération audio a échoué. Votre crédit n'a pas été débité.",
+    "reconnecting": "Reconnexion pour vérifier votre chanson…",
+    "firstReady": "La première version est prête. Votre chanson sera bientôt terminée…",
+    "sessionExpired": "Connectez-vous pour retrouver votre chanson",
+    "signIn": "Se connecter",
+    "unavailable": "Aucune génération audio disponible pour cette chanson.",
+    "failedHint": "La génération audio a échoué.",
     "tryAgain": "Réessayer",
     "versionA": "Version A",
     "versionB": "Version B"
