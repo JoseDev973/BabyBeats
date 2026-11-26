@@ -26,3 +26,10 @@ export const CREDIT_PACKS = {
 } as const;
 
 export type CreditPackKey = keyof typeof CREDIT_PACKS;
+
+// Gift albums in USD (Stripe). Song counts must match GIFT_PACKS_COP.
+export const GIFT_PACKS_USD = {
+  first_album: { name: "My First Album", songs: 10, price: 14.99 },
+  sweet_dreams: { name: "Sweet Dreams", songs: 5, price: 9.99 },
+  learning: { name: "Learning with Music", songs: 5, price: 9.99 },
+} as const;

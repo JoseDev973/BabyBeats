@@ -291,14 +291,14 @@ CreateWizard → Modo "Album":
 
 ### 3. Regalar album
 ```
-/gift → Seleccionar pack (precio en COP via Mercado Pago):
+/gift → Seleccionar pack. Pago con Stripe (USD: 14.99 / 9.99, GIFT_PACKS_USD) o Mercado Pago (COP):
   - Mi Primer Álbum (10 canciones - $59.900 COP)
   - Dulces Sueños (5 canciones - $39.900 COP)
   - Aprendiendo con Música (5 canciones - $39.900 COP)
   (config: GIFT_PACKS_COP en src/lib/mercado-pago/config.ts)
-→ POST /api/checkout-mp/gift → servidor crea gift (status: draft) + preferencia MP
+→ POST /api/checkout/gift (Stripe) o /api/checkout-mp/gift (MP) → servidor crea gift (status: draft) + sesión de pago
 → Checkout Mercado Pago → back_url /gift/create/[giftId]?payment=success
-→ Webhook MP (external_reference.type = "gift") valida monto y marca gifts.paid_at
+→ Webhook Stripe (metadata.type = "gift") o MP (external_reference.type = "gift") valida monto y marca gifts.paid_at
 → El wizard espera paid_at (polling) antes de dejar personalizar
 → /gift/create/[giftId] → Wizard de personalizacion:
   1. Nombre del bebe + nombre del destinatario
@@ -528,7 +528,7 @@ npm run test:e2e:ui     # Con UI de Playwright
 | # | Issue | Que hacer | Quien |
 |---|---|---|---|
 | #19 | Stripe checkout retorna 500 | Crear 3 productos en Stripe Dashboard con precios $4.99/$9.99/$19.99. Copiar los price_xxx IDs y actualizar `STRIPE_STARTER_PACK_PRICE_ID`, `STRIPE_FAMILY_PACK_PRICE_ID`, `STRIPE_MEGA_PACK_PRICE_ID` en Vercel Environment Variables. | Jose/Julian |
-| #21 | Gift genera canciones sin pago | **Resuelto en dev** con Mercado Pago (gifts.paid_at). Falta: aplicar `supabase/migrations/007_lock_down_payment_columns.sql` en prod DESPUES de desplegar el codigo. Stripe para gifts queda para cuando se cierre #19. | Jose |
+| #21 | Gift genera canciones sin pago | **Resuelto en dev** con Mercado Pago (gifts.paid_at). Falta: aplicar `supabase/migrations/007_lock_down_payment_columns.sql` en prod DESPUES de desplegar el codigo. Stripe para gifts también implementado. | Jose |
 
 ### IMPORTANTES (no bloqueantes pero necesarios)
 

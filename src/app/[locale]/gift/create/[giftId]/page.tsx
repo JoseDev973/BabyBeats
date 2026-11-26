@@ -175,11 +175,11 @@ export default function GiftCreatePage() {
     };
   }, [giftId, paymentResult, pollUntilReady, router, t]);
 
-  async function handlePay() {
+  async function handlePay(provider: "stripe" | "mp") {
     setLoading(true);
     setPaymentError("");
     try {
-      const res = await fetch("/api/checkout-mp/gift", {
+      const res = await fetch(provider === "stripe" ? "/api/checkout/gift" : "/api/checkout-mp/gift", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ giftId }),
@@ -333,14 +333,21 @@ export default function GiftCreatePage() {
                   {paymentError}
                 </p>
               )}
-              <button
-                onClick={handlePay}
-                disabled={loading}
-                className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {t("payWithMP")}
-              </button>
+              {(["stripe", "mp"] as const).map((provider) => (
+                <button
+                  key={provider}
+                  onClick={() => handlePay(provider)}
+                  disabled={loading}
+                  className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${
+                    provider === "stripe"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "border-2 border-border hover:border-primary/30"
+                  }`}
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {provider === "stripe" ? t("payWithCard") : t("payWithMP")}
+                </button>
+              ))}
             </>
           )}
         </div>

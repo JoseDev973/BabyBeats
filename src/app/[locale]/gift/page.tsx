@@ -43,8 +43,8 @@ export default function GiftPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  async function selectPack(packType: string) {
-    setLoading(packType);
+  async function selectPack(packType: string, provider: "stripe" | "mp") {
+    setLoading(`${packType}:${provider}`);
     setError("");
 
     try {
@@ -57,7 +57,7 @@ export default function GiftPage() {
       }
 
       // Server creates the gift and the Mercado Pago checkout
-      const res = await fetch("/api/checkout-mp/gift", {
+      const res = await fetch(provider === "stripe" ? "/api/checkout/gift" : "/api/checkout-mp/gift", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ packType }),
@@ -137,18 +137,23 @@ export default function GiftPage() {
               </p>
             </div>
 
-            <button
-              onClick={() => selectPack(pack.type)}
-              disabled={loading !== null}
-              className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
-                pack.popular
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md"
-                  : "border-2 border-border hover:border-primary/30 hover:bg-white/50"
-              } disabled:opacity-50`}
-            >
-              {loading === pack.type && <Loader2 className="h-4 w-4 animate-spin" />}
-              {t("payWithMP")}
-            </button>
+            <div className="w-full space-y-2">
+              {(["stripe", "mp"] as const).map((provider) => (
+                <button
+                  key={provider}
+                  onClick={() => selectPack(pack.type, provider)}
+                  disabled={loading !== null}
+                  className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                    provider === "stripe"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md"
+                      : "border-2 border-border hover:border-primary/30 hover:bg-white/50"
+                  } disabled:opacity-50`}
+                >
+                  {loading === `${pack.type}:${provider}` && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {provider === "stripe" ? t("payWithCard") : t("payWithMP")}
+                </button>
+              ))}
+            </div>
           </div>
         ))}
       </div>

@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { Preference } from "mercadopago";
-import { getMercadoPago, GIFT_PACKS_COP, isGiftPack } from "@/lib/mercado-pago/config";
+import { getMercadoPago, GIFT_PACKS_COP } from "@/lib/mercado-pago/config";
 import { createClient } from "@/lib/supabase/server";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getOrCreateUnpaidGift } from "@/lib/gifts";
 import { getAppUrl } from "@/lib/utils";
 
 /**
- * Starts a Mercado Pago checkout for a gift album.
- * Body: { packType } to create a new gift, or { giftId } to retry paying an
- * existing unpaid one. Returns { giftId, url } — the client redirects to url.
+ * Starts a Mercado Pago (COP) checkout for a gift album.
+ * Body: { packType } or { giftId }. Returns { giftId, url }.
  * The gift is marked paid only by /api/webhooks/mercado-pago.
  */
 export async function POST(request: Request) {
@@ -26,55 +25,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body = (await request.json().catch(() => ({}))) as {
-    packType?: unknown;
-    giftId?: unknown;
-  };
-  const admin = getSupabaseAdmin();
-
-  let gift: { id: string; pack_type: string };
-
-  if (typeof body.giftId === "string") {
-    const { data } = await admin
-      .from("gifts")
-      .select("id, pack_type, paid_at")
-      .eq("id", body.giftId)
-      .eq("buyer_id", user.id)
-      .maybeSingle();
-
-    if (!data) {
-      return NextResponse.json({ error: "Gift not found" }, { status: 404 });
-    }
-    if (data.paid_at) {
-      return NextResponse.json({ error: "ALREADY_PAID", giftId: data.id }, { status: 409 });
-    }
-    gift = data;
-  } else if (isGiftPack(body.packType)) {
-    const { data, error } = await admin
-      .from("gifts")
-      .insert({
-        buyer_id: user.id,
-        pack_type: body.packType,
-        total_songs: GIFT_PACKS_COP[body.packType].songs,
-        child_name: "—",
-        status: "draft",
-      })
-      .select("id, pack_type")
-      .single();
-
-    if (error || !data) {
-      console.error("[checkout-mp/gift] Failed to create gift:", error);
-      return NextResponse.json({ error: "Could not create gift" }, { status: 500 });
-    }
-    gift = data;
-  } else {
-    return NextResponse.json({ error: "Invalid pack" }, { status: 400 });
+  const result = await getOrCreateUnpaidGift(user.id, await request.json().catch(() => ({})));
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error, giftId: result.giftId }, { status: result.status });
   }
 
-  if (!isGiftPack(gift.pack_type)) {
-    return NextResponse.json({ error: "Invalid pack" }, { status: 400 });
-  }
-
+  const { gift } = result;
   const pack = GIFT_PACKS_COP[gift.pack_type];
   const appUrl = getAppUrl();
   const returnUrl = `${appUrl}/gift/create/${gift.id}`;

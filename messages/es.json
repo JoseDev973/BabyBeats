@@ -350,7 +350,7 @@
     "howStep2Desc": "Ingresa el nombre del bebé y personaliza cada canción",
     "howStep3Title": "Comparte el regalo",
     "howStep3Desc": "Recibe un link bonito para enviar a los papás",
-    "payWithMP": "Pagar con Mercado Pago",
+    "payWithMP": "Mercado Pago (COP)",
     "paymentError": "No pudimos iniciar el pago. Intenta de nuevo.",
     "paymentFailed": "El pago no se completó. Puedes intentarlo otra vez.",
     "paymentRequiredTitle": "Completa el pago de tu regalo",
@@ -359,7 +359,8 @@
     "confirmingPayment": "Confirmando tu pago...",
     "confirmingPaymentDesc": "Esto suele tardar unos segundos. No cierres esta página.",
     "paymentPendingTimeout": "Tu pago sigue en proceso. Te avisaremos por correo; puedes volver a esta página más tarde.",
-    "generationFailed": "No pudimos crear las canciones. Intenta de nuevo; no se te cobrará otra vez."
+    "generationFailed": "No pudimos crear las canciones. Intenta de nuevo; no se te cobrará otra vez.",
+    "payWithCard": "Pagar con tarjeta (USD)"
   },
   "share": {
     "songFor": "Una canción para {name}",
