@@ -13,7 +13,7 @@ const NEGATIVE_BASE =
   "autotune, auto-tune, pitch correction, vocoder, robotic vocals, vocal effects, heavy reverb, distortion, rap, shouting, crowd, male vocals";
 
 // Upbeat styles need their drums; calm styles must not get them.
-const ENERGETIC_STYLES = new Set(["pop", "reggaeton"]);
+const ENERGETIC_STYLES = new Set(["pop", "reggaeton", "salsa", "cumbia"]);
 
 export function buildNegativeTags(musicStyle: string): string {
   return ENERGETIC_STYLES.has(musicStyle)
@@ -30,6 +30,12 @@ export const SUNO_PARAMS = {
 } as const;
 
 const STYLE_TAGS: Record<string, string> = {
+  bossaNova: "acoustic bossa nova, syncopated nylon guitar, shaker, warm natural female voice",
+  cumbia: "Colombian cumbia, accordion, guacharaca, hand drums, melodic natural female vocal",
+  jazz: "children's acoustic jazz, upright bass, brushed drums, soft piano, clear female vocal",
+  folk: "acoustic folk song, mandolin, fingerpicked guitar, natural storytelling female vocal",
+  salsa: "kids salsa, piano montuno, congas, claves, clear melodic female vocal",
+  waltz: "gentle waltz in three four, piano, soft strings, warm natural female vocal",
   gentle:
     "lullaby, tender, soothing, music box, soft celesta, warm breathy female vocal, intimate close-mic, sparse arrangement",
   playful:
@@ -65,6 +71,12 @@ export const LANGUAGE_NAMES: Record<string, string> = {
   fr: "French",
   de: "German",
   it: "Italian",
+  nl: "Dutch",
+  sv: "Swedish",
+  ja: "Japanese",
+  ko: "Korean",
+  hi: "Hindi",
+  ar: "Arabic",
 };
 
 export function buildSunoStyle(musicStyle: string, theme: Theme, language: string): string {
