@@ -11,44 +11,42 @@ test.describe("Home page", () => {
     await expect(page).toHaveTitle(/BabyBeats/);
   });
 
-  test("shows hero section with CTA buttons", async ({ page }) => {
+  test("shows hero with the main CTA", async ({ page }) => {
     await page.goto("/es");
-    const hero = page.locator("section").first();
-    await expect(hero).toBeVisible();
-    // Look for CTA buttons in the hero area
-    const ctaButtons = page.getByRole("link").filter({ hasText: /Crear|Regalar|Empezar/i });
-    await expect(ctaButtons.first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/canción con su nombre/i);
+    await expect(page.getByRole("link", { name: /Crea su primera canción gratis/i })).toBeVisible();
   });
 
-  test('shows "Como funciona" section', async ({ page }) => {
+  test('shows "Así de fácil" section', async ({ page }) => {
     await page.goto("/es");
-    const section = page.getByText(/[Cc]ómo funciona/);
-    await expect(section.first()).toBeVisible();
+    await expect(page.getByText(/Así de fácil/).first()).toBeVisible();
   });
 
-  test("shows category cards", async ({ page }) => {
+  test("shows the three kinds of songs with demos", async ({ page }) => {
     await page.goto("/es");
-    await expect(page.getByText(/Canciones de Cuna/i).first()).toBeVisible();
-    await expect(page.getByText(/Educativas/i).first()).toBeVisible();
-    await expect(page.getByText(/Diversión/i).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Para dormir/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Para aprender/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Para jugar/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Reproducir/i }).first()).toBeVisible();
   });
 
   test("language toggle ES/EN works", async ({ page }) => {
     await page.goto("/es");
-    const enToggle = page.getByRole("link", { name: /EN/i }).or(
-      page.getByText(/EN/).first()
-    );
-    await enToggle.first().click();
+    await page.getByRole("link", { name: "EN", exact: true }).click();
     await expect(page).toHaveURL(/\/en/);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/song with their name/i);
   });
 
   test("navigation links work", async ({ page }) => {
     await page.goto("/es");
     const nav = page.getByRole("navigation");
-
-    for (const label of ["Crear", "Canciones", "Regalar", "Planes"]) {
-      const link = nav.getByRole("link", { name: new RegExp(label, "i") });
-      await expect(link.first()).toBeVisible();
+    for (const label of ["Crear", "Canciones", "Regalar", "Precios"]) {
+      await expect(nav.getByRole("link", { name: new RegExp(label, "i") }).first()).toBeVisible();
     }
+  });
+
+  test("/new redirects to the home page", async ({ page }) => {
+    await page.goto("/es/new");
+    await expect(page).toHaveURL(/\/es$/);
   });
 });
