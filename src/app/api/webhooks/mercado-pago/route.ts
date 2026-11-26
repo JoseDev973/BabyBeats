@@ -9,8 +9,9 @@ import {
   isGiftPack,
 } from "@/lib/mercado-pago/config";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { settleCreditPurchase } from "@/lib/settle-credit-purchase";
 
-function verifySignature(request: Request, body: string): boolean {
+function verifySignature(request: Request): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET;
   if (!secret) return true; // Skip in dev if not configured
 
@@ -39,7 +40,7 @@ function verifySignature(request: Request, body: string): boolean {
 export async function POST(request: Request) {
   const body = await request.text();
 
-  if (!verifySignature(request, body)) {
+  if (!verifySignature(request)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -70,10 +71,14 @@ export async function POST(request: Request) {
 
   // external_reference stores { user_id, pack } (credits) or
   // { type: "gift", gift_id, user_id } (gift albums) as JSON
-  let ref: { type?: string; user_id?: string; pack?: string; gift_id?: string };
+  let ref: { type?: string; user_id?: string; pack?: string; amount_cop?: number; gift_id?: string };
   try {
     ref = JSON.parse(payment.external_reference ?? "{}");
   } catch {
+    return NextResponse.json({ error: "Invalid external_reference" }, { status: 400 });
+  }
+
+  if (!ref || typeof ref !== "object") {
     return NextResponse.json({ error: "Invalid external_reference" }, { status: 400 });
   }
 
@@ -83,56 +88,20 @@ export async function POST(request: Request) {
 
   const { user_id: userId, pack } = ref;
 
-  if (!userId || !pack || !(pack in CREDIT_PACKS_COP)) {
+  if (!userId || !pack || !Object.hasOwn(CREDIT_PACKS_COP, pack)) {
     return NextResponse.json({ error: "Missing reference data" }, { status: 400 });
   }
 
   const selectedPack = CREDIT_PACKS_COP[pack as CreditPackKey];
-  const supabaseAdmin = getSupabaseAdmin();
-
-  // Idempotency: skip if this payment was already processed
-  const { data: existing } = await supabaseAdmin
-    .from("credit_transactions")
-    .select("id")
-    .eq("mp_payment_id", String(paymentId))
-    .maybeSingle();
-
-  if (existing) {
+  const expectedAmount = ref.amount_cop ?? selectedPack.price;
+  if (
+    !Number.isSafeInteger(expectedAmount) || expectedAmount <= 0 ||
+    payment.currency_id !== "COP" || (payment.transaction_amount ?? 0) < expectedAmount
+  ) {
+    console.error(`[MP Webhook] Credit payment ${paymentId} amount mismatch`);
     return NextResponse.json({ received: true });
   }
-
-  // Add credits atomically
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("credits")
-    .eq("id", userId)
-    .single();
-
-  const currentCredits = profile?.credits ?? 0;
-
-  await supabaseAdmin
-    .from("profiles")
-    .update({ credits: currentCredits + selectedPack.credits })
-    .eq("id", userId);
-
-  try {
-    await supabaseAdmin.from("credit_transactions").insert({
-      user_id: userId,
-      amount: selectedPack.credits,
-      type: "purchase",
-      description: `Purchased ${selectedPack.name} (${selectedPack.credits} credits) via Mercado Pago`,
-      mp_payment_id: String(paymentId),
-    });
-  } catch (insertErr) {
-    // Handle duplicate key gracefully (unique constraint on mp_payment_id)
-    const errMsg = insertErr instanceof Error ? insertErr.message : String(insertErr);
-    if (errMsg.includes("duplicate") || errMsg.includes("unique")) {
-      return NextResponse.json({ received: true });
-    }
-    throw insertErr;
-  }
-
-  return NextResponse.json({ received: true });
+  return settleCreditPurchase("mercado_pago", String(payment.id ?? paymentId), userId, selectedPack);
 }
 
 async function handleGiftPayment(
@@ -145,13 +114,14 @@ async function handleGiftPayment(
   }
 
   const supabaseAdmin = getSupabaseAdmin();
-  const { data: gift } = await supabaseAdmin
+  const { data: gift, error: readError } = await supabaseAdmin
     .from("gifts")
     .select("id, pack_type, paid_at")
     .eq("id", ref.gift_id)
     .eq("buyer_id", ref.user_id)
     .maybeSingle();
 
+  if (readError) return NextResponse.json({ error: "Database error" }, { status: 500 });
   if (!gift || !isGiftPack(gift.pack_type)) {
     console.error(`[MP Webhook] Gift payment ${paymentId} for unknown gift ${ref.gift_id}`);
     return NextResponse.json({ error: "Gift not found" }, { status: 404 });

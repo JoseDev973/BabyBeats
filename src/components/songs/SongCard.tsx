@@ -25,6 +25,7 @@ export default function SongCard({
   isPremiumUser = false,
 }: SongCardProps) {
   const t = useTranslations("songs");
+  const common = useTranslations("common");
   const { currentSong, isPlaying, play, togglePlay } = usePlayer();
 
   const isCurrentSong = currentSong?.id === song.id;
@@ -44,8 +45,14 @@ export default function SongCard({
       className={`group relative flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:shadow-md transition-all cursor-pointer ${
         isCurrentSong ? "border-primary bg-primary/5" : ""
       } ${isLocked ? "opacity-75" : ""}`}
-      onClick={handlePlay}
     >
+      <button
+        type="button"
+        disabled={isLocked}
+        aria-label={`${isLocked ? t("premiumLocked") : common(isCurrentSong && isPlaying ? "pause" : "play")} · ${song.title}`}
+        className="absolute inset-0 z-10 rounded-lg disabled:cursor-not-allowed"
+        onClick={handlePlay}
+      />
       {/* Cover art */}
       <div className="relative h-12 w-12 rounded-lg shrink-0 overflow-hidden">
         {song.cover_image_url ? (

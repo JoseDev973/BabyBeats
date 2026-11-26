@@ -1,10 +1,15 @@
+import { authReturnPath } from "@/lib/auth-return";
+import { hasLocale } from "next-intl";
+import { routing } from "@/i18n/routing";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = authReturnPath(searchParams.get("next"), "");
+  const locale = next.split("/")[1];
+  const loginPath = hasLocale(routing.locales, locale) ? `/${locale}/auth/login` : "/auth/login";
 
   if (code) {
     const supabase = await createClient();
@@ -67,9 +72,12 @@ export async function GET(request: Request) {
         console.error("[Auth Callback] Welcome email check failed:", err);
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return new NextResponse(null, { status: 303, headers: { Location: next } });
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`);
+  const login = new URL(loginPath, origin);
+  login.searchParams.set("error", "auth_failed");
+  login.searchParams.set("next", next);
+  return new NextResponse(null, { status: 303, headers: { Location: login.pathname + login.search } });
 }

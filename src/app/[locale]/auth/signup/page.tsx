@@ -1,22 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Music, Mail, Lock, Loader2 } from "lucide-react";
+import { authReturnPath, authCallbackUrl } from "@/lib/auth-return";
 
 export default function SignupPage() {
   const t = useTranslations("auth");
   const tc = useTranslations("common");
   const router = useRouter();
+  const locale = useLocale();
+  const search = useSearchParams();
+  const next = authReturnPath(search.get("next") ?? search.get("redirect"), locale);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -30,11 +35,11 @@ export default function SignupPage() {
     }
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: authCallbackUrl(window.location.origin, next),
       },
     });
 
@@ -44,7 +49,12 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/");
+    if (!data.session) {
+      setConfirmationSent(true);
+      setLoading(false);
+      return;
+    }
+    router.replace(next);
     router.refresh();
   }
 
@@ -57,7 +67,7 @@ export default function SignupPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: authCallbackUrl(window.location.origin, next),
         },
       });
 
@@ -122,7 +132,10 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSignup} className="space-y-4">
+          {confirmationSent && (
+            <p role="status" className="text-center text-sm">{t("confirmEmail")}</p>
+          )}
+          <form hidden={confirmationSent} onSubmit={handleSignup} className="space-y-4">
             <div>
               <label htmlFor="signup-email" className="text-sm font-medium mb-1.5 block">
                 {t("email")}
@@ -183,7 +196,7 @@ export default function SignupPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
+              <p role="alert" className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
                 {error}
               </p>
             )}
@@ -202,7 +215,7 @@ export default function SignupPage() {
         <p className="text-center text-sm text-muted-foreground mt-4">
           {t("hasAccount")}{" "}
           <Link
-            href="/auth/login"
+            href={{ pathname: "/auth/login", query: { next } }}
             className="text-primary font-medium hover:underline"
           >
             {tc("login")}

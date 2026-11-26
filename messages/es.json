@@ -117,6 +117,10 @@
     "signupWithGoogle": "Registrarse con Google",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "resetEmailSent": "Email de recuperación enviado. Revisa tu bandeja de entrada.",
+    "setPassword": "Guardar nueva contraseña",
+    "linkFailed": "El enlace ya no es válido. Vuelve a iniciar sesión o solicita otro correo de recuperación.",
+    "requestFailed": "No se pudo completar la solicitud. Intenta de nuevo.",
+    "confirmEmail": "Revisa tu correo y abre el enlace para confirmar tu cuenta.",
     "enterEmailFirst": "Ingresa tu email primero"
   },
   "metadata": {
@@ -176,6 +180,13 @@
     "backToPricing": "Volver a precios"
   },
   "player": {
+    "paused": "En pausa",
+    "playbackError": "No se pudo reproducir el audio. Inténtalo de nuevo.",
+    "restart": "Volver al inicio",
+    "position": "Posición de reproducción",
+    "unmute": "Activar sonido",
+    "mute": "Silenciar",
+    "volume": "Volumen",
     "nowPlaying": "Reproduciendo",
     "queue": "Cola",
     "lyrics": "Letra"
