@@ -22,10 +22,10 @@ const AGE_RANGE_KEYS = [
 
 const CATALOG_LANGUAGES = [
   { value: "all", key: "all" as const },
-  { value: "es", key: null, label: "Espanol" },
+  { value: "es", key: null, label: "Español" },
   { value: "en", key: null, label: "English" },
-  { value: "pt", key: null, label: "Portugues" },
-  { value: "fr", key: null, label: "Francais" },
+  { value: "pt", key: null, label: "Português" },
+  { value: "fr", key: null, label: "Français" },
 ];
 
 export default function SongCatalog({
@@ -55,6 +55,8 @@ export default function SongCatalog({
       return matchesSearch && matchesCategory && matchesLanguage && matchesAge;
     });
   }, [songs, search, categoryFilter, languageFilter, ageFilter]);
+
+  const playableSongs = filteredSongs.filter((song) => !song.is_premium || isPremiumUser);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12">
@@ -122,7 +124,7 @@ export default function SongCatalog({
             <SongCard
               key={song.id}
               song={song}
-              queue={filteredSongs}
+              queue={playableSongs}
               isPremiumUser={isPremiumUser}
             />
           ))}

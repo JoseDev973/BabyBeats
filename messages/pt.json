@@ -151,6 +151,13 @@
     "choosePlan": "Escolher plano"
   },
   "player": {
+    "paused": "Em pausa",
+    "playbackError": "Não foi possível reproduzir o áudio. Tente novamente.",
+    "restart": "Reiniciar música",
+    "position": "Posição da reprodução",
+    "unmute": "Ativar som",
+    "mute": "Silenciar",
+    "volume": "Volume",
     "nowPlaying": "Reproduzindo",
     "queue": "Fila",
     "lyrics": "Letra"

@@ -176,6 +176,13 @@
     "backToPricing": "Volver a precios"
   },
   "player": {
+    "paused": "En pausa",
+    "playbackError": "No se pudo reproducir el audio. Inténtalo de nuevo.",
+    "restart": "Volver al inicio",
+    "position": "Posición de reproducción",
+    "unmute": "Activar sonido",
+    "mute": "Silenciar",
+    "volume": "Volumen",
     "nowPlaying": "Reproduciendo",
     "queue": "Cola",
     "lyrics": "Letra"
