@@ -291,17 +291,21 @@ CreateWizard → Modo "Album":
 
 ### 3. Regalar album
 ```
-/gift → Seleccionar pack:
-  - First Album (3 canciones - $4.99)
-  - Sweet Dreams (5 canciones - $7.99)
-  - Learning Pack (10 canciones - $14.99)
-→ Crea gift en DB (status: draft)
-→ [PENDIENTE: Checkout Stripe/MP]
+/gift → Seleccionar pack (precio en COP via Mercado Pago):
+  - Mi Primer Álbum (10 canciones - $59.900 COP)
+  - Dulces Sueños (5 canciones - $39.900 COP)
+  - Aprendiendo con Música (5 canciones - $39.900 COP)
+  (config: GIFT_PACKS_COP en src/lib/mercado-pago/config.ts)
+→ POST /api/checkout-mp/gift → servidor crea gift (status: draft) + preferencia MP
+→ Checkout Mercado Pago → back_url /gift/create/[giftId]?payment=success
+→ Webhook MP (external_reference.type = "gift") valida monto y marca gifts.paid_at
+→ El wizard espera paid_at (polling) antes de dejar personalizar
 → /gift/create/[giftId] → Wizard de personalizacion:
   1. Nombre del bebe + nombre del destinatario
   2. Modo rapido o custom
   3. Si custom: config por cancion
-  4. → POST /api/gift/generate
+  4. → POST /api/gift/generate (402 PAYMENT_REQUIRED si no hay paid_at; reclama el gift
+       atómicamente; genera hasta GIFT_PACKS_COP[pack].songs canciones en paralelo)
   5. → Spinner animado + polling cada 5s
   6. → Webhook Suno actualiza cada gift_song
   7. → Cuando todas completan: gift status → "ready"
@@ -524,7 +528,7 @@ npm run test:e2e:ui     # Con UI de Playwright
 | # | Issue | Que hacer | Quien |
 |---|---|---|---|
 | #19 | Stripe checkout retorna 500 | Crear 3 productos en Stripe Dashboard con precios $4.99/$9.99/$19.99. Copiar los price_xxx IDs y actualizar `STRIPE_STARTER_PACK_PRICE_ID`, `STRIPE_FAMILY_PACK_PRICE_ID`, `STRIPE_MEGA_PACK_PRICE_ID` en Vercel Environment Variables. | Jose/Julian |
-| #21 | Gift genera canciones sin pago | Agregar gate de pago en el flujo de gift. Despues de personalizar, redirigir a checkout (Stripe/MP). Solo permitir `/api/gift/generate` si `stripe_payment_id` esta presente. Bloqueado por Stripe (#19). | Dev team |
+| #21 | Gift genera canciones sin pago | **Resuelto en dev** con Mercado Pago (gifts.paid_at). Falta: aplicar `supabase/migrations/007_lock_down_payment_columns.sql` en prod DESPUES de desplegar el codigo. Stripe para gifts queda para cuando se cierre #19. | Jose |
 
 ### IMPORTANTES (no bloqueantes pero necesarios)
 

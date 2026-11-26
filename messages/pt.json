@@ -324,7 +324,17 @@
     "howStep2Title": "Personalize",
     "howStep2Desc": "Digite o nome do bebê e personalize cada música",
     "howStep3Title": "Compartilhe o presente",
-    "howStep3Desc": "Receba um link bonito para enviar aos pais"
+    "howStep3Desc": "Receba um link bonito para enviar aos pais",
+    "payWithMP": "Pagar com Mercado Pago",
+    "paymentError": "Não conseguimos iniciar o pagamento. Tente novamente.",
+    "paymentFailed": "O pagamento não foi concluído. Você pode tentar novamente.",
+    "paymentRequiredTitle": "Conclua o pagamento do seu presente",
+    "paymentRequiredDesc": "Depois do pagamento você personaliza as {count} músicas.",
+    "paymentRequired": "Este presente ainda não foi pago.",
+    "confirmingPayment": "Confirmando seu pagamento...",
+    "confirmingPaymentDesc": "Isso costuma levar alguns segundos. Não feche esta página.",
+    "paymentPendingTimeout": "Seu pagamento ainda está em processamento. Você pode voltar a esta página mais tarde.",
+    "generationFailed": "Não conseguimos criar as músicas. Tente novamente — você não será cobrado de novo."
   },
   "metadata": {
     "defaultTitle": "BabyBeats — Músicas com IA para seu Bebê",
