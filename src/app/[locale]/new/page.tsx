@@ -1,21 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import localFont from "next/font/local";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { CREDIT_PACKS, GIFT_PACKS_USD } from "@/lib/stripe/credit-packs";
 import { CREDIT_PACKS_COP, GIFT_PACKS_COP } from "@/lib/mercado-pago/config";
 import DemoPlayer from "@/components/new-web/DemoPlayer";
+import StickyCta from "@/components/new-web/StickyCta";
 import styles from "./new.module.css";
-
-// Display face for the new site (self-hosted: Google fetches broke Vercel builds)
-const fraunces = localFont({
-  src: "../../fonts/fraunces-italic-latin.woff2",
-  style: "italic",
-  weight: "300 600",
-  variable: "--font-fraunces",
-  display: "swap",
-});
 
 export async function generateMetadata({
   params,
@@ -28,18 +19,19 @@ export async function generateMetadata({
   return { title: t("metaTitle"), robots: { index: false, follow: false } };
 }
 
-const DEMOS = {
-  cuna: {
-    src: "/new-web/demos/cuna-sofia.mp3",
-    chorus: ["Duerme Sofíaaa", "La luna te cuida", "Duerme mi amooor"],
+// Demo songs made with the current Suno prompts: Emma in English, Sofía otherwise
+const DEMOS_BY_LANG = {
+  en: {
+    name: "Emma",
+    cuna: { src: "/new-web/demos/cuna-emma.mp3", chorus: ["Sleeeep little Emma", "Moon is holding youuu", "Dream so softly nowww"] },
+    edu: { src: "/new-web/demos/educativa-emma.mp3", chorus: ["One two three four five", "Emma count with me", "Clap your hands with me"] },
+    jugar: { src: "/new-web/demos/jugar-emma.mp3", chorus: ["Clap clap Emma", "Jump jump Emma", "Moo moo quack quack hey"] },
   },
-  edu: {
-    src: "/new-web/demos/educativa-sofia.mp3",
-    chorus: ["Uno dos tres", "cuatro y cinco", "canta Sofía", "otra vez"],
-  },
-  jugar: {
-    src: "/new-web/demos/jugar-sofia.mp3",
-    chorus: ["Palmas palmas ya", "baila Sofía", "chiki chiki pum"],
+  es: {
+    name: "Sofía",
+    cuna: { src: "/new-web/demos/cuna-sofia.mp3", chorus: ["Duerme Sofíaaa", "La luna te cuida", "Duerme mi amooor"] },
+    edu: { src: "/new-web/demos/educativa-sofia.mp3", chorus: ["Uno dos tres", "cuatro y cinco", "canta Sofía", "otra vez"] },
+    jugar: { src: "/new-web/demos/jugar-sofia.mp3", chorus: ["Palmas palmas ya", "baila Sofía", "chiki chiki pum"] },
   },
 };
 
@@ -52,6 +44,8 @@ export default async function NewWebPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "newWeb" });
+  const DEMOS = locale === "en" ? DEMOS_BY_LANG.en : DEMOS_BY_LANG.es;
+  const nameRe = new RegExp(`(${DEMOS.name}\\w*)`);
   const tg = await getTranslations({ locale, namespace: "gift" });
   const giftNames = { first_album: tg("firstAlbum"), sweet_dreams: tg("sweetDreams"), learning: tg("learning") };
 
@@ -68,7 +62,7 @@ export default async function NewWebPage({
   ];
 
   return (
-    <div className={`${styles.page} ${fraunces.variable}`}>
+    <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <Link href="/new" className={styles.logo}>
@@ -98,7 +92,7 @@ export default async function NewWebPage({
             <h1 className={styles.heroTitle}>{t("heroTitle")}</h1>
             <p className={styles.heroBody}>{t("heroBody")}</p>
             <div className={styles.heroActions}>
-              <Link href="/create" className={styles.primary}>
+              <Link href="/create" id="hero-cta" className={styles.primary}>
                 {t("heroCta")}
               </Link>
               <a href="#ejemplos" className={styles.textLink}>
@@ -107,47 +101,48 @@ export default async function NewWebPage({
             </div>
             <p className={styles.note}>{t("heroNote")}</p>
           </div>
-          <div className={styles.heroCard}>
-            <DemoPlayer
-              variant="hero"
-              src={DEMOS.cuna.src}
-              title={t("demoCuna")}
-              eyebrow={t("playerNow")}
-              playLabel={t("play")}
-              pauseLabel={t("pause")}
+          <div className={styles.heroStage}>
+            <Image
+              src="/new-web/hero.webp"
+              alt=""
+              width={1600}
+              height={893}
+              priority
+              className={styles.heroArt}
             />
-            <div className={styles.heroLyrics}>
-              <span className={styles.lyricsLabel}>{t("lyricsLabel")}</span>
-              {DEMOS.cuna.chorus.map((line) => (
-                <p key={line} className={styles.lyricLine}>
-                  {line.split(/(Sofía\w*)/).map((part, i) =>
-                    part.startsWith("Sofía") ? <mark key={i}>{part}</mark> : part,
-                  )}
-                </p>
-              ))}
+            <div className={styles.heroCard}>
+              <DemoPlayer
+                variant="hero"
+                src={DEMOS.cuna.src}
+                title={t("demoCuna")}
+                eyebrow={t("playerNow")}
+                playLabel={t("play")}
+                pauseLabel={t("pause")}
+              />
+              <p className={styles.heroLyrics}>
+                {DEMOS.cuna.chorus.map((line, n) => (
+                  <span key={line}>
+                    {line.split(nameRe).map((part, i) =>
+                      part.startsWith(DEMOS.name) ? <mark key={i}>{part}</mark> : part,
+                    )}
+                    {n < DEMOS.cuna.chorus.length - 1 ? " · " : ""}
+                  </span>
+                ))}
+              </p>
             </div>
           </div>
         </div>
-        <Image
-          src="/new-web/hero.webp"
-          alt=""
-          width={1600}
-          height={893}
-          priority
-          className={styles.heroArt}
-        />
       </section>
 
       {/* Three kinds of songs */}
       <section id="ejemplos" className={styles.kinds}>
         <h2 className={styles.sectionTitle}>{t("kindsTitle")}</h2>
-      </section>
-      {kinds.map((k, i) => (
-        <section key={k.key} className={`${styles.band} ${k.band}`}>
-          <div className={`${styles.bandInner} ${i % 2 ? styles.bandFlip : ""}`}>
-            <div className={styles.bandText}>
-              <h3 className={styles.bandTitle}>{k.title}</h3>
-              <p className={styles.bandBody}>{k.body}</p>
+        <div className={styles.kindGrid}>
+          {kinds.map((k) => (
+            <article key={k.key} className={`${styles.kind} ${k.band}`}>
+              <Image src={`/new-web/${k.img}.webp`} alt="" width={k.w} height={k.h} className={styles.kindArt} />
+              <h3 className={styles.kindTitle}>{k.title}</h3>
+              <p className={styles.kindBody}>{k.body}</p>
               <DemoPlayer
                 src={DEMOS[k.key].src}
                 title={k.demo}
@@ -158,11 +153,13 @@ export default async function NewWebPage({
                 <span className={styles.lyricsLabel}>{t("lyricsLabel")}</span>
                 {DEMOS[k.key].chorus.join(" · ")}
               </p>
-            </div>
-            <Image src={`/new-web/${k.img}.webp`} alt="" width={k.w} height={k.h} className={styles.bandArt} />
-          </div>
-        </section>
-      ))}
+              <Link href="/create" className={styles.kindCta}>
+                {t("kindCta")} <span aria-hidden="true">→</span>
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
 
       {/* How it works */}
       <section className={styles.how}>
@@ -182,12 +179,18 @@ export default async function NewWebPage({
               </li>
             ))}
           </ol>
+          <div className={styles.howCta}>
+            <Link href="/create" className={styles.primary}>
+              {t("howCta")}
+            </Link>
+            <p className={styles.note}>{t("howNote")}</p>
+          </div>
         </div>
       </section>
 
       {/* Gifts */}
-      <section className={`${styles.band} ${styles.bandButter}`}>
-        <div className={styles.bandInner}>
+      <section className={styles.giftWrap}>
+        <div className={`${styles.giftPanel} ${styles.bandButter}`}>
           <Image src="/new-web/regalo.webp" alt="" width={361} height={520} className={styles.giftArt} />
           <div className={styles.bandText}>
             <p className={styles.eyebrow}>{t("giftEyebrow")}</p>
@@ -223,14 +226,20 @@ export default async function NewWebPage({
           </div>
           <ul className={styles.ledger}>
             {(Object.keys(CREDIT_PACKS) as (keyof typeof CREDIT_PACKS)[]).map((k) => (
-              <li key={k}>
+              <li key={k} className={CREDIT_PACKS[k].popular ? styles.ledgerPopular : undefined}>
                 <span>
                   {CREDIT_PACKS[k].name}
+                  {CREDIT_PACKS[k].popular && <em className={styles.popularTag}>{t("popular")}</em>}
                   <small>{t("pricePerSong", { price: `US$${CREDIT_PACKS[k].pricePerSong.toFixed(2)}` })}</small>
                 </span>
-                <span className={styles.ledgerPrice}>
-                  US${CREDIT_PACKS[k].price}
-                  <small>{cop(CREDIT_PACKS_COP[k].price)}</small>
+                <span className={styles.ledgerRight}>
+                  <span className={styles.ledgerPrice}>
+                    US${CREDIT_PACKS[k].price}
+                    <small>{cop(CREDIT_PACKS_COP[k].price)}</small>
+                  </span>
+                  <Link href={`/checkout/${k}`} className={styles.buy}>
+                    {t("buy")}
+                  </Link>
                 </span>
               </li>
             ))}
@@ -249,6 +258,12 @@ export default async function NewWebPage({
           {t("closingCta")}
         </Link>
       </section>
+
+      <StickyCta targetId="hero-cta" className={styles.sticky} hiddenClassName={styles.stickyHidden}>
+        <Link href="/create" className={styles.primary}>
+          {t("stickyCta")}
+        </Link>
+      </StickyCta>
 
       <footer className={styles.footer}>
         <span>{t("footerNote")}</span>
