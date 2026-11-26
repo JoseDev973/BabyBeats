@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { Link, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import {
   Music,
@@ -16,20 +17,15 @@ import {
 
 export default function GeneratingPage() {
   const { songId } = useParams<{ songId: string }>();
+  return <SongResult key={songId} songId={songId} />;
+}
+
+function SongResult({ songId }: { songId: string }) {
   const router = useRouter();
   const t = useTranslations("generating");
   const tp = useTranslations("platforms");
 
-  const STEPS = [
-    { label: t("steps.preparing"), pct: 10 },
-    { label: t("steps.composing"), pct: 25 },
-    { label: t("steps.instruments"), pct: 45 },
-    { label: t("steps.vocals"), pct: 65 },
-    { label: t("steps.mixing"), pct: 80 },
-    { label: t("steps.almost"), pct: 92 },
-  ];
-
-  const [status, setStatus] = useState<"generating" | "completed" | "failed">(
+  const [status, setStatus] = useState<"generating" | "completed" | "failed" | "unavailable" | "signedOut">(
     "generating",
   );
   const [audioUrlA, setAudioUrlA] = useState<string | null>(null);
@@ -38,8 +34,7 @@ export default function GeneratingPage() {
   const [selected, setSelected] = useState<"a" | "b">("a");
   const [childName, setChildName] = useState("");
   const [shareToken, setShareToken] = useState("");
-  const [progress, setProgress] = useState(0);
-  const [stepIndex, setStepIndex] = useState(0);
+  const [stage, setStage] = useState("PENDING");
   const [copied, setCopied] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [showSpotify, setShowSpotify] = useState(false);
@@ -47,48 +42,55 @@ export default function GeneratingPage() {
 
   const selectedUrl = selected === "a" ? audioUrlA : audioUrlB;
 
-  const pollStatus = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/generate/status?songId=${songId}`);
-      const data = await res.json();
-
-      if (data.status === "completed") {
-        setStatus("completed");
-        setAudioUrlA(data.audioUrlA);
-        setAudioUrlB(data.audioUrlB);
-        setCoverImage(data.coverImage);
-        setChildName(data.childName);
-        setShareToken(data.shareToken);
-        setProgress(100);
-      } else if (data.status === "failed") {
-        setStatus("failed");
+  useEffect(() => {
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    async function poll() {
+      try {
+        const res = await fetch(`/api/generate/status?songId=${encodeURIComponent(songId)}`, {
+          signal: controller.signal, cache: "no-store",
+        });
+        if (controller.signal.aborted) return;
+        if (res.status === 401 || res.status === 404) {
+          setStatus(res.status === 401 ? "signedOut" : "unavailable");
+          return;
+        }
+        if (!res.ok) throw new Error("Status unavailable");
+        const data = await res.json();
+        if (controller.signal.aborted) return;
+        if (data.status === "completed") {
+          setAudioUrlA(data.audioUrlA);
+          setAudioUrlB(data.audioUrlB);
+          setCoverImage(data.coverImage);
+          setChildName(data.childName);
+          setShareToken(data.shareToken);
+          setStatus("completed");
+          return;
+        }
+        if (data.status !== "generating") {
+          setStatus(data.status === "failed" ? "failed" : "unavailable");
+          return;
+        }
+        setStage(data.sunoStatus ?? "PENDING");
+      } catch {
+        if (controller.signal.aborted) return;
+        setStage("RECONNECTING");
       }
-    } catch {
-      // Keep polling
+      timer = setTimeout(poll, 15000);
     }
+    void poll();
+    return () => { controller.abort(); clearTimeout(timer); };
   }, [songId]);
 
   useEffect(() => {
     if (status !== "generating") return;
-    const interval = setInterval(pollStatus, 5000);
-    pollStatus();
-    return () => clearInterval(interval);
-  }, [status, pollStatus]);
-
-  useEffect(() => {
-    if (status !== "generating") return;
-    const timer = setInterval(() => {
-      setElapsed((prev) => {
-        const next = prev + 1;
-        const idx = Math.min(Math.floor(next / 20), STEPS.length - 1);
-        setStepIndex(idx);
-        setProgress(STEPS[idx].pct);
-        return next;
-      });
-    }, 1000);
+    const timer = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
+
+  const stageLabel = stage === "RECONNECTING" ? t("reconnecting")
+    : stage === "FIRST_SUCCESS" ? t("firstReady")
+    : stage === "TEXT_SUCCESS" ? t("steps.composing") : t("steps.preparing");
 
   function copyShareLink() {
     const url = `${window.location.origin}/share/${shareToken}`;
@@ -114,21 +116,14 @@ export default function GeneratingPage() {
           </div>
 
           <h1 className="text-2xl font-bold mb-2">{t("title")}</h1>
-          <p className="text-muted-foreground mb-8">{STEPS[stepIndex].label}</p>
-
-          <div className="w-full bg-muted rounded-full h-3 mb-3 overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <p role="status" className="text-muted-foreground mb-4">{stageLabel}</p>
           <p className="text-sm text-muted-foreground">
-            {progress}% &middot;{" "}
             {Math.floor(elapsed / 60)}:
             {(elapsed % 60).toString().padStart(2, "0")} {t("elapsed")}
           </p>
 
           <p className="text-xs text-muted-foreground mt-6">{t("patience")}</p>
+          <Link href="/my-songs" className="inline-block mt-3 text-primary underline">{t("mySongs")}</Link>
         </div>
       )}
 
@@ -222,13 +217,13 @@ export default function GeneratingPage() {
                 {t("download")}
               </a>
             )}
-            <button
+            {shareToken && <button
               onClick={copyShareLink}
               className="flex-1 flex items-center justify-center gap-2 border border-border py-3 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
             >
               <Share2 className="h-4 w-4" />
               {copied ? t("copied") : t("shareLink")}
-            </button>
+            </button>}
           </div>
 
           {/* Platform guides */}
@@ -373,6 +368,17 @@ export default function GeneratingPage() {
               {t("mySongs")}
             </button>
           </div>
+        </div>
+      )}
+
+      {(status === "unavailable" || status === "signedOut") && (
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-6">
+            {status === "signedOut" ? t("sessionExpired") : t("unavailable")}
+          </h1>
+          <Link href={status === "signedOut" ? "/auth/login" : "/my-songs"} className="text-primary underline">
+            {status === "signedOut" ? t("signIn") : t("mySongs")}
+          </Link>
         </div>
       )}
 

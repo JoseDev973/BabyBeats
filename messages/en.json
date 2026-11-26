@@ -251,7 +251,12 @@
     "createAnother": "Create Another",
     "mySongs": "My Songs",
     "failed": "Something went wrong",
-    "failedHint": "The audio generation failed. Your credit has not been charged.",
+    "reconnecting": "Reconnecting to check your song…",
+    "firstReady": "The first version is ready. Finishing your song…",
+    "sessionExpired": "Sign in to check your song",
+    "signIn": "Sign in",
+    "unavailable": "There is no audio generation to show for this song.",
+    "failedHint": "Audio generation failed.",
     "tryAgain": "Try Again",
     "versionA": "Version A",
     "versionB": "Version B"

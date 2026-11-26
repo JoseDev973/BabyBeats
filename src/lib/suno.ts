@@ -7,6 +7,8 @@ import {
   type Theme,
 } from "@/lib/song-prompts";
 
+import { callbackUrl, type CallbackTarget } from "@/lib/suno-callback";
+
 const SUNO_API_BASE = "https://api.sunoapi.org/api/v1";
 
 const TITLE_PREFIX: Record<string, string> = {
@@ -20,6 +22,7 @@ const TITLE_PREFIX: Record<string, string> = {
 
 /** Starts a Suno generation; the result arrives at /api/webhooks/suno. Returns the taskId. */
 export async function startSunoGeneration(opts: {
+  callbackTarget: CallbackTarget;
   lyrics: string;
   musicStyle: string;
   theme: string;
@@ -43,7 +46,7 @@ export async function startSunoGeneration(opts: {
       title: `${TITLE_PREFIX[opts.language] ?? TITLE_PREFIX.es} ${opts.childName}`.slice(0, 80),
       model: SUNO_MODEL,
       ...SUNO_PARAMS,
-      callBackUrl: `${getAppUrl()}/api/webhooks/suno`,
+      callBackUrl: callbackUrl(getAppUrl(), opts.callbackTarget),
     }),
   });
 
