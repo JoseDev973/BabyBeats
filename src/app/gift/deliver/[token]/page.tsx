@@ -1,14 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { Music, Gift, Play } from "lucide-react";
 import type { Gift as GiftType, GiftSong } from "@/types/database";
 
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-}
+// Gifts aren't publicly readable; this page reads by unguessable token server-side
+const getSupabase = getSupabaseAdmin;
 
 const LABELS = {
   en: {
@@ -44,7 +40,8 @@ export async function generateMetadata({
     .from("gifts")
     .select("child_name")
     .eq("delivery_token", token)
-    .single();
+    .in("status", ["ready", "delivered", "redeemed"])
+    .maybeSingle();
 
   if (!gift) return { title: "Gift not found" };
 

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { GIFT_PACKS_COP, isGiftPack } from "@/lib/mercado-pago/config";
 import { getAppUrl } from "@/lib/utils";
 import type { GiftSong, SongTheme } from "@/types/database";
 
@@ -119,6 +121,9 @@ async function startSunoGeneration(
   return result.data.taskId;
 }
 
+// Up to 10 songs (Claude lyrics + Suno kickoff) run in parallel
+export const maxDuration = 300;
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -129,54 +134,81 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { giftId } = await request.json();
+  const { giftId } = await request.json().catch(() => ({}));
 
-  if (!giftId) {
+  if (!giftId || typeof giftId !== "string") {
     return NextResponse.json(
       { error: "Missing required field: giftId" },
       { status: 400 },
     );
   }
 
-  // Verify gift ownership
-  const { data: gift, error: giftError } = await supabase
+  const admin = getSupabaseAdmin();
+
+  const { data: gift } = await admin
     .from("gifts")
     .select("*")
     .eq("id", giftId)
     .eq("buyer_id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (giftError || !gift) {
+  if (!gift) {
     return NextResponse.json({ error: "Gift not found" }, { status: 404 });
   }
 
-  if (gift.status === "generating" || gift.status === "ready") {
+  // #21: no generation without a confirmed payment
+  if (!gift.paid_at) {
+    return NextResponse.json({ error: "PAYMENT_REQUIRED" }, { status: 402 });
+  }
+
+  const packType: unknown = gift.pack_type;
+  if (!isGiftPack(packType)) {
+    return NextResponse.json({ error: "Invalid pack" }, { status: 400 });
+  }
+
+  if (!gift.child_name || gift.child_name === "—") {
+    return NextResponse.json({ error: "Missing child name" }, { status: 400 });
+  }
+
+  // Claim the gift atomically so concurrent/double requests can't generate twice
+  const { data: claimed } = await admin
+    .from("gifts")
+    .update({ status: "generating", updated_at: new Date().toISOString() })
+    .eq("id", giftId)
+    .in("status", ["draft", "personalizing"])
+    .select("id")
+    .maybeSingle();
+
+  if (!claimed) {
     return NextResponse.json(
       { error: "GIFT_ALREADY_PROCESSING" },
       { status: 400 },
     );
   }
 
-  // Fetch all gift songs
-  const { data: giftSongs, error: songsError } = await supabase
+  // Only as many songs as the pack paid for; skip ones already started
+  const maxSongs = GIFT_PACKS_COP[packType].songs;
+  const { data: giftSongs } = await admin
     .from("gift_songs")
     .select("*")
     .eq("gift_id", giftId)
-    .order("position");
+    .order("position")
+    .limit(maxSongs);
 
-  if (songsError || !giftSongs || giftSongs.length === 0) {
+  const songs = ((giftSongs as GiftSong[]) || []).filter(
+    (s) => !s.suno_task_id && s.status !== "completed",
+  );
+
+  if (!giftSongs || giftSongs.length === 0) {
+    await admin.from("gifts").update({ status: "personalizing" }).eq("id", giftId);
     return NextResponse.json(
       { error: "No songs found for this gift" },
       { status: 404 },
     );
   }
 
-  const songs = giftSongs as GiftSong[];
-
-  try {
-    // Process each gift song: generate lyrics then start audio generation
-    for (const song of songs) {
-      // Generate lyrics via Claude
+  const results = await Promise.allSettled(
+    songs.map(async (song) => {
       const lyrics = await generateLyrics(
         gift.child_name,
         song.theme as SongTheme,
@@ -184,48 +216,42 @@ export async function POST(request: Request) {
         song.language || gift.language || "es",
         song.custom_prompt,
       );
+      if (!lyrics.trim()) throw new Error("Empty lyrics");
 
-      // Update gift_song with lyrics
-      await supabase
-        .from("gift_songs")
-        .update({ lyrics })
-        .eq("id", song.id);
+      await admin.from("gift_songs").update({ lyrics }).eq("id", song.id);
 
-      // Start Suno audio generation
       const taskId = await startSunoGeneration(
         lyrics,
         song.music_style,
         gift.child_name,
       );
 
-      // Update gift_song with task ID and status
-      await supabase
+      await admin
         .from("gift_songs")
-        .update({
-          suno_task_id: taskId,
-          status: "generating",
-        })
+        .update({ suno_task_id: taskId, status: "generating" })
         .eq("id", song.id);
+    }),
+  );
+
+  const failed = results.filter((r) => r.status === "rejected");
+  if (failed.length > 0) {
+    for (const f of failed) {
+      console.error("[Gift Generate] Song failed:", (f as PromiseRejectedResult).reason);
     }
-
-    // Update gift status to generating
-    await supabase
+    // Release the gift so the buyer can retry; songs already started are skipped
+    await admin
       .from("gifts")
-      .update({
-        status: "generating",
-        updated_at: new Date().toISOString(),
-      })
+      .update({ status: "personalizing", updated_at: new Date().toISOString() })
       .eq("id", giftId);
-
-    return NextResponse.json({
-      giftId,
-      status: "generating",
-      totalSongs: songs.length,
-    });
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Gift generation failed";
-    console.error("[Gift Generate] Error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "GENERATION_FAILED", failed: failed.length, total: songs.length },
+      { status: 502 },
+    );
   }
+
+  return NextResponse.json({
+    giftId,
+    status: "generating",
+    totalSongs: giftSongs.length,
+  });
 }

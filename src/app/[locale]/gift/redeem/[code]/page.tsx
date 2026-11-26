@@ -41,21 +41,11 @@ export default function GiftRedeemCodePage() {
         } = await supabase.auth.getUser();
         setIsLoggedIn(!!user);
 
-        // Look up gift by delivery_token with redeem mode
-        const { data, error: fetchError } = await supabase
-          .from("gifts")
-          .select("id, child_name, total_songs, pack_type, status, delivery_mode")
-          .eq("delivery_token", code)
-          .eq("delivery_mode", "redeem")
-          .single();
+        // Look up gift server-side (gifts are not publicly readable)
+        const res = await fetch(`/api/gift/redeem?code=${encodeURIComponent(code)}`);
+        const data = res.ok ? ((await res.json()) as GiftInfo) : null;
 
-        if (fetchError || !data) {
-          setError(t("redeemError"));
-          setLoading(false);
-          return;
-        }
-
-        if (data.status === "redeemed") {
+        if (!data || data.status === "redeemed") {
           setError(t("redeemError"));
           setLoading(false);
           return;

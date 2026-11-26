@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -42,15 +42,17 @@ const PACK_STYLES: Record<string, string[]> = {
   custom: [],
 };
 
-type Step = "info" | "mode" | "custom" | "confirm";
+type Step = "loading" | "payment" | "info" | "mode" | "custom" | "confirm";
 
 export default function GiftCreatePage() {
   const { giftId } = useParams<{ giftId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const paymentResult = searchParams.get("payment");
   const t = useTranslations("gift");
   const tc = useTranslations("create");
 
-  const [step, setStep] = useState<Step>("info");
+  const [step, setStep] = useState<Step>("loading");
   const [childName, setChildName] = useState("");
   const [language, setLanguage] = useState("es");
   const [deliveryMode, setDeliveryMode] = useState<"link" | "redeem">("link");
@@ -64,23 +66,138 @@ export default function GiftCreatePage() {
   const [deliveryToken, setDeliveryToken] = useState("");
   const [copied, setCopied] = useState(false);
   const [giftStatus, setGiftStatus] = useState("");
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = null;
+  }, []);
+
+  const pollUntilReady = useCallback(() => {
+    stopPolling();
+    const supabase = createClient();
+    const startedAt = Date.now();
+    pollRef.current = setInterval(async () => {
+      const { data: g } = await supabase
+        .from("gifts")
+        .select("status, delivery_token")
+        .eq("id", giftId)
+        .single();
+
+      if (g?.status === "ready" || g?.status === "delivered") {
+        if (g.delivery_token) setDeliveryToken(g.delivery_token);
+        setGiftStatus("ready");
+        setGenerating(false);
+        stopPolling();
+      } else if (Date.now() - startedAt > 15 * 60_000) {
+        stopPolling();
+      }
+    }, 5000);
+  }, [giftId, stopPolling]);
+
+  useEffect(() => stopPolling, [stopPolling]);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase
-      .from("gifts")
-      .select("pack_type, total_songs, child_name, language")
-      .eq("id", giftId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setPackType(data.pack_type);
-          setTotalSongs(data.total_songs);
-          if (data.child_name && data.child_name !== "—") setChildName(data.child_name);
-          if (data.language) setLanguage(data.language);
-        }
+    let cancelled = false;
+    let paymentPoll: ReturnType<typeof setInterval> | null = null;
+
+    async function load() {
+      const { data } = await supabase
+        .from("gifts")
+        .select("pack_type, total_songs, child_name, language, status, paid_at, delivery_token")
+        .eq("id", giftId)
+        .single();
+
+      if (cancelled) return;
+      if (!data) {
+        router.push("/gift");
+        return;
+      }
+
+      setPackType(data.pack_type);
+      setTotalSongs(data.total_songs);
+      if (data.child_name && data.child_name !== "—") setChildName(data.child_name);
+      if (data.language) setLanguage(data.language);
+
+      if (["ready", "delivered", "redeemed"].includes(data.status)) {
+        setDeliveryToken(data.delivery_token);
+        setGiftStatus("ready");
+        setStep("confirm");
+        return;
+      }
+      if (data.status === "generating") {
+        setDeliveryToken(data.delivery_token);
+        setGenerating(true);
+        setStep("confirm");
+        pollUntilReady();
+        return;
+      }
+      if (data.paid_at) {
+        setStep("info");
+        return;
+      }
+
+      setStep("payment");
+      if (paymentResult === "failure") {
+        setPaymentError(t("paymentFailed"));
+        return;
+      }
+      if (paymentResult === "success" || paymentResult === "pending") {
+        // Mercado Pago's webhook marks the gift paid; wait for it
+        setConfirmingPayment(true);
+        const startedAt = Date.now();
+        paymentPoll = setInterval(async () => {
+          const { data: g } = await supabase
+            .from("gifts")
+            .select("paid_at")
+            .eq("id", giftId)
+            .single();
+          if (g?.paid_at) {
+            if (paymentPoll) clearInterval(paymentPoll);
+            setConfirmingPayment(false);
+            setStep("info");
+          } else if (Date.now() - startedAt > 3 * 60_000) {
+            if (paymentPoll) clearInterval(paymentPoll);
+            setConfirmingPayment(false);
+            setPaymentError(t("paymentPendingTimeout"));
+          }
+        }, 3000);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+      if (paymentPoll) clearInterval(paymentPoll);
+    };
+  }, [giftId, paymentResult, pollUntilReady, router, t]);
+
+  async function handlePay(provider: "stripe" | "mp") {
+    setLoading(true);
+    setPaymentError("");
+    try {
+      const res = await fetch(provider === "stripe" ? "/api/checkout/gift" : "/api/checkout-mp/gift", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ giftId }),
       });
-  }, [giftId]);
+      const data = await res.json().catch(() => ({}));
+      if (data.error === "ALREADY_PAID") {
+        setStep("info");
+      } else if (res.ok && data.url) {
+        window.location.assign(data.url);
+        return;
+      } else {
+        setPaymentError(t("paymentError"));
+      }
+    } catch {
+      setPaymentError(t("paymentError"));
+    }
+    setLoading(false);
+  }
 
   function initSongConfigs() {
     const themes = PACK_THEMES[packType] || Array(totalSongs).fill("lullaby");
@@ -107,7 +224,6 @@ export default function GiftCreatePage() {
         child_name: childName.trim(),
         language,
         delivery_mode: deliveryMode,
-        status: "generating",
         updated_at: new Date().toISOString(),
       })
       .eq("id", giftId);
@@ -131,7 +247,21 @@ export default function GiftCreatePage() {
       status: "pending",
     }));
 
-    await supabase.from("gift_songs").insert(songRows);
+    // Songs may already exist if a previous generation attempt failed
+    const { count: existingSongs } = await supabase
+      .from("gift_songs")
+      .select("id", { count: "exact", head: true })
+      .eq("gift_id", giftId);
+
+    if (!existingSongs) {
+      const { error: songsError } = await supabase.from("gift_songs").insert(songRows);
+      if (songsError) {
+        setLoading(false);
+        setStep("confirm");
+        setGenerationError(t("generationFailed"));
+        return;
+      }
+    }
 
     // Fetch delivery token
     const { data: giftData } = await supabase
@@ -157,45 +287,72 @@ export default function GiftCreatePage() {
         body: JSON.stringify({ giftId }),
       });
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (data.error === "GIFT_ALREADY_PROCESSING") {
           setGenerationError(t("giftAlreadyProcessing"));
+        } else if (data.error === "PAYMENT_REQUIRED") {
+          setGenerationError(t("paymentRequired"));
         } else {
-          setGenerationError(data.error || "Generation failed");
+          setGenerationError(t("generationFailed"));
         }
         setGenerating(false);
         return;
       }
 
-      // Poll for gift completion
-      const pollInterval = setInterval(async () => {
-        const { data: g } = await supabase
-          .from("gifts")
-          .select("status")
-          .eq("id", giftId)
-          .single();
-
-        if (g?.status === "ready") {
-          setGiftStatus("ready");
-          setGenerating(false);
-          clearInterval(pollInterval);
-        } else if (g?.status === "failed") {
-          setGenerationError("Some songs failed to generate");
-          setGenerating(false);
-          clearInterval(pollInterval);
-        }
-      }, 5000);
-
-      // Stop polling after 10 minutes
-      setTimeout(() => clearInterval(pollInterval), 600000);
+      pollUntilReady();
     } catch {
-      setGenerationError("Failed to start generation");
+      setGenerationError(t("generationFailed"));
       setGenerating(false);
     }
   }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 sm:py-16">
+      {step === "loading" && (
+        <div className="flex justify-center py-24">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {/* Step: Payment (gift must be paid before personalizing) */}
+      {step === "payment" && (
+        <div className="text-center space-y-6">
+          {confirmingPayment ? (
+            <>
+              <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+              <h1 className="text-2xl font-extrabold">{t("confirmingPayment")}</h1>
+              <p className="text-muted-foreground">{t("confirmingPaymentDesc")}</p>
+            </>
+          ) : (
+            <>
+              <Gift className="h-12 w-12 text-primary mx-auto" />
+              <h1 className="text-2xl font-extrabold">{t("paymentRequiredTitle")}</h1>
+              <p className="text-muted-foreground">{t("paymentRequiredDesc", { count: totalSongs })}</p>
+              {paymentError && (
+                <p className="text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl">
+                  {paymentError}
+                </p>
+              )}
+              {(["stripe", "mp"] as const).map((provider) => (
+                <button
+                  key={provider}
+                  onClick={() => handlePay(provider)}
+                  disabled={loading}
+                  className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${
+                    provider === "stripe"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "border-2 border-border hover:border-primary/30"
+                  }`}
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {provider === "stripe" ? t("payWithCard") : t("payWithMP")}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
       {/* Step: Baby info */}
       {step === "info" && (
         <div className="space-y-8">

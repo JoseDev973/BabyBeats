@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe, CREDIT_PACKS } from "@/lib/stripe/config";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getAppUrl } from "@/lib/utils";
 
 type PackKey = keyof typeof CREDIT_PACKS;
@@ -29,7 +30,7 @@ async function createCheckoutSession(
     });
     customerId = customer.id;
 
-    await supabase
+    await getSupabaseAdmin()
       .from("profiles")
       .update({ stripe_customer_id: customerId })
       .eq("id", userId);

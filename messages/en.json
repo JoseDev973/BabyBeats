@@ -349,7 +349,18 @@
     "howStep2Title": "Personalize",
     "howStep2Desc": "Enter the baby's name and customize each song",
     "howStep3Title": "Share the gift",
-    "howStep3Desc": "Get a beautiful link to send to the parents"
+    "howStep3Desc": "Get a beautiful link to send to the parents",
+    "payWithMP": "Mercado Pago (COP)",
+    "paymentError": "We couldn't start the payment. Please try again.",
+    "paymentFailed": "The payment wasn't completed. You can try again.",
+    "paymentRequiredTitle": "Complete your gift payment",
+    "paymentRequiredDesc": "After paying you'll personalize all {count} songs.",
+    "paymentRequired": "This gift hasn't been paid yet.",
+    "confirmingPayment": "Confirming your payment...",
+    "confirmingPaymentDesc": "This usually takes a few seconds. Please don't close this page.",
+    "paymentPendingTimeout": "Your payment is still processing. You can come back to this page later.",
+    "generationFailed": "We couldn't create the songs. Please try again — you won't be charged again.",
+    "payWithCard": "Pay with card (USD)"
   },
   "share": {
     "songFor": "A song for {name}",

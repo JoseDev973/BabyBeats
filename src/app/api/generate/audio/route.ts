@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getAppUrl } from "@/lib/utils";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
     // Atomic increment to prevent race condition on first free song
     // Done BEFORE Suno call so parallel requests see total_songs_generated > 0
     const currentTotal = profile?.total_songs_generated ?? 0;
-    const { data: lockResult, error: lockError } = await supabase
+    const { data: lockResult, error: lockError } = await getSupabaseAdmin()
       .from("profiles")
       .update({
         total_songs_generated: currentTotal + 1,
@@ -142,7 +143,7 @@ export async function POST(request: Request) {
     // Deduct credit (atomic: only succeeds if credits haven't changed)
     if (!isFirstSong) {
       const expectedCredits = profile?.credits ?? 1;
-      const { data: updated, error: creditError } = await supabase
+      const { data: updated, error: creditError } = await getSupabaseAdmin()
         .from("profiles")
         .update({ credits: expectedCredits - 1 })
         .eq("id", user.id)
@@ -165,7 +166,7 @@ export async function POST(request: Request) {
 
     // total_songs_generated already incremented above (optimistic lock)
 
-    await supabase.from("credit_transactions").insert({
+    await getSupabaseAdmin().from("credit_transactions").insert({
       user_id: user.id,
       amount: -1,
       type: "usage",

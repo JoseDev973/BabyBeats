@@ -324,7 +324,18 @@
     "howStep2Title": "Personnalisez",
     "howStep2Desc": "Entrez le prénom du bébé et personnalisez chaque chanson",
     "howStep3Title": "Partagez le cadeau",
-    "howStep3Desc": "Recevez un beau lien à envoyer aux parents"
+    "howStep3Desc": "Recevez un beau lien à envoyer aux parents",
+    "payWithMP": "Mercado Pago (COP)",
+    "paymentError": "Impossible de lancer le paiement. Veuillez réessayer.",
+    "paymentFailed": "Le paiement n'a pas abouti. Vous pouvez réessayer.",
+    "paymentRequiredTitle": "Finalisez le paiement de votre cadeau",
+    "paymentRequiredDesc": "Après le paiement, vous personnaliserez les {count} chansons.",
+    "paymentRequired": "Ce cadeau n'a pas encore été payé.",
+    "confirmingPayment": "Confirmation de votre paiement...",
+    "confirmingPaymentDesc": "Cela prend généralement quelques secondes. Ne fermez pas cette page.",
+    "paymentPendingTimeout": "Votre paiement est toujours en cours. Vous pouvez revenir sur cette page plus tard.",
+    "generationFailed": "Impossible de créer les chansons. Réessayez — vous ne serez pas débité à nouveau.",
+    "payWithCard": "Payer par carte (USD)"
   },
   "metadata": {
     "defaultTitle": "BabyBeats — Chansons IA pour votre Bébé",
