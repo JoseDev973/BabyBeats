@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import styles from "@/app/[locale]/new/new.module.css";
+import styles from "./landing.module.css";
 
 const EVENT = "newweb:play";
 

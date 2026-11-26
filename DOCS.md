@@ -313,6 +313,9 @@ CreateWizard → Modo "Album":
 → /gift/deliver/[token] → Pagina publica con todas las canciones
 ```
 
+### Almacenamiento de audio
+Los links de Suno (`tempfile.aiquickdraw.com`) caducan en ~2 semanas. El webhook de Suno copia el MP3 A, el B y la portada al bucket público `songs` de Supabase Storage (`generated/{id}/`, `gift/{id}/`) con `persistFromUrl` (`src/lib/persist-audio.ts`) y guarda esas URLs. Si la copia falla, se guarda el link temporal. El catálogo vive en `songs/catalog/{slug}.mp3`. `scripts/fix-song-storage.ts` rescata links vivos y (`CATALOG=1`) regenera el catálogo. Free tier de Supabase: 1 GB (~200 canciones con A y B).
+
 ### 4. Compartir cancion
 ```
 Cancion completada → share_token generado automaticamente

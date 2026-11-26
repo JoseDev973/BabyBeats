@@ -364,7 +364,6 @@
   },
   "newWeb": {
     "metaTitle": "BabyBeats — Une chanson à son prénom",
-    "badge": "Nouveau site · aperçu",
     "navPricing": "Tarifs",
     "navGift": "Offrir",
     "navCta": "Créer une chanson",
@@ -407,12 +406,15 @@
     "closingTitle": "Son prénom sonne mieux en chanson.",
     "closingCta": "Créer sa chanson",
     "footerNote": "BabyBeats · Des chansons créées avec l'IA, écrites pour chaque bébé.",
-    "footerOld": "Retour au site actuel",
     "kindCta": "En créer une pour mon bébé",
     "howCta": "Créer sa chanson gratuitement",
     "howNote": "Environ 2 minutes. La première est gratuite.",
     "buy": "Acheter",
     "popular": "La plus choisie",
-    "stickyCta": "Créer sa chanson gratuitement"
+    "stickyCta": "Créer sa chanson gratuitement",
+    "navSongs": "Chansons",
+    "language": "Langue",
+    "footerTerms": "Conditions",
+    "footerPrivacy": "Confidentialité"
   }
 }

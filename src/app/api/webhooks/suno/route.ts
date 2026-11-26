@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { persistFromUrl, extOf } from "@/lib/persist-audio";
 import { createClient } from "@supabase/supabase-js";
 import { getAppUrl } from "@/lib/utils";
 import { getResend, FROM_ADDRESS } from "@/lib/resend";
@@ -72,10 +73,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "No tracks in response" }, { status: 400 });
       }
 
-      const audioA = trackA.audioUrl || trackA.audio_url;
-      const audioB = trackB?.audioUrl || trackB?.audio_url || null;
-      const imageA = trackA.imageUrl || trackA.image_url || null;
-      const imageB = trackB?.imageUrl || trackB?.image_url || null;
+      const tmpAudioA = trackA.audioUrl || trackA.audio_url;
+      const tmpAudioB = trackB?.audioUrl || trackB?.audio_url || null;
+      const tmpImage = trackA.imageUrl || trackA.image_url || trackB?.imageUrl || trackB?.image_url || null;
+
+      // Suno's URLs expire in ~2 weeks: keep our own copy in Supabase Storage
+      const folder = song ? `generated/${song.id}` : `gift/${giftSong!.id}`;
+      const [audioA, audioB, imageA] = await Promise.all([
+        persistFromUrl(tmpAudioA, `${folder}/a.mp3`),
+        persistFromUrl(tmpAudioB, `${folder}/b.mp3`),
+        persistFromUrl(tmpImage, `${folder}/cover.${extOf(tmpImage, "jpeg")}`),
+      ]);
+      const imageB = null;
       const durationA = Math.round(trackA.duration || 0);
       const durationB = trackB ? Math.round(trackB.duration || 0) : null;
 

@@ -364,7 +364,6 @@
   },
   "newWeb": {
     "metaTitle": "BabyBeats — Uma música com o nome dele",
-    "badge": "Novo site · prévia",
     "navPricing": "Preços",
     "navGift": "Presentear",
     "navCta": "Criar música",
@@ -407,12 +406,15 @@
     "closingTitle": "O nome dele soa melhor cantado.",
     "closingCta": "Criar a música",
     "footerNote": "BabyBeats · Músicas feitas com IA, escritas para cada bebê.",
-    "footerOld": "Voltar ao site atual",
     "kindCta": "Criar uma para meu bebê",
     "howCta": "Criar a música grátis",
     "howNote": "Leva uns 2 minutos. A primeira é grátis.",
     "buy": "Comprar",
     "popular": "A mais escolhida",
-    "stickyCta": "Criar a música grátis"
+    "stickyCta": "Criar a música grátis",
+    "navSongs": "Músicas",
+    "language": "Idioma",
+    "footerTerms": "Termos",
+    "footerPrivacy": "Privacidade"
   }
 }

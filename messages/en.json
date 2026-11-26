@@ -374,7 +374,6 @@
   },
   "newWeb": {
     "metaTitle": "BabyBeats — A song with their name",
-    "badge": "New website · preview",
     "navPricing": "Pricing",
     "navGift": "Gifts",
     "navCta": "Create a song",
@@ -417,12 +416,15 @@
     "closingTitle": "Their name sounds better sung.",
     "closingCta": "Create their song",
     "footerNote": "BabyBeats · Songs made with AI, written for each baby.",
-    "footerOld": "Back to the current website",
     "kindCta": "Make one for my baby",
     "howCta": "Create their song free",
     "howNote": "Takes about 2 minutes. The first one is free.",
     "buy": "Buy",
     "popular": "Most popular",
-    "stickyCta": "Create their song free"
+    "stickyCta": "Create their song free",
+    "navSongs": "Songs",
+    "language": "Language",
+    "footerTerms": "Terms",
+    "footerPrivacy": "Privacy"
   }
 }
