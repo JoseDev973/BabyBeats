@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { startSunoGeneration } from "@/lib/suno";
+import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
 import { rateLimit } from "@/lib/rate-limit";
 
 
@@ -24,7 +25,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { songId } = await request.json();
+  const body = await request.json().catch(() => null);
+  if (typeof body?.songId !== "string") {
+    return NextResponse.json({ error: "Missing song ID" }, { status: 400 });
+  }
+  const { songId, lyrics: editedLyrics } = body;
 
   const { data: song, error: songError } = await supabase
     .from("generated_songs")
@@ -37,16 +42,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Song not found" }, { status: 404 });
   }
 
-  if (song.status === "completed") {
+  if (song.status === "generating" || song.status === "completed") {
     return NextResponse.json(
-      { error: "Song audio has already been generated" },
-      { status: 400 },
+      { songId, status: song.status },
     );
   }
 
-  if (!song.lyrics) {
+  const lyrics = editedLyrics === undefined ? song.lyrics : editedLyrics;
+  if (typeof lyrics !== "string" || !lyrics.trim() || lyrics.length > MAX_LYRICS_LENGTH) {
     return NextResponse.json(
-      { error: "Song has no lyrics yet" },
+      { error: `Lyrics must contain between 1 and ${MAX_LYRICS_LENGTH} characters.` },
       { status: 400 },
     );
   }
@@ -66,6 +71,21 @@ export async function POST(request: Request) {
       { error: "No credits remaining. Please purchase more." },
       { status: 402 },
     );
+  }
+
+  if (lyrics !== song.lyrics) {
+    const { data: draft, error } = await supabase
+      .from("generated_songs")
+      .update({ lyrics })
+      .eq("id", songId)
+      .eq("user_id", user.id)
+      .in("status", ["lyrics_ready", "failed"])
+      .select("id")
+      .maybeSingle();
+
+    if (error || !draft) {
+      return NextResponse.json({ error: "Could not save the lyrics. Please retry." }, { status: error ? 500 : 409 });
+    }
   }
 
   try {
@@ -96,7 +116,7 @@ export async function POST(request: Request) {
 
     // Start Suno generation (non-blocking; result arrives via webhook)
     const taskId = await startSunoGeneration({
-      lyrics: song.lyrics,
+      lyrics,
       musicStyle: song.music_style,
       theme: song.theme,
       language: song.language || "es",
