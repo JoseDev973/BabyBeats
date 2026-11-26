@@ -68,21 +68,24 @@ export default function GiftCreatePage() {
   const [giftStatus, setGiftStatus] = useState("");
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
-  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopPolling = useCallback(() => {
-    if (pollRef.current) clearTimeout(pollRef.current);
+    if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = null;
   }, []);
 
   const pollUntilReady = useCallback(() => {
     stopPolling();
+    const supabase = createClient();
     const startedAt = Date.now();
-    async function poll() {
-      const g = await fetch(`/api/gift/status?giftId=${encodeURIComponent(giftId)}`)
-        .then((res) => res.ok ? res.json() : null).catch(() => null);
+    pollRef.current = setInterval(async () => {
+      const { data: g } = await supabase
+        .from("gifts")
+        .select("status, delivery_token")
+        .eq("id", giftId)
+        .single();
 
-      if (!pollRef.current) return;
       if (g?.status === "ready" || g?.status === "delivered") {
         if (g.delivery_token) setDeliveryToken(g.delivery_token);
         setGiftStatus("ready");
@@ -90,11 +93,8 @@ export default function GiftCreatePage() {
         stopPolling();
       } else if (Date.now() - startedAt > 15 * 60_000) {
         stopPolling();
-      } else {
-        pollRef.current = setTimeout(poll, 30000);
       }
-    }
-    pollRef.current = setTimeout(poll, 30000);
+    }, 5000);
   }, [giftId, stopPolling]);
 
   useEffect(() => stopPolling, [stopPolling]);
