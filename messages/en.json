@@ -176,6 +176,13 @@
     "backToPricing": "Back to pricing"
   },
   "player": {
+    "paused": "Paused",
+    "playbackError": "Couldn’t play this audio. Try again.",
+    "restart": "Restart song",
+    "position": "Playback position",
+    "unmute": "Unmute",
+    "mute": "Mute",
+    "volume": "Volume",
     "nowPlaying": "Now Playing",
     "queue": "Queue",
     "lyrics": "Lyrics"

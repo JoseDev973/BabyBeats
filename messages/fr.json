@@ -151,6 +151,13 @@
     "choosePlan": "Choisir un plan"
   },
   "player": {
+    "paused": "En pause",
+    "playbackError": "La lecture a échoué. Réessayez.",
+    "restart": "Reprendre depuis le début",
+    "position": "Position de lecture",
+    "unmute": "Rétablir le son",
+    "mute": "Couper le son",
+    "volume": "Volume",
     "nowPlaying": "En lecture",
     "queue": "File d'attente",
     "lyrics": "Paroles"
