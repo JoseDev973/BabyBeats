@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { getAppUrl } from "@/lib/utils";
+import { startSunoGeneration } from "@/lib/suno";
 import { rateLimit } from "@/lib/rate-limit";
 
-const SUNO_API_BASE = "https://api.sunoapi.org/api/v1";
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "anonymous";
@@ -70,17 +69,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    const styleMap: Record<string, string> = {
-      gentle: "gentle, soft, sweet lullaby, baby music, toddler song, nursery, soothing for infants",
-      playful: "playful, upbeat, happy, baby music, toddler song, nursery, fun for kids",
-      classical: "classical, orchestral, baby music, toddler song, nursery, soothing for infants",
-      pop: "pop, catchy, baby music, toddler song, nursery, fun for kids",
-      acoustic: "acoustic, folk, warm, baby music, toddler song, nursery, soothing for infants",
-      reggaeton: "reggaeton, latin, baby music, toddler song, nursery, fun for kids",
-    };
-
-    const style = styleMap[song.music_style] || "baby music, toddler song, nursery, soothing for infants";
-
     // Atomic increment to prevent race condition on first free song
     // Done BEFORE Suno call so parallel requests see total_songs_generated > 0
     const currentTotal = profile?.total_songs_generated ?? 0;
@@ -106,36 +94,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Start Suno generation (non-blocking)
-    const res = await fetch(`${SUNO_API_BASE}/generate`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.SUNO_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt: song.lyrics,
-        customMode: true,
-        style,
-        title: `${song.child_name}'s Song`,
-        instrumental: false,
-        model: "V4",
-        callBackUrl: `${getAppUrl()}/api/webhooks/suno`,
-      }),
+    // Start Suno generation (non-blocking; result arrives via webhook)
+    const taskId = await startSunoGeneration({
+      lyrics: song.lyrics,
+      musicStyle: song.music_style,
+      theme: song.theme,
+      language: song.language || "es",
+      childName: song.child_name,
     });
-
-    const result = await res.json();
-
-    if (result.code !== 200 || !result.data?.taskId) {
-      throw new Error(result.msg || "Failed to start Suno generation");
-    }
 
     // Save taskId and mark as generating — return immediately
     await supabase
       .from("generated_songs")
       .update({
         status: "generating",
-        suno_task_id: result.data.taskId,
+        suno_task_id: taskId,
         updated_at: new Date().toISOString(),
       })
       .eq("id", songId);
@@ -174,7 +147,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      taskId: result.data.taskId,
+      taskId: taskId,
       songId,
       status: "generating",
     });
