@@ -68,20 +68,21 @@ export default function GiftCreatePage() {
   const [giftStatus, setGiftStatus] = useState("");
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stopPolling = useCallback(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
+    if (pollRef.current) clearTimeout(pollRef.current);
     pollRef.current = null;
   }, []);
 
   const pollUntilReady = useCallback(() => {
     stopPolling();
     const startedAt = Date.now();
-    pollRef.current = setInterval(async () => {
+    async function poll() {
       const g = await fetch(`/api/gift/status?giftId=${encodeURIComponent(giftId)}`)
         .then((res) => res.ok ? res.json() : null).catch(() => null);
 
+      if (!pollRef.current) return;
       if (g?.status === "ready" || g?.status === "delivered") {
         if (g.delivery_token) setDeliveryToken(g.delivery_token);
         setGiftStatus("ready");
@@ -89,8 +90,11 @@ export default function GiftCreatePage() {
         stopPolling();
       } else if (Date.now() - startedAt > 15 * 60_000) {
         stopPolling();
+      } else {
+        pollRef.current = setTimeout(poll, 30000);
       }
-    }, 30000);
+    }
+    pollRef.current = setTimeout(poll, 30000);
   }, [giftId, stopPolling]);
 
   useEffect(() => stopPolling, [stopPolling]);
