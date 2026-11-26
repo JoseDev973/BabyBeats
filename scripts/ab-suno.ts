@@ -10,6 +10,7 @@ import {
   buildNegativeTags,
   SUNO_PARAMS,
   buildLyricsPrompt,
+  LYRICS_SYSTEM_PROMPT,
   buildSunoStyle,
   type Theme,
 } from "../src/lib/song-prompts";
@@ -76,10 +77,11 @@ Write ONLY the song lyrics, with clear verse/chorus structure. Use [Verse], [Cho
 
 const anthropic = new Anthropic();
 
-async function lyrics(prompt: string) {
+async function lyrics(prompt: string, system?: string) {
   const msg = await anthropic.messages.create({
     model: "claude-opus-5",
     max_tokens: 10000,
+    system,
     messages: [{ role: "user", content: prompt }],
   });
   const block = msg.content.find((b) => b.type === "text");
@@ -119,13 +121,13 @@ async function runVariant(variant: "old" | "new", c: (typeof CASES)[number]) {
     variant === "old"
       ? oldLyricsPrompt(c.theme, c.style)
       : buildLyricsPrompt({ childName: CHILD, theme: c.theme, musicStyle: c.style, language: LANG });
-  const text = await lyrics(prompt);
+  const text = await lyrics(prompt, variant === "new" ? LYRICS_SYSTEM_PROMPT : undefined);
   const tags = variant === "old" ? OLD_STYLE[c.style] : buildSunoStyle(c.style, c.theme, LANG);
   const body =
     variant === "old"
       ? { prompt: text, style: tags, title: `${CHILD}'s Song`, model: "V4" }
       : {
-          prompt: text,
+          lyrics: text,
           style: tags,
           title: `${LANG === "en" ? "A song for" : "Canción para"} ${CHILD}`,
           model: SUNO_MODEL,

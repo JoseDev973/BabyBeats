@@ -3,38 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { GIFT_PACKS_COP, isGiftPack } from "@/lib/mercado-pago/config";
 import { startSunoGeneration } from "@/lib/suno";
-import { buildLyricsPrompt } from "@/lib/song-prompts";
-import type { GiftSong, SongTheme } from "@/types/database";
-
-async function generateLyrics(
-  childName: string,
-  theme: SongTheme,
-  musicStyle: string,
-  language: string,
-  customPrompt: string | null,
-): Promise<string> {
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const message = await new Anthropic().messages.create({
-    model: "claude-opus-5",
-    // max_tokens covers thinking + text on claude-opus-5
-    max_tokens: 10000,
-    messages: [
-      {
-        role: "user",
-        content: buildLyricsPrompt({
-          childName: childName.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, "").slice(0, 50),
-          theme,
-          musicStyle,
-          language,
-          customPrompt,
-        }),
-      },
-    ],
-  });
-
-  const textBlock = message.content.find((b) => b.type === "text");
-  return textBlock?.type === "text" ? textBlock.text : "";
-}
+import { generateLyrics } from "@/lib/generate-lyrics";
+import type { GiftSong } from "@/types/database";
 
 // Up to 10 songs (Claude lyrics + Suno kickoff) run in parallel
 export const maxDuration = 300;
@@ -124,15 +94,13 @@ export async function POST(request: Request) {
 
   const results = await Promise.allSettled(
     songs.map(async (song) => {
-      const lyrics = await generateLyrics(
-        gift.child_name,
-        song.theme as SongTheme,
-        song.music_style,
-        song.language || gift.language || "es",
-        song.custom_prompt,
-      );
-      if (!lyrics.trim()) throw new Error("Empty lyrics");
-
+      const lyrics = await generateLyrics({
+        childName: gift.child_name,
+        theme: song.theme,
+        musicStyle: song.music_style,
+        language: song.language || gift.language || "es",
+        customPrompt: song.custom_prompt,
+      });
       await admin.from("gift_songs").update({ lyrics }).eq("id", song.id);
 
       const taskId = await startSunoGeneration({

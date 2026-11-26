@@ -36,7 +36,7 @@
 | Stripe | 21.0.1 | Pagos (tarjeta internacional) |
 | Mercado Pago | 2.12.0 | Pagos (LATAM) |
 | Anthropic Claude | claude-sonnet-4-20250514 | Generacion de letras |
-| Suno API | sunoapi.org | Generacion de audio |
+| Suno API | sunoapi.org | Generacion de audio con V6 (modo personalizado, duración solicitada de 110 s) |
 | Resend | 6.10.0 | Emails transaccionales |
 | next-intl | 4.8.3 | i18n (4 idiomas) |
 | Playwright | 1.59.1 | E2E testing |
@@ -416,10 +416,10 @@ Cancion completada → share_token generado automaticamente
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 
 ### Validacion de input
-- **childName:** Max 100 chars, sanitizado con `.replace(/[<>"'&]/g, '')`
-- **customPrompt:** Max 500 chars, strip de keywords de inyeccion (ignore/previous/instructions/system/prompt)
+- **childName:** Hasta 100 caracteres. Se conserva el nombre en su escritura original.
+- **customPrompt:** Hasta 500 caracteres en el formulario de canciones. El pedido familiar se envía a Claude en el mensaje de usuario, separado de las instrucciones de composición.
 - **theme:** Allowlist `['lullaby', 'educational', 'fun']`
-- **language:** Allowlist `['es', 'en', 'pt', 'fr', 'de', 'it']`
+- **language y musicStyle:** Se validan contra los idiomas y estilos configurados para generar canciones.
 - **priceId (Stripe):** Validado contra env vars reales
 
 ### Webhooks

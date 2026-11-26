@@ -35,7 +35,7 @@ export async function startSunoGeneration(opts: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      prompt: opts.lyrics,
+      lyrics: opts.lyrics,
       customMode: true,
       instrumental: false,
       style: buildSunoStyle(opts.musicStyle, theme, opts.language),
