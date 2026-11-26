@@ -9,8 +9,17 @@ export type Theme = "lullaby" | "educational" | "fun";
 
 export const SUNO_MODEL = "V6";
 
-export const SUNO_NEGATIVE_TAGS =
-  "autotune, auto-tune, pitch correction, vocoder, robotic vocals, vocal effects, heavy reverb, distortion, EDM, trap, 808, heavy drums, rap, shouting, crowd, male vocals";
+const NEGATIVE_BASE =
+  "autotune, auto-tune, pitch correction, vocoder, robotic vocals, vocal effects, heavy reverb, distortion, rap, shouting, crowd, male vocals";
+
+// Upbeat styles need their drums; calm styles must not get them.
+const ENERGETIC_STYLES = new Set(["pop", "reggaeton"]);
+
+export function buildNegativeTags(musicStyle: string): string {
+  return ENERGETIC_STYLES.has(musicStyle)
+    ? `${NEGATIVE_BASE}, trap, EDM`
+    : `${NEGATIVE_BASE}, EDM, trap, 808, heavy drums`;
+}
 
 export const SUNO_PARAMS = {
   vocalGender: "f",
@@ -27,11 +36,11 @@ const STYLE_TAGS: Record<string, string> = {
     "children's song, cheerful, bouncy, ukulele, glockenspiel, light hand claps, bright warm natural female vocal, clear diction",
   classical:
     "classical lullaby, gentle, nylon string guitar, soft string quartet, harp, tender natural female voice, chamber recording",
-  pop: "soft acoustic pop for kids, warm, felt piano, light acoustic guitar, natural friendly female vocal, close-mic, minimal drums",
+  pop: "upbeat kids pop, catchy, bright, punchy acoustic drums, bass, piano, electric guitar, warm natural female vocal, front of the mix, polished but organic",
   acoustic:
     "acoustic folk, cozy, fingerpicked nylon guitar, soft piano, warm intimate female vocal, dry, unplugged",
   reggaeton:
-    "kids reggaeton, playful, soft dembow beat, marimba, light percussion, sweet natural female vocal, clean mix",
+    "kids reggaeton, catchy, danceable, dembow groove, bass, marimba, latin percussion, sweet natural female vocal, front of the mix, clean modern mix",
 };
 
 const THEME_TAGS: Record<Theme, { tags: string; bpm: Record<string, number> }> = {

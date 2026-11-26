@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import {
   SUNO_MODEL,
-  SUNO_NEGATIVE_TAGS,
+  buildNegativeTags,
   SUNO_PARAMS,
   buildLyricsPrompt,
   buildSunoStyle,
@@ -27,7 +27,7 @@ const OUT = process.argv[2] ?? "ab-out";
 const CHILD = "Sofía";
 const LANG = "es";
 
-const CASES: { style: string; theme: Theme }[] = [
+const ALL_CASES: { style: string; theme: Theme }[] = [
   { style: "gentle", theme: "lullaby" },
   { style: "acoustic", theme: "lullaby" },
   { style: "classical", theme: "lullaby" },
@@ -35,6 +35,10 @@ const CASES: { style: string; theme: Theme }[] = [
   { style: "pop", theme: "educational" },
   { style: "reggaeton", theme: "fun" },
 ];
+// ONLY=pop,reggaeton to test a subset
+const CASES = process.env.ONLY
+  ? ALL_CASES.filter((c) => process.env.ONLY!.split(",").includes(c.style))
+  : ALL_CASES;
 
 // ── Old prompts, copied from production as of 5a2a0ef ──
 const OLD_THEME: Record<Theme, string> = {
@@ -123,7 +127,7 @@ async function runVariant(variant: "old" | "new", c: (typeof CASES)[number]) {
           style: tags,
           title: `Canción para ${CHILD}`,
           model: SUNO_MODEL,
-          negativeTags: SUNO_NEGATIVE_TAGS,
+          negativeTags: buildNegativeTags(c.style),
           ...SUNO_PARAMS,
         };
   const taskId = await suno(body);
