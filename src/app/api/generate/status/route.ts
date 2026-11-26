@@ -1,3 +1,4 @@
+import { expireInterruptedSongStarts } from "@/lib/expire-song-starts";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { settleSong } from "@/lib/settle-song";
@@ -11,12 +12,18 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
   const readSong = () => supabase.from("generated_songs")
-    .select("status, suno_task_id, audio_url, audio_url_b, cover_image_url, child_name, share_token")
+    .select("status, audio_reservation_id, suno_task_id, audio_url, audio_url_b, cover_image_url, child_name, share_token")
     .eq("id", songId).eq("user_id", user.id).maybeSingle().throwOnError();
 
   try {
     let { data: song } = await readSong();
     if (!song) return NextResponse.json({ error: "Song not found" }, { status: 404 });
+    if (song.status === "generating" && !song.suno_task_id && song.audio_reservation_id) {
+      const expired = await expireInterruptedSongStarts(user.id);
+      if (expired.some((row) => row.id === songId)) {
+        return NextResponse.json({ status: "failed" });
+      }
+    }
     if (song.status === "generating" && song.suno_task_id) {
       const stage = await settleSong({ kind: "song", id: songId }, song.suno_task_id);
       if (stage) return NextResponse.json({ status: "generating", sunoStatus: stage });

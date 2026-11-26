@@ -1,3 +1,4 @@
+import { expireInterruptedSongStarts } from "@/lib/expire-song-starts";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import CreateWizard from "./CreateWizard";
@@ -18,6 +19,7 @@ export default async function CreatePage() {
     redirect("/auth/login");
   }
 
+  await expireInterruptedSongStarts(user.id);
   const { data: profile } = await supabase
     .from("profiles")
     .select("credits, total_songs_generated")
