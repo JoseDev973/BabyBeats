@@ -1,0 +1,588 @@
+/* New BabyBeats web (preview at /new).
+   Direction: a picture-book songbook. Warm cream paper that matches the gouache
+   illustrations, plum ink, the brand violet as the only filled action, one pastel
+   band per kind of song, titles in Fraunces italic, reading text in Quicksand. */
+
+.page {
+  --cream: #fbf0df;
+  --paper: #fff8f0;
+  --ink: #2e2350;
+  --ink-soft: #5b5277;
+  --rule: #e4d6c2;
+  --violet: #8b7ec8;
+  --action: #5b4ca8;
+  --action-hover: #4a3c95;
+  --gold: #fbbf8e;
+  --mark: #fde3c6;
+  --lavender: #ebe6fb;
+  --mint: #def0e5;
+  --peach: #ffe7d3;
+  --butter: #fcf0c9;
+  --display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --body: var(--font-quicksand), system-ui, -apple-system, sans-serif;
+
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.6;
+  color-scheme: light;
+  overflow-x: clip;
+}
+
+.page a:focus-visible,
+.page button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ── Header ───────────────────────────────────────── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--cream) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+.headerInner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 14px max(20px, env(safe-area-inset-left, 0px));
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+}
+.logoMark {
+  width: 30px;
+  height: 22px;
+  stroke: var(--violet);
+  fill: var(--gold);
+}
+.badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  border-bottom: 2px solid var(--gold);
+  white-space: nowrap;
+}
+.nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-weight: 600;
+  font-size: 16px;
+}
+.nav a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.nav a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.navCta {
+  background: var(--action);
+  color: #fff !important;
+  padding: 9px 18px;
+  border-radius: 10px;
+}
+.navCta:hover {
+  background: var(--action-hover);
+  text-decoration: none !important;
+}
+
+/* ── Shared type ──────────────────────────────────── */
+.eyebrow {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+.sectionTitle {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.primary {
+  display: inline-block;
+  background: var(--action);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  padding: 15px 26px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.primary:hover {
+  background: var(--action-hover);
+  transform: translateY(-1px);
+}
+.textLink {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+/* ── Hero ─────────────────────────────────────────── */
+.hero {
+  background: var(--cream);
+  position: relative;
+}
+.heroInner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 64px max(20px, env(safe-area-inset-left, 0px)) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+.heroText {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.heroTitle {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 350;
+  font-size: clamp(52px, 8vw, 96px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.heroBody {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 20px;
+  color: var(--ink-soft);
+}
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+  margin-top: 8px;
+}
+.note {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+.heroCard {
+  margin-top: 24px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+  box-shadow: 0 18px 40px -24px rgba(46, 35, 80, 0.35);
+  transform: rotate(1.2deg);
+  min-width: 0;
+}
+.heroLyrics {
+  border-top: 1px solid var(--rule);
+  padding-top: 14px;
+  display: grid;
+  gap: 2px;
+}
+.lyricsLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+.lyricLine {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 24px;
+  line-height: 1.3;
+}
+.lyricLine mark {
+  background: linear-gradient(transparent 55%, var(--mark) 55%);
+  color: inherit;
+  padding: 0 2px;
+}
+.heroArt {
+  display: block;
+  width: min(1160px, 100%);
+  height: auto;
+  margin: -24px auto 0;
+  /* The JPEG's paper is a hair off the section cream: fade its edges into it */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+  mask-composite: intersect;
+}
+
+/* ── Player ───────────────────────────────────────── */
+.player,
+.playerHero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.playButton {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--action);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.playButton:hover {
+  background: var(--action-hover);
+  transform: scale(1.04);
+}
+.playButton svg {
+  width: 24px;
+  height: 24px;
+  fill: #fff;
+}
+.player .playButton {
+  width: 48px;
+  height: 48px;
+}
+.playerBody {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+.playerEyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.playerTitle {
+  font-weight: 700;
+  font-size: 17px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+}
+.wave span {
+  flex: 1;
+  max-width: 5px;
+  border-radius: 3px;
+  background: var(--rule);
+  transition: background 0.2s ease;
+}
+.wave .barOn {
+  background: var(--violet);
+}
+.playerTime {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Kinds of song (bands) ────────────────────────── */
+.kinds {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 96px max(20px, env(safe-area-inset-left, 0px)) 40px;
+}
+.band {
+  padding-block: 64px;
+}
+.bandLavender { background: var(--lavender); }
+.bandMint { background: var(--mint); }
+.bandPeach { background: var(--peach); }
+.bandButter { background: var(--butter); }
+.bandInner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding-inline: max(20px, env(safe-area-inset-left, 0px));
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 48px;
+  align-items: center;
+}
+.bandFlip > :first-child {
+  order: 2;
+}
+.bandText {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+  min-width: 0;
+}
+.bandTitle {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(34px, 4.5vw, 48px);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.bandBody {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--ink-soft);
+}
+.bandText .player {
+  width: min(100%, 420px);
+  background: var(--paper);
+  border-radius: 16px;
+  padding: 12px 18px 12px 12px;
+}
+.chorus .lyricsLabel {
+  font-family: var(--body);
+  font-style: normal;
+}
+.chorus {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 21px;
+}
+.bandArt {
+  width: min(100%, 400px);
+  height: auto;
+  justify-self: center;
+}
+
+/* ── How it works ─────────────────────────────────── */
+.how {
+  background: var(--paper);
+  padding-block: 96px;
+}
+.howInner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding-inline: max(20px, env(safe-area-inset-left, 0px));
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 56px;
+  align-items: start;
+}
+.howArt {
+  width: min(100%, 300px);
+  height: auto;
+  margin-top: 32px;
+}
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.step {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 16px;
+  padding-block: 28px;
+  border-top: 1px solid var(--rule);
+}
+.step:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.stepNumber {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 64px;
+  line-height: 0.9;
+  color: var(--violet);
+}
+.stepTitle {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+}
+.stepBody {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* ── Gifts / pricing ledger ───────────────────────── */
+.giftArt {
+  width: min(100%, 300px);
+  height: auto;
+  justify-self: center;
+}
+.ledger {
+  list-style: none;
+  margin: 4px 0 8px;
+  padding: 0;
+  width: min(100%, 460px);
+}
+.ledger li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-block: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  font-weight: 600;
+}
+.ledger li:first-child {
+  border-top: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.ledger small {
+  display: block;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.ledgerPrice {
+  text-align: right;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 24px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.ledgerPrice small {
+  font-family: var(--body);
+  font-style: normal;
+}
+.pricing {
+  background: var(--paper);
+  padding-block: 96px;
+}
+.pricingInner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding-inline: max(20px, env(safe-area-inset-left, 0px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px 56px;
+  align-items: start;
+}
+.pricingInner > .textLink {
+  grid-column: 2;
+  justify-self: start;
+}
+.pricingInner .bandBody {
+  margin-top: 16px;
+}
+
+/* ── Closing ──────────────────────────────────────── */
+.closing {
+  background: var(--cream);
+  padding: 80px max(20px, env(safe-area-inset-left, 0px)) 96px;
+  display: grid;
+  justify-items: center;
+  gap: 24px;
+  text-align: center;
+}
+.closingArt {
+  width: min(70vw, 240px);
+  height: auto;
+}
+.closingTitle {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 350;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  max-width: 14ch;
+}
+
+.footer {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 28px max(20px, env(safe-area-inset-left, 0px)) 40px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+/* ── Small screens ────────────────────────────────── */
+@media (max-width: 860px) {
+  .heroInner,
+  .bandInner,
+  .howInner,
+  .pricingInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+  .bandFlip > :first-child {
+    order: 0;
+  }
+  .bandArt,
+  .giftArt {
+    width: min(70%, 260px);
+    justify-self: start;
+    order: -1;
+  }
+  .pricingInner > .textLink {
+    grid-column: 1;
+  }
+  .heroCard {
+    transform: none;
+  }
+  .heroArt {
+    margin-top: 16px;
+  }
+  .nav a:not(.navCta) {
+    display: none;
+  }
+  .badge {
+    display: none;
+  }
+  .howArt {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary,
+  .playButton,
+  .wave span {
+    transition: none;
+  }
+  .primary:hover,
+  .playButton:hover {
+    transform: none;
+  }
+}
