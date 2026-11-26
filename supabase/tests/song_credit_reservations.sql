@@ -6,6 +6,7 @@ declare
   first_song uuid;
   second_song uuid;
   legacy_song uuid;
+  previous_attempt uuid;
   result jsonb;
 begin
   insert into auth.users (id) values (owner_id);
@@ -38,6 +39,20 @@ begin
   update generated_songs set status = 'failed' where id = second_song;
   assert (select credits = 1 and total_songs_generated = 0 from profiles where id = owner_id);
   assert (select sum(amount) = 0 from credit_transactions where user_id = owner_id);
+
+  -- In the opposite failure order the paid reserve releases first. A late
+  -- startup response from that attempt must not attach to the replacement.
+  perform reserve_song_audio(owner_id, first_song, null);
+  result := reserve_song_audio(owner_id, second_song, null);
+  previous_attempt := (result->>'attempt')::uuid;
+  update generated_songs set status = 'failed' where id = second_song;
+  perform reserve_song_audio(owner_id, second_song, null);
+  update generated_songs set suno_task_id = 'obsolete' where id = second_song
+    and audio_reservation_id = previous_attempt;
+  assert not found;
+  update generated_songs set status = 'failed' where id = second_song;
+  update generated_songs set status = 'failed' where id = first_song;
+  assert (select credits = 1 and total_songs_generated = 0 from profiles where id = owner_id);
 
   -- Old jobs cannot have their charges inferred. Do not refund them.
   update generated_songs set status = 'failed' where id = legacy_song;
