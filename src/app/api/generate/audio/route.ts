@@ -96,12 +96,12 @@ export async function POST(request: Request) {
 
     // Start Suno generation (non-blocking; result arrives via webhook)
     const taskId = await startSunoGeneration({
-      callbackTarget: { kind: "song", id: song.id },
       lyrics: song.lyrics,
       musicStyle: song.music_style,
       theme: song.theme,
       language: song.language || "es",
       childName: song.child_name,
+      callbackTarget: { kind: "song", id: song.id },
     });
 
     // Save taskId and mark as generating — return immediately
