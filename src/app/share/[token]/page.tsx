@@ -1,14 +1,26 @@
-import { createClient } from "@supabase/supabase-js";
+import { cache } from "react";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { Music } from "lucide-react";
 import type { GeneratedSong } from "@/types/database";
 
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-}
+export const dynamic = "force-dynamic";
+
+type SharedSong = Pick<GeneratedSong, "child_name" | "theme" | "language" | "lyrics" | "audio_url">;
+
+const getSharedSong = cache(async (token: string) => {
+  const { data, error } = await getSupabaseAdmin()
+    .from("generated_songs")
+    .select("child_name, theme, language, lyrics, audio_url")
+    .eq("share_token", token)
+    .eq("is_public", true)
+    .eq("status", "completed")
+    .maybeSingle<SharedSong>();
+
+  if (error) throw new Error("Unable to load shared song");
+  if (!data) notFound();
+  return data;
+});
 
 const LABELS = {
   en: {
@@ -39,15 +51,7 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const supabase = getSupabase();
-  const { data: song } = await supabase
-    .from("generated_songs")
-    .select("child_name, theme")
-    .eq("share_token", token)
-    .eq("is_public", true)
-    .single();
-
-  if (!song) return { title: "Song not found" };
+  const song = await getSharedSong(token);
 
   const title = `${song.child_name}'s Song | BabyBeats`;
   const description = `Listen to a personalized ${song.theme} song created for ${song.child_name} with AI`;
@@ -55,6 +59,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    robots: { index: false, follow: false },
     openGraph: {
       title,
       description,
@@ -77,22 +82,8 @@ export default async function SharePage({
 }) {
   const { token } = await params;
 
-  const supabase = getSupabase();
-  const { data: song } = await supabase
-    .from("generated_songs")
-    .select("*")
-    .eq("share_token", token)
-    .eq("is_public", true)
-    .single();
-
-  if (!song) {
-    notFound();
-  }
-
-  const s = song as GeneratedSong;
-  const safeName = s.child_name.replace(/[<>"'&]/g, '');
-  const lang = (s.language === "es" ? "es" : "en") as keyof typeof LABELS;
-  const l = LABELS[lang];
+  const song = await getSharedSong(token);
+  const l = LABELS[song.language === "es" ? "es" : "en"];
 
   const THEME_LABELS = {
     lullaby: l.lullaby,
@@ -109,35 +100,35 @@ export default async function SharePage({
             <span className="text-xl font-bold text-purple-900">BabyBeats</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {l.songFor(safeName)}
+            {l.songFor(song.child_name)}
           </h1>
           <p className="text-gray-500 mt-1">
-            {THEME_LABELS[s.theme]} &middot; {s.language.toUpperCase()}
+            {THEME_LABELS[song.theme]} &middot; {song.language.toUpperCase()}
           </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6">
-          {s.audio_url && (
-            <audio controls className="w-full" src={s.audio_url}>
+          {song.audio_url && (
+            <audio controls className="w-full" src={song.audio_url}>
               {l.audioNotSupported}
             </audio>
           )}
 
-          {s.lyrics && (
+          {song.lyrics && (
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-medium text-gray-400 uppercase mb-2">
                 {l.lyrics}
               </p>
               <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
-                {s.lyrics}
+                {song.lyrics}
               </pre>
             </div>
           )}
 
-          {s.audio_url && (
+          {song.audio_url && (
             <a
-              href={s.audio_url}
-              download={`${safeName}-babybeats.mp3`}
+              href={song.audio_url}
+              download={`${song.child_name}-babybeats.mp3`}
               className="block w-full bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium text-center hover:bg-purple-700 transition-colors"
             >
               {l.downloadMp3}
