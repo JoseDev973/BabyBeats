@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Gift, Moon, BookOpen, Star, Loader2, Music, Share2 } from "lucide-react";
+import Image from "next/image";
+import { Gift, Loader2, Music, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GIFT_PACKS_COP } from "@/lib/mercado-pago/config";
 
@@ -13,7 +14,7 @@ const PACKS = [
     songs: 10,
     price: 14.99,
     popular: true,
-    icon: Star,
+    art: { src: "/new-web/regalo.webp", w: 361, h: 520 },
     color: "text-amber-500",
     gradient: "from-amber-50 to-orange-50",
   },
@@ -22,7 +23,7 @@ const PACKS = [
     songs: 5,
     price: 9.99,
     popular: false,
-    icon: Moon,
+    art: { src: "/new-web/luna.webp", w: 520, h: 487 },
     color: "text-indigo-500",
     gradient: "from-indigo-50 to-purple-50",
   },
@@ -31,7 +32,7 @@ const PACKS = [
     songs: 5,
     price: 9.99,
     popular: false,
-    icon: BookOpen,
+    art: { src: "/new-web/xilofono.webp", w: 520, h: 362 },
     color: "text-emerald-500",
     gradient: "from-emerald-50 to-teal-50",
   },
@@ -115,9 +116,7 @@ export default function GiftPage() {
               </div>
             )}
 
-            <div className="h-16 w-16 rounded-2xl bg-white/80 flex items-center justify-center shadow-sm mb-4">
-              <pack.icon className={`h-8 w-8 ${pack.color}`} />
-            </div>
+            <Image src={pack.art.src} alt="" width={pack.art.w} height={pack.art.h} className="h-28 w-auto object-contain mb-4" />
 
             <h3 className="text-xl font-bold mb-1">
               {t(pack.type === "first_album" ? "firstAlbum" : pack.type === "sweet_dreams" ? "sweetDreams" : "learning")}
