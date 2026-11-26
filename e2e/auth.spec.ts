@@ -48,3 +48,40 @@ test.describe("Authentication", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 });
+
+test("retains the chosen language and destination between login and signup", async ({ page }) => {
+  await page.goto("/fr/create");
+  await expect(page).toHaveURL(/\/fr\/auth\/login\?next=/);
+  await page.locator('main a[href*="/auth/signup"]').click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("next")).toBe("/fr/create");
+  await page.locator('main a[href*="/auth/login"]').click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("next")).toBe("/fr/create");
+});
+
+test("returns the recovery email to the new password form and shows delivery errors", async ({ page }) => {
+  let returnTo: URL | undefined;
+  let attempt = 0;
+  await page.route("**/auth/v1/recover**", async (route) => {
+    returnTo = new URL(new URL(route.request().url()).searchParams.get("redirect_to")!);
+    attempt++;
+    await route.fulfill({
+      status: attempt === 1 ? 429 : 200,
+      json: attempt === 1 ? { message: "Try again later" } : {},
+    });
+  });
+  await page.goto("/en/auth/login");
+  await page.locator('input[type="email"]').fill("listener@example.test");
+  const forgot = page.getByRole("button", { name: /forgot/i });
+  await forgot.click();
+  await expect(page.getByRole("alert").filter({ hasText: "Try again later" })).toBeVisible();
+  await forgot.click();
+  await expect(page.getByRole("status")).toContainText(/check your inbox/i);
+  expect(returnTo?.pathname).toBe("/auth/callback");
+  expect(returnTo?.searchParams.get("next")).toBe("/en/auth/reset-password");
+});
+
+test("expired confirmation links explain how to recover in the original language", async ({ page }) => {
+  await page.goto("/auth/callback?next=/pt/auth/reset-password");
+  await expect(page).toHaveURL(/\/pt\/auth\/login\?error=auth_failed/);
+  await expect(page.getByRole("alert").filter({ hasText: /link não é mais válido/i })).toBeVisible();
+});

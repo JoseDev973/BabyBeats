@@ -117,6 +117,10 @@
     "signupWithGoogle": "Sign up with Google",
     "forgotPassword": "Forgot your password?",
     "resetEmailSent": "Password reset email sent. Check your inbox.",
+    "setPassword": "Save new password",
+    "linkFailed": "This link is no longer valid. Sign in again or request a new recovery email.",
+    "requestFailed": "Your request could not be completed. Please try again.",
+    "confirmEmail": "Check your inbox and open the link to confirm your account.",
     "enterEmailFirst": "Enter your email address first"
   },
   "metadata": {
