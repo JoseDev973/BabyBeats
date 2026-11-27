@@ -20,6 +20,13 @@ test("preserves edited lyrics and the selected style and language", async ({ pag
   const next = page.getByRole("button", { name: "Next", exact: true });
   await next.click();
   await next.click();
+  // Details step: skipping it once shows a nudge, a second Next continues
+  await expect(page.getByRole("heading", { name: "Tell us about 桜" })).toBeVisible();
+  await next.click();
+  await expect(page.getByText(/Songs with details turn out/)).toBeVisible();
+  await page.getByRole("textbox").fill("Her plush is a bunny called Mochi.");
+  await expect(page.getByText(/Songs with details turn out/)).toHaveCount(0);
+  await next.click();
   const style = page.getByRole("group", { name: "Music Style", exact: true });
   const language = page.getByRole("main").getByRole("group", { name: "Language", exact: true });
   const audition = process.env.NEXT_PUBLIC_PREVIEW_MUSIC_STYLES === "true";
@@ -44,7 +51,7 @@ test("preserves edited lyrics and the selected style and language", async ({ pag
   await expect(page.getByRole("status").filter({ hasText: "Writing the lyrics" })).toBeVisible();
   const back = page.getByRole("button", { name: "Back", exact: true });
   await expect(back).toBeDisabled();
-  expect(lyrics.request().postDataJSON()).toMatchObject({ childName: "桜", musicStyle: audition ? "cumbia" : "acoustic", language: "ja" });
+  expect(lyrics.request().postDataJSON()).toMatchObject({ childName: "桜", customPrompt: "Her plush is a bunny called Mochi.", musicStyle: audition ? "cumbia" : "acoustic", language: "ja" });
   await lyrics.fulfill({ json: { songId: "test-song", lyrics: "Original lyrics" } });
 
   const editor = page.getByRole("textbox", { name: "Lyrics" });

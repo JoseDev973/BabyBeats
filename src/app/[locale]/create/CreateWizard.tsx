@@ -3,22 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
-import {
-  Music,
-  Baby,
-  Moon,
-  BookOpen,
-  PartyPopper,
-  Sparkles,
-  ArrowLeft,
-  ArrowRight,
-  Loader2,
-  Coins,
-  Disc3,
-  Wand2,
-  Settings2,
-  Lock,
-} from "lucide-react";
+import { Music, Baby, Moon, BookOpen, PartyPopper, Sparkles, ArrowLeft, ArrowRight, Loader2, Coins, Disc3, Wand2, Settings2, Lock, Heart } from "lucide-react";
 import ChoiceGroup from "./ChoiceGroup";
 import { AVAILABLE_MUSIC_STYLES } from "@/lib/music-styles";
 import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
@@ -56,7 +41,7 @@ const AUTO_THEMES: SongTheme[] = ["lullaby", "educational", "fun", "lullaby", "f
 const AUTO_STYLES: string[] = ["gentle", "playful", "pop", "acoustic", "reggaeton", "classical", "gentle", "playful", "pop", "acoustic"];
 
 type Mode = "choose" | "single" | "album";
-type SingleStep = "child" | "theme" | "style" | "preview";
+type SingleStep = "child" | "theme" | "details" | "style" | "preview";
 type AlbumStep = "child" | "count" | "albumMode" | "albumCustom" | "albumConfirm";
 
 export default function CreateWizard({
@@ -81,6 +66,8 @@ export default function CreateWizard({
   const [theme, setTheme] = useState<SongTheme>("lullaby");
   const [musicStyle, setMusicStyle] = useState("gentle");
   const [customPrompt, setCustomPrompt] = useState("");
+  // The family's details are what make the lyrics personal: nudge once if skipped
+  const [detailsNudge, setDetailsNudge] = useState(false);
   const [lyrics, setLyrics] = useState("");
   const [generatedSongId, setGeneratedSongId] = useState<string | null>(null);
 
@@ -105,7 +92,7 @@ export default function CreateWizard({
   const isFirstSong = totalGenerated === 0;
   const hasCredits = credits > 0 || isFirstSong;
 
-  const SINGLE_STEPS: SingleStep[] = ["child", "theme", "style", "preview"];
+  const SINGLE_STEPS: SingleStep[] = ["child", "theme", "details", "style", "preview"];
   const singleStepIndex = SINGLE_STEPS.indexOf(singleStep);
 
   const ALBUM_STEPS: AlbumStep[] = ["child", "count", "albumMode", "albumCustom", "albumConfirm"];
@@ -169,6 +156,10 @@ export default function CreateWizard({
 
   function singleGoNext() {
     if (singleStep === "child" && !childName.trim()) return;
+    if (singleStep === "details" && !customPrompt.trim() && !detailsNudge) {
+      setDetailsNudge(true);
+      return;
+    }
     if (singleStep === "style") {
       if (hasDraft) setSingleStep("preview");
       else generateLyrics();
@@ -378,12 +369,52 @@ export default function CreateWizard({
                   </button>
                 ))}
               </div>
-              <div>
-                <label className="text-sm font-semibold mb-1.5 block text-muted-foreground">{t("customPrompt")}</label>
-                <textarea maxLength={500} value={customPrompt} onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder={t("customPlaceholder")} rows={2}
-                  className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
+            </div>
+          )}
+
+          {singleStep === "details" && (
+            <div className="space-y-5">
+              <div className="text-center">
+                <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">{t("detailsStep", { name: childName })}</h2>
+                <p className="text-muted-foreground">{t("detailsHint")}</p>
               </div>
+              <div className="flex flex-wrap gap-2" role="group" aria-label={t("detailsIdeas")}>
+                {(["detailsIdeaNickname", "detailsIdeaToy", "detailsIdeaPet", "detailsIdeaFamily", "detailsIdeaLoves", "detailsIdeaCalms"] as const).map((key) => (
+                  <button key={key} type="button"
+                    onClick={() => {
+                      const start = t(key);
+                      setCustomPrompt((prev) => (prev.trim() ? `${prev.trim()} ${start}` : start));
+                      setDetailsNudge(false);
+                      requestAnimationFrame(() => {
+                        const el = document.getElementById("song-details") as HTMLTextAreaElement | null;
+                        if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+                      });
+                    }}
+                    className="rounded-full border-2 border-border px-3.5 py-1.5 text-sm font-semibold hover:border-primary hover:bg-primary/5 transition-colors">
+                    + {t(key + "Label")}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label htmlFor="song-details" className="sr-only">{t("detailsStep", { name: childName })}</label>
+                <textarea id="song-details" maxLength={500} value={customPrompt} rows={5} autoFocus
+                  onChange={(e) => { setCustomPrompt(e.target.value); setDetailsNudge(false); }}
+                  placeholder={t("detailsPlaceholder", { name: childName })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring resize-y" />
+                <p className="mt-1 text-end text-xs text-muted-foreground">{customPrompt.length} / 500</p>
+              </div>
+              {detailsNudge && (
+                <div role="status" className="rounded-xl border border-accent bg-accent/20 p-4 text-center space-y-3">
+                  <p className="font-semibold">{t("detailsNudge")}</p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <button type="button" onClick={() => { setDetailsNudge(false); document.getElementById("song-details")?.focus(); }}
+                      className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">{t("detailsAdd")}</button>
+                    <button type="button" onClick={() => setSingleStep("style")}
+                      className="rounded-xl border-2 border-border px-4 py-2 text-sm font-bold">{t("detailsSkip")}</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
