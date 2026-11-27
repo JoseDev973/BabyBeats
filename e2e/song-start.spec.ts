@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mock } from "node:test";
+import { createClient } from "@supabase/supabase-js";
+import * as admin from "../src/lib/supabase/admin";
 import { POST } from "../src/app/api/generate/audio/route";
 import * as session from "../src/lib/supabase/server";
 import { verifyCallback } from "../src/lib/suno-callback";
@@ -16,6 +18,10 @@ test("retries the task association without resubmitting audio or refunding an am
   const original = { ...process.env };
   Object.assign(process.env, env);
 
+  const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const adminClient = mock.method(admin, "getSupabaseAdmin", () => db);
   const auth = mock.method(session, "createClient", async () => ({
     auth: { getUser: async () => ({ data: { user: { id: owner } } }) },
   }));
@@ -88,6 +94,7 @@ test("retries the task association without resubmitting audio or refunding an am
     expect(sent).toBe(4);
   } finally {
     auth.mock.restore();
+    adminClient.mock.restore();
     network.mock.restore();
     for (const key of Object.keys(env)) {
       if (original[key] === undefined) delete process.env[key];
