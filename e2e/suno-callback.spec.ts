@@ -1,4 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { mock } from "node:test";
+import { createClient } from "@supabase/supabase-js";
+import * as adminModule from "../src/lib/supabase/admin";
 import { POST } from "../src/app/api/webhooks/suno/route";
 import { callbackUrl, type CallbackTarget } from "../src/lib/suno-callback";
 import { startSunoGeneration, SunoSubmissionRejected } from "../src/lib/suno";
@@ -35,6 +38,8 @@ test("a signed callback recovers the accepted task only for the current startup 
     const attempt = url.searchParams.get("start_attempt") ?? url.searchParams.get("audio_reservation_id");
     return Response.json(attempt === `eq.${reservation}` ? [{ id: targetId, status, suno_task_id: task }] : []);
   };
+  const db = createClient("https://database.test", "test-admin");
+  const admin = mock.method(adminModule, "getSupabaseAdmin", () => db);
   async function notify(target: CallbackTarget, stage: string) {
     const url = callbackUrl("https://app.test", target);
     return POST(new Request(url, {
@@ -67,6 +72,7 @@ test("a signed callback recovers the accepted task only for the current startup 
     expect(writes[1].filters.get("suno_task_id")).toBe("is.null");
     expect(writes[2].values.status).toBe("failed");
   } finally {
+    admin.mock.restore();
     globalThis.fetch = originalFetch;
     process.env = originalEnv;
   }
