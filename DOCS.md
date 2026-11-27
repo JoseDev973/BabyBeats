@@ -254,7 +254,6 @@ supabase/migrations/
 
 | Ruta | Metodo | Auth | Descripcion |
 |---|---|---|---|
-| `/api/emails/send` | POST | INTERNAL_API_KEY | Envia emails (welcome, etc.) |
 | `/api/referrals` | GET | Si | Info de referidos del usuario |
 | `/auth/callback` | GET | - | OAuth callback (Google). Fuera de middleware i18n. |
 
@@ -476,7 +475,7 @@ Cancion completada → share_token generado automaticamente
 | Variable | Donde | Descripcion |
 |---|---|---|
 | `RESEND_API_KEY` | Vercel | API key de Resend |
-| `INTERNAL_API_KEY` | Vercel | Para endpoint /api/emails/send |
+| `INTERNAL_API_KEY` | Vercel | Ya no se usa (se eliminó /api/emails/send) |
 
 ### Opcionales
 
