@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { persistFromUrl, extOf } from "@/lib/persist-audio";
 import { createClient } from "@/lib/supabase/server";
 
 const SUNO_API_BASE = "https://api.sunoapi.org/api/v1";
@@ -63,10 +64,14 @@ export async function GET(request: Request) {
         const trackB = tracks?.[1];
 
         if (trackA?.audioUrl || trackA?.audio_url) {
-          const audioA = trackA.audioUrl || trackA.audio_url;
-          const audioB = trackB?.audioUrl || trackB?.audio_url || null;
-          const imageA = trackA.imageUrl || trackA.image_url || null;
-          const imageB = trackB?.imageUrl || trackB?.image_url || null;
+          // Suno's URLs expire in ~2 weeks: keep permanent copies (same as the webhook)
+          const tmpImage = trackA.imageUrl || trackA.image_url || trackB?.imageUrl || trackB?.image_url || null;
+          const [audioA, audioB, imageA] = await Promise.all([
+            persistFromUrl(trackA.audioUrl || trackA.audio_url, `generated/${songId}/a.mp3`),
+            persistFromUrl(trackB?.audioUrl || trackB?.audio_url, `generated/${songId}/b.mp3`),
+            persistFromUrl(tmpImage, `generated/${songId}/cover.${extOf(tmpImage, "jpeg")}`),
+          ]);
+          const imageB = null;
 
           await supabase
             .from("generated_songs")

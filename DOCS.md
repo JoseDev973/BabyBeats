@@ -345,14 +345,14 @@ Cancion completada → share_token generado automaticamente
 
 ### Stripe
 - **Modo:** Payment (one-time), no subscription
-- **Webhook:** `checkout.session.completed` → suma creditos
+- **Webhook de créditos:** Liquida sesiones pagadas en `checkout.session.completed` o `checkout.session.async_payment_succeeded`.
 - **Precio IDs:** Configurados via env vars (`STRIPE_STARTER_PACK_PRICE_ID`, etc.)
 - **Validacion:** priceId se verifica contra allowlist de IDs reales
 
 ### Mercado Pago
 - **Integracion:** Checkout Pro (redirect)
 - **Webhook:** Verificacion HMAC de firma
-- **Idempotencia:** Unique constraint en `credit_transactions.mp_payment_id`
+- **Liquidación de créditos:** Los dos proveedores usan `settle_credit_purchase`, que registra el pago y suma el saldo en una transacción. Los errores de base de datos devuelven 500 para que el proveedor reintente.
 - **Moneda:** ARS/COP/etc segun pais
 
 ### Sistema de creditos

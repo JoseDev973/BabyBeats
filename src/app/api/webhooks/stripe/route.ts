@@ -4,6 +4,7 @@ import { GIFT_PACKS_USD } from "@/lib/stripe/credit-packs";
 import { isGiftPack } from "@/lib/mercado-pago/config";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import Stripe from "stripe";
+import { settleCreditPurchase } from "@/lib/settle-credit-purchase";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
   }
 
   switch (event.type) {
+    case "checkout.session.async_payment_succeeded":
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.supabase_user_id;
@@ -40,42 +42,18 @@ export async function POST(request: Request) {
 
       // Handle one-time credit pack purchase
       if (session.mode === "payment") {
-        const packKey = session.metadata?.pack as keyof typeof CREDIT_PACKS | undefined;
-        const pack = packKey ? CREDIT_PACKS[packKey] : undefined;
-
-        // Idempotency: Stripe retries webhooks
-        const { data: existing } = await getSupabaseAdmin()
-          .from("credit_transactions")
-          .select("id")
-          .eq("stripe_payment_id", session.id)
-          .maybeSingle();
-
-        if (pack && !existing) {
-          // Atomic credit addition
-          const { data: profile } = await getSupabaseAdmin()
-            .from("profiles")
-            .select("credits")
-            .eq("id", userId)
-            .single();
-
-          const currentCredits = profile?.credits ?? 0;
-
-          await getSupabaseAdmin()
-            .from("profiles")
-            .update({ credits: currentCredits + pack.credits })
-            .eq("id", userId);
-
-          await getSupabaseAdmin()
-            .from("credit_transactions")
-            .insert({
-              user_id: userId,
-              amount: pack.credits,
-              type: "purchase",
-              description: `Purchased ${pack.name} (${pack.credits} credits)`,
-              stripe_payment_id: session.id,
-            });
+        const packKey = session.metadata?.pack;
+        if (!packKey || !Object.hasOwn(CREDIT_PACKS, packKey)) break;
+        const pack = CREDIT_PACKS[packKey as keyof typeof CREDIT_PACKS];
+        const expectedCents = Number(session.metadata?.amount_usd_cents ?? Math.round(pack.price * 100));
+        if (
+          !Number.isSafeInteger(expectedCents) || expectedCents <= 0 ||
+          session.currency !== "usd" || (session.amount_total ?? 0) < expectedCents
+        ) {
+          console.error(`[Stripe Webhook] Credit payment ${session.id} amount mismatch`);
+          return NextResponse.json({ received: true });
         }
-        break;
+        return settleCreditPurchase("stripe", session.id, userId, pack);
       }
 
       // Handle subscription (existing logic)
@@ -148,13 +126,14 @@ async function handleGiftPayment(session: Stripe.Checkout.Session, userId: strin
   if (!giftId) return NextResponse.json({ received: true });
 
   const admin = getSupabaseAdmin();
-  const { data: gift } = await admin
+  const { data: gift, error: readError } = await admin
     .from("gifts")
     .select("id, pack_type, paid_at")
     .eq("id", giftId)
     .eq("buyer_id", userId)
     .maybeSingle();
 
+  if (readError) return NextResponse.json({ error: "Database error" }, { status: 500 });
   if (!gift || !isGiftPack(gift.pack_type)) {
     console.error(`[Stripe Webhook] Gift payment ${session.id} for unknown gift ${giftId}`);
     return NextResponse.json({ received: true });
