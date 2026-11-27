@@ -20,6 +20,13 @@ export async function GET(request: Request) {
       await refreshGiftStatus(giftId);
       ({ data: gift } = await readGift());
     }
+    if (gift?.status === "generating") {
+      const { data: unstarted } = await db.from("gift_songs").select("id")
+        .eq("gift_id", giftId).is("suno_task_id", null).neq("status", "completed")
+        .or(`start_expires_at.is.null,start_expires_at.lte.${new Date().toISOString()}`)
+        .limit(1).throwOnError();
+      return NextResponse.json({ ...gift, retryAvailable: unstarted.length > 0 });
+    }
     if (!gift) return NextResponse.json({ error: "Gift not found" }, { status: 404 });
     return NextResponse.json(gift);
   } catch (error) {

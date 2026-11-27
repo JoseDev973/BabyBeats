@@ -78,27 +78,19 @@ export default function GiftCreatePage() {
 
   const pollUntilReady = useCallback(() => {
     stopPolling();
-    const supabase = createClient();
     const startedAt = Date.now();
-    async function readStatus() {
-      const response = await fetch(`/api/gift/status?giftId=${encodeURIComponent(giftId)}`);
-      if (response.ok) return response.json();
-      if (response.status !== 404) return null;
-      // An older deployment can still report the last status recorded by the webhook.
-      const { data } = await supabase.from("gifts").select("status, delivery_token").eq("id", giftId).single();
-      return data;
-    }
     async function poll() {
-      const g = await readStatus().catch(() => null);
+      const g = await fetch(`/api/gift/status?giftId=${encodeURIComponent(giftId)}`)
+        .then((response) => response.ok ? response.json() : null).catch(() => null);
       if (!pollRef.current) return;
       if (g && ["ready", "delivered", "redeemed"].includes(g.status)) {
         if (g.delivery_token) setDeliveryToken(g.delivery_token);
         setRedeemed(g.status === "redeemed");
         setGenerating(false);
         stopPolling();
-      } else if (g?.status === "personalizing" || Date.now() - startedAt > 15 * 60_000) {
+      } else if (g?.retryAvailable || g?.status === "personalizing" || Date.now() - startedAt > 15 * 60_000) {
         setGenerating(false);
-        setGenerationError(t(g?.status === "personalizing" ? "generationFailed" : "checkAlbumStatus"));
+        setGenerationError(t(g?.retryAvailable || g?.status === "personalizing" ? "generationFailed" : "checkAlbumStatus"));
         stopPolling();
       } else {
         pollRef.current = setTimeout(poll, 30000);
@@ -117,7 +109,7 @@ export default function GiftCreatePage() {
     async function load() {
       const { data } = await supabase
         .from("gifts")
-        .select("pack_type, total_songs, child_name, language, status, paid_at, delivery_mode, delivery_token")
+        .select("pack_type, total_songs, child_name, language, status, paid_at, delivery_mode, delivery_token, gift_songs(count)")
         .eq("id", giftId)
         .single();
 
@@ -137,6 +129,12 @@ export default function GiftCreatePage() {
       if (["ready", "delivered", "redeemed"].includes(data.status)) {
         setRedeemed(data.status === "redeemed");
         setStep("confirm");
+        return;
+      }
+      if (data.paid_at && ["personalizing", "generating"].includes(data.status) &&
+          data.gift_songs?.[0]?.count === 0) {
+        setResumeSaved(false);
+        setStep("info");
         return;
       }
       if (data.status === "personalizing") {
@@ -229,7 +227,7 @@ export default function GiftCreatePage() {
   }
 
   async function handleConfirm() {
-    if (!childName.trim()) return;
+    if (!resumeSaved && !childName.trim()) return;
     setLoading(true);
 
     setStep("confirm");
@@ -240,7 +238,7 @@ export default function GiftCreatePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          giftId,
+          giftId, locale,
           settings: resumeSaved ? undefined : {
             childName: childName.trim(), language, deliveryMode,
             songs: deliveryMode === "link" ? songConfigs : undefined,
@@ -250,6 +248,9 @@ export default function GiftCreatePage() {
       const data = await res.json();
       if (!res.ok) {
         setGenerationError(t(data.error === "PAYMENT_REQUIRED" ? "paymentRequired" : "generationFailed"));
+      } else if (data.status === "needs_settings") {
+        setResumeSaved(false);
+        setStep("info");
       } else if (["ready", "delivered", "redeemed"].includes(data.status)) {
         setRedeemed(data.status === "redeemed");
         setDeliveryToken(data.deliveryToken);

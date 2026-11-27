@@ -1,34 +1,23 @@
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import Link from "next/link";
+import { cache } from "react";
+import { hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
-import { Music, Gift, Play } from "lucide-react";
+import { Gift, Music, Play } from "lucide-react";
+import { routing } from "@/i18n/routing";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { Gift as GiftType, GiftSong } from "@/types/database";
 
-// Gifts aren't publicly readable; this page reads by unguessable token server-side
-const getSupabase = getSupabaseAdmin;
-
-const LABELS = {
-  en: {
-    giftFrom: "A gift for you",
-    giftMessage: (name: string) => `Someone special created a personalized music album for ${name}`,
-    songs: "songs",
-    redeem: "Redeem your song credits",
-    createdWith: "Created with BabyBeats",
-    lullaby: "Lullaby",
-    educational: "Educational",
-    fun: "Fun & Play",
-  },
-  es: {
-    giftFrom: "Un regalo para ti",
-    giftMessage: (name: string) => `Alguien especial cre\u00f3 un \u00e1lbum de m\u00fasica personalizado para ${name}`,
-    songs: "canciones",
-    redeem: "Canjea tus créditos para crear canciones",
-    createdWith: "Creado con BabyBeats",
-    lullaby: "Canci\u00f3n de cuna",
-    educational: "Educativa",
-    fun: "Diversi\u00f3n",
-  },
-};
+const getGift = cache(async (token: string) => {
+  const { data, error } = await getSupabaseAdmin()
+    .from("gifts")
+    .select("id, child_name, language, delivery_mode")
+    .eq("delivery_token", token)
+    .in("status", ["ready", "delivered", "redeemed"])
+    .maybeSingle<Pick<GiftType, "id" | "child_name" | "language" | "delivery_mode">>();
+  if (error) throw new Error("Could not load gift");
+  if (!data) notFound();
+  return { ...data, locale: hasLocale(routing.locales, data.language) ? data.language : "en" };
+});
 
 export async function generateMetadata({
   params,
@@ -36,18 +25,10 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const supabase = getSupabase();
-  const { data: gift } = await supabase
-    .from("gifts")
-    .select("child_name")
-    .eq("delivery_token", token)
-    .in("status", ["ready", "delivered", "redeemed"])
-    .maybeSingle();
-
-  if (!gift) return { title: "Gift not found" };
-
-  const title = `Album for ${gift.child_name} | BabyBeats`;
-  const description = `A personalized music album created for ${gift.child_name}`;
+  const gift = await getGift(token);
+  const t = await getTranslations({ locale: gift.locale, namespace: "gift" });
+  const title = `${t("giftFrom")} | BabyBeats`;
+  const description = t("readyDesc", { name: gift.child_name });
 
   return {
     title,
@@ -74,56 +55,44 @@ export default async function GiftDeliverPage({
 }) {
   const { token } = await params;
 
-  const supabase = getSupabase();
-  const { data: gift } = await supabase
-    .from("gifts")
-    .select("*")
-    .eq("delivery_token", token)
-    .in("status", ["ready", "delivered", "redeemed"])
-    .single();
-
-  if (!gift) notFound();
-
-  const g = gift as GiftType;
-  const safeName = g.child_name.replace(/[<>"'&]/g, '');
-  const lang = (g.language === "es" ? "es" : "en") as keyof typeof LABELS;
-  const l = LABELS[lang];
-
-  const { data: songs } = await supabase
+  const gift = await getGift(token);
+  const { data: songs, error } = await getSupabaseAdmin()
     .from("gift_songs")
-    .select("*")
-    .eq("gift_id", g.id)
-    .order("position");
+    .select("id, position, theme, music_style, audio_url")
+    .eq("gift_id", gift.id)
+    .order("position")
+    .returns<Pick<GiftSong, "id" | "position" | "theme" | "music_style" | "audio_url">[]>();
 
-  const giftSongs = (songs as GiftSong[]) || [];
-  const redeemPath = `/gift/redeem/${encodeURIComponent(token)}`;
-  if (g.delivery_mode === "redeem" && songs?.length === 0) redirect(redeemPath);
+  if (error) throw new Error("Could not load gift songs");
+  if (gift.delivery_mode === "redeem" && songs.length === 0) {
+    redirect(`/${gift.locale}/gift/redeem/${encodeURIComponent(token)}`);
+  }
 
-  const THEME_LABELS = { lullaby: l.lullaby, educational: l.educational, fun: l.fun };
+  const t = await getTranslations({ locale: gift.locale });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-white flex items-center justify-center px-4 py-16">
+    <div lang={gift.locale} className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-white flex items-center justify-center px-4 py-16">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="h-16 w-16 bg-gradient-to-br from-primary/20 to-gold/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Gift className="h-8 w-8 text-purple-600" />
           </div>
-          <p className="text-sm font-semibold text-purple-600 mb-2">{l.giftFrom}</p>
+          <p className="text-sm font-semibold text-purple-600 mb-2">{t("gift.giftFrom")}</p>
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
-            {safeName}
+            {gift.child_name}
           </h1>
           <p className="text-gray-500">
-            {l.giftMessage(safeName)}
+            {t("gift.giftMessage", { name: gift.child_name })}
           </p>
           <p className="text-sm text-gray-400 mt-2">
-            {giftSongs.length} {l.songs}
+            {t("gift.songsCount", { count: songs.length })}
           </p>
         </div>
 
         {/* Song list */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          {giftSongs.map((song, i) => (
+          {songs.map((song, i) => (
             <div
               key={song.id}
               className={`flex items-center gap-3 p-4 ${i > 0 ? "border-t border-gray-100" : ""}`}
@@ -137,9 +106,9 @@ export default async function GiftDeliverPage({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm text-gray-900">
-                  {THEME_LABELS[song.theme]} #{song.position}
+                  {t(`share.${song.theme}`)} #{song.position}
                 </p>
-                <p className="text-xs text-gray-400">{song.music_style}</p>
+                <p className="text-xs text-gray-400">{t.has(`create.${song.music_style}`) ? t(`create.${song.music_style}`) : song.music_style}</p>
               </div>
               {song.audio_url && (
                 <audio controls className="w-32 h-8" src={song.audio_url} />
@@ -147,21 +116,15 @@ export default async function GiftDeliverPage({
             </div>
           ))}
 
-          {giftSongs.length === 0 && (
+          {songs.length === 0 && (
             <div className="p-8 text-center text-gray-400 text-sm">
-              Las canciones se est&aacute;n generando...
+              {t("gift.generating")}
             </div>
           )}
         </div>
 
-        {g.delivery_mode === "redeem" && g.status !== "redeemed" && (
-          <Link href={redeemPath} className="block mt-6 text-center font-semibold text-purple-600 underline">
-            {l.redeem}
-          </Link>
-        )}
-
         <p className="text-center text-xs text-gray-400 mt-6">
-          {l.createdWith}
+          {t("share.createdWith")}
         </p>
       </div>
     </div>

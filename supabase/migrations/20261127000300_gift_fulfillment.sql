@@ -35,6 +35,7 @@ declare
   gift public.gifts%rowtype;
   song_count integer;
   starts jsonb := '[]';
+  issued_voucher boolean := false;
   result_status text;
 begin
   select * into strict gift from public.gifts
@@ -58,6 +59,7 @@ begin
         if song_count <> 0 then raise exception 'A gift with tracks cannot issue credits'; end if;
         update public.gifts set status = 'ready', updated_at = now() where id = gift.id;
         result_status := 'ready';
+        issued_voucher := true;
       else
         if song_count = 0 then
           if jsonb_array_length(p_settings->'songs') is distinct from p_song_count then
@@ -86,7 +88,8 @@ begin
   end if;
 
   return jsonb_build_object('status', result_status, 'child_name', gift.child_name, 'language', gift.language,
-    'delivery_mode', gift.delivery_mode, 'delivery_token', gift.delivery_token, 'starts', starts);
+    'delivery_mode', gift.delivery_mode, 'delivery_token', gift.delivery_token, 'starts', starts,
+    'issued_voucher', issued_voucher);
 end;
 $$;
 

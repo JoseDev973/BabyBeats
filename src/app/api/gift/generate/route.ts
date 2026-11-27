@@ -1,8 +1,13 @@
+import { getTranslations } from "next-intl/server";
+import { hasLocale } from "next-intl";
+import { routing } from "@/i18n/routing";
+import { getAppUrl } from "@/lib/utils";
+import { FROM_ADDRESS, getResend } from "@/lib/resend";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { GIFT_PACKS_COP, isGiftPack } from "@/lib/mercado-pago/config";
-import { startSunoGeneration } from "@/lib/suno";
+import { startSunoGeneration, SunoSubmissionRejected } from "@/lib/suno";
 import { buildLyricsPrompt } from "@/lib/song-prompts";
 import type { GiftSong, SongTheme } from "@/types/database";
 
@@ -109,58 +114,67 @@ export async function POST(request: Request) {
     console.error("[gift/generate] Could not prepare gift", prepareError?.code);
     return NextResponse.json({ error: "Could not prepare gift" }, { status: 500 });
   }
+  if (gift.issued_voucher && user.email) {
+    try {
+      const locale = hasLocale(routing.locales, body.locale) ? body.locale : routing.defaultLocale;
+      const t = await getTranslations({ locale, namespace: "gift" });
+      const redeemUrl = new URL(`/${locale}/gift/redeem/${encodeURIComponent(gift.delivery_token)}`, getAppUrl());
+      const { error } = await getResend().emails.send({
+        from: FROM_ADDRESS, to: user.email, subject: t("codeReady"),
+        text: `${t("shareRedeemLink", { name: gift.child_name })}
+
+${redeemUrl}`,
+      }, { idempotencyKey: `gift-voucher/${giftId}` });
+      if (error) throw error;
+    } catch (error) {
+      console.error("[gift/generate] Could not email the voucher", error);
+    }
+  }
   if (gift.status !== "started") {
     return NextResponse.json({
       giftId, status: gift.status, deliveryToken: gift.delivery_token, deliveryMode: gift.delivery_mode,
     });
   }
 
-  const { data: giftSongs } = await admin
-    .from("gift_songs")
-    .select("*")
-    .eq("gift_id", giftId)
-    .order("position")
-    .limit(maxSongs);
-
-  const songs = ((giftSongs as GiftSong[]) || []).filter(
-    (s) => !s.suno_task_id && s.status !== "completed",
-  );
-
-  if (!giftSongs || giftSongs.length === 0) {
-    await admin.from("gifts").update({ status: "personalizing" }).eq("id", giftId).eq("status", "generating");
-    return NextResponse.json(
-      { error: "No songs found for this gift" },
-      { status: 404 },
-    );
-  }
-
+  const songs = gift.starts as (GiftSong & { start_attempt: string })[];
   const results = await Promise.allSettled(
     songs.map(async (song) => {
-      const lyrics = await generateLyrics(
-        gift.child_name,
-        song.theme as SongTheme,
-        song.music_style,
-        song.language || gift.language || "es",
-        song.custom_prompt,
-      );
-      if (!lyrics.trim()) throw new Error("Empty lyrics");
+      // A signed provider callback may already have bound the task or a retry
+      // may own this track. Only the worker holding this lease may write it.
+      const saveStart = (values: Record<string, unknown>) => admin.from("gift_songs")
+        .update(values).eq("id", song.id).eq("start_attempt", song.start_attempt)
+        .is("suno_task_id", null).not("start_expires_at", "is", null);
+      let submitted = false;
+      try {
+        const lyrics = song.lyrics || await generateLyrics(
+          gift.child_name,
+          song.theme as SongTheme,
+          song.music_style,
+          song.language || gift.language || "es",
+          song.custom_prompt,
+        );
+        if (!lyrics.trim()) throw new Error("Empty lyrics");
 
-      await admin.from("gift_songs").update({ lyrics }).eq("id", song.id);
-
-      const taskId = await startSunoGeneration({
-        callbackTarget: { kind: "gift", id: song.id },
-        lyrics,
-        musicStyle: song.music_style,
-        theme: song.theme,
-        language: song.language || gift.language || "es",
-        childName: gift.child_name,
-      });
-
-      const { error: taskError } = await admin
-        .from("gift_songs")
-        .update({ suno_task_id: taskId, status: "generating" })
-        .eq("id", song.id);
-      if (taskError) throw taskError;
+        const { data: current } = await saveStart({ lyrics }).select("id").maybeSingle().throwOnError();
+        if (!current) return;
+        submitted = true;
+        const taskId = await startSunoGeneration({
+          callbackTarget: { kind: "gift", id: song.id, attempt: song.start_attempt },
+          lyrics,
+          musicStyle: song.music_style,
+          theme: song.theme,
+          language: song.language || gift.language || "es",
+          childName: gift.child_name,
+        });
+        await saveStart({ suno_task_id: taskId, status: "generating", start_expires_at: null }).throwOnError();
+      } catch (error) {
+        if (!submitted || error instanceof SunoSubmissionRejected) {
+          await saveStart({ status: "failed", start_attempt: null, start_expires_at: null }).throwOnError();
+        }
+        // A lost response can still produce a callback. Keep that attempt
+        // recoverable until its lease expires.
+        throw error;
+      }
     }),
   );
 
@@ -169,12 +183,6 @@ export async function POST(request: Request) {
     for (const f of failed) {
       console.error("[Gift Generate] Song failed:", (f as PromiseRejectedResult).reason);
     }
-    // Release the gift so the buyer can retry; songs already started are skipped
-    await admin
-      .from("gifts")
-      .update({ status: "personalizing", updated_at: new Date().toISOString() })
-      .eq("id", giftId)
-      .eq("status", "generating");
     return NextResponse.json(
       { error: "GENERATION_FAILED", failed: failed.length, total: songs.length },
       { status: 502 },
@@ -185,6 +193,6 @@ export async function POST(request: Request) {
     giftId,
     status: "generating",
     deliveryMode: gift.delivery_mode,
-    totalSongs: giftSongs.length,
+    totalSongs: maxSongs,
   });
 }

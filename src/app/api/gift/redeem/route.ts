@@ -8,12 +8,12 @@ const EXPIRY_DAYS = 90;
 async function findRedeemableGift(code: string) {
   const { data: gift } = await getSupabaseAdmin()
     .from("gifts")
-    .select("id, child_name, pack_type, status, paid_at, created_at")
+    .select("id, child_name, pack_type, status, paid_at, created_at, gift_songs(count)")
     .eq("delivery_token", code)
     .eq("delivery_mode", "redeem")
     .maybeSingle();
 
-  if (!gift || !gift.paid_at || !isGiftPack(gift.pack_type)) return null;
+  if (!gift || gift.gift_songs[0]?.count !== 0 || !gift.paid_at || !isGiftPack(gift.pack_type)) return null;
   return gift;
 }
 

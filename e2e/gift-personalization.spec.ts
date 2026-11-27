@@ -24,7 +24,7 @@ test("a redeemable gift skips song configuration and shows a redemption link", a
   await page.getByRole("button", { name: /Que ellos creen/ }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page.getByRole("textbox", { name: "Copiar link de regalo" })).toHaveValue(/\/es\/gift\/redeem\/example-token$/);
-  expect(submission).toEqual({ giftId, settings: { childName: "Olivia", language: "es", deliveryMode: "redeem" } });
+  expect(submission).toEqual({ giftId, locale: "es", settings: { childName: "Olivia", language: "es", deliveryMode: "redeem" } });
 });
 
 test("retrying the same paid album keeps its complete song configuration", async ({ page }) => {
@@ -79,5 +79,37 @@ test("a provider failure after reload can resume using the saved settings", asyn
   await page.clock.fastForward(31000);
   await page.getByRole("button", { name: "Continuar con este regalo" }).click();
   await expect(page.getByRole("textbox", { name: "Copiar link de regalo" })).toHaveValue(/\/gift\/deliver\/album-token$/);
-  expect(retry).toEqual({ giftId });
+  expect(retry).toEqual({ giftId, locale: "es" });
+});
+
+test("an interrupted paid gift with no song configuration returns to personalization", async ({ page }) => {
+  await page.route("**/rest/v1/gifts?*", route => route.fulfill({
+    json: {
+      pack_type: "learning", total_songs: 5, child_name: "—", language: "es",
+      status: "personalizing", delivery_mode: "link", delivery_token: "album-token",
+      gift_songs: [{ count: 0 }], paid_at: "2026-01-01",
+    },
+  }));
+  await page.goto(giftPath);
+  await page.getByPlaceholder(/Sofía/).fill("María");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByRole("heading", { name: "5 canciones para María" })).toBeVisible();
+});
+
+test("an expired startup can resume even when the album still says generating", async ({ page }) => {
+  await page.clock.install();
+  await page.route("**/rest/v1/gifts?*", route => route.fulfill({
+    json: {
+      pack_type: "learning", total_songs: 5, child_name: "Olivia", language: "es",
+      status: "generating", delivery_mode: "link", delivery_token: "stalled-album",
+      gift_songs: [{ count: 5 }], paid_at: "2026-01-01",
+    },
+  }));
+  await page.route("**/api/gift/status?*", route => route.fulfill({
+    json: { status: "generating", retryAvailable: true },
+  }));
+  await page.goto(giftPath);
+  await expect(page.getByRole("heading", { name: "Creando el álbum..." })).toBeVisible();
+  await page.clock.fastForward(31000);
+  await expect(page.getByRole("button", { name: "Continuar con este regalo" })).toBeVisible();
 });
