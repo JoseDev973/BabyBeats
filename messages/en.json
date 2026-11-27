@@ -1,4 +1,18 @@
 {
+  "support": {
+    "button": "Help",
+    "title": "How can we help?",
+    "intro": "Send us a message and we’ll reply by email.",
+    "email": "Your email",
+    "message": "Your message",
+    "send": "Send message",
+    "sending": "Sending…",
+    "sent": "Message sent. We’ll reply to {email}.",
+    "close": "Close",
+    "invalid": "Check your email address and enter a message.",
+    "failed": "We couldn’t send your message. Please try again.",
+    "limited": "You’ve sent several messages. Please try again in a few minutes."
+  },
   "common": {
     "appName": "BabyBeats",
     "tagline": "AI-crafted songs for your little one",
