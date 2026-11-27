@@ -24,11 +24,13 @@ const footerText = {
     signoff: "Con cariño,<br />el equipo de BabyBeats 💜",
     reply: "¿Una duda o una idea? Responde este correo: lo leemos nosotros.",
     tagline: "Canciones originales con el nombre de tu bebé",
+    unsubscribe: "No quiero recibir más correos como este",
   },
   en: {
     signoff: "With love,<br />the BabyBeats team 💜",
     reply: "A question or an idea? Just reply to this email — real people read it.",
     tagline: "Original songs with your baby's name",
+    unsubscribe: "Unsubscribe from emails like this",
   },
 };
 
@@ -44,6 +46,7 @@ export function emailLayout(opts: {
   cta: { label: string; href: string };
   note?: string;
   extra?: string;
+  unsubscribeUrl?: string;
 }) {
   const f = footerText[opts.lang];
   const base = appUrl();
@@ -107,6 +110,7 @@ export function emailLayout(opts: {
             <td align="center" style="padding:16px 24px 0;color:${C.muted};font-size:13px;line-height:1.5;">
               ${f.reply}<br />
               <a href="${base}" style="color:${C.muted};">babybeats.art</a> · ${f.tagline}
+              ${opts.unsubscribeUrl ? `<br /><a href="${emailHref(opts.unsubscribeUrl)}" style="color:${C.muted};">${f.unsubscribe}</a>` : ""}
             </td>
           </tr>
         </table>
