@@ -5,6 +5,15 @@ import { startSunoGeneration } from "@/lib/suno";
 import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
 import { rateLimit } from "@/lib/rate-limit";
 
+function submittedResponse(songId: string, song: { status: string; lyrics: string | null }, editedLyrics: unknown) {
+  if (editedLyrics !== undefined && editedLyrics !== song.lyrics) {
+    return NextResponse.json(
+      { error: "Audio has already been requested with a different version of the lyrics.", code: "lyrics_already_submitted" },
+      { status: 409 },
+    );
+  }
+  return NextResponse.json({ songId, status: song.status });
+}
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "anonymous";
@@ -46,13 +55,7 @@ export async function POST(request: Request) {
   }
 
   if (song.status === "generating" || song.status === "completed") {
-    if (editedLyrics !== undefined && editedLyrics !== song.lyrics) {
-      return NextResponse.json(
-        { error: "Audio has already been requested with a different version of the lyrics.", code: "lyrics_already_submitted" },
-        { status: 409 },
-      );
-    }
-    return NextResponse.json({ songId, status: song.status });
+    return submittedResponse(songId, song, editedLyrics);
   }
 
   const lyrics = editedLyrics === undefined ? song.lyrics : editedLyrics;
@@ -80,19 +83,27 @@ export async function POST(request: Request) {
     );
   }
 
-  if (lyrics !== song.lyrics) {
-    const { data: draft, error } = await supabase
-      .from("generated_songs")
-      .update({ lyrics })
-      .eq("id", songId)
-      .eq("user_id", user.id)
-      .in("status", ["lyrics_ready", "failed"])
-      .select("id")
-      .maybeSingle();
+  // Claim this draft and its exact lyrics before contacting the provider. A retry
+  // can observe the first request even while it is still waiting for a task ID.
+  const { data: claimed, error: claimError } = await supabase
+    .from("generated_songs")
+    .update({ lyrics, status: "generating", suno_task_id: null })
+    .eq("id", songId)
+    .eq("user_id", user.id)
+    .eq("status", song.status)
+    .select("id")
+    .maybeSingle();
 
-    if (error || !draft) {
-      return NextResponse.json({ error: "Could not save the lyrics. Please retry." }, { status: error ? 500 : 409 });
+  if (claimError) {
+    return NextResponse.json({ error: "Could not save the lyrics. Please retry." }, { status: 500 });
+  }
+  if (!claimed) {
+    const { data: current } = await supabase.from("generated_songs")
+      .select("status, lyrics").eq("id", songId).eq("user_id", user.id).maybeSingle();
+    if (current?.status === "generating" || current?.status === "completed") {
+      return submittedResponse(songId, current, editedLyrics);
     }
+    return NextResponse.json({ error: "The draft changed. Please retry." }, { status: 409 });
   }
 
   try {
