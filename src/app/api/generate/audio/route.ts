@@ -101,6 +101,7 @@ export async function POST(request: Request) {
       theme: song.theme,
       language: song.language || "es",
       childName: song.child_name,
+      callbackTarget: { kind: "song", id: song.id },
     });
 
     // Save taskId and mark as generating — return immediately

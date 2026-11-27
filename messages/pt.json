@@ -237,7 +237,12 @@
     "createAnother": "Criar Outra",
     "mySongs": "Minhas Músicas",
     "failed": "Algo deu errado",
-    "failedHint": "A geração de áudio falhou. Seu crédito não foi cobrado.",
+    "reconnecting": "Reconectando para consultar sua música…",
+    "firstReady": "A primeira versão está pronta. Estamos finalizando sua música…",
+    "sessionExpired": "Entre para consultar sua música",
+    "signIn": "Entrar",
+    "unavailable": "Não há geração de áudio disponível para esta música.",
+    "failedHint": "Não foi possível gerar o áudio.",
     "tryAgain": "Tentar novamente",
     "versionA": "Versão A",
     "versionB": "Versão B"
