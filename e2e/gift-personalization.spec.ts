@@ -113,3 +113,15 @@ test("an expired startup can resume even when the album still says generating", 
   await page.clock.fastForward(31000);
   await expect(page.getByRole("button", { name: "Continuar con este regalo" })).toBeVisible();
 });
+
+test("a historical album already marked redeemed keeps its listening link", async ({ page }) => {
+  await page.route("**/rest/v1/gifts?*", route => route.fulfill({
+    json: {
+      pack_type: "learning", total_songs: 5, child_name: "Olivia", language: "es",
+      status: "redeemed", delivery_mode: "link", delivery_token: "original-token",
+      gift_songs: [{ count: 5 }], paid_at: "2026-01-01",
+    },
+  }));
+  await page.goto(giftPath);
+  await expect(page.getByRole("textbox", { name: "Copiar link de regalo" })).toHaveValue(/\/gift\/deliver\/original-token$/);
+});

@@ -127,7 +127,7 @@ export default function GiftCreatePage() {
       if (data.language) setLanguage(data.language);
 
       if (["ready", "delivered", "redeemed"].includes(data.status)) {
-        setRedeemed(data.status === "redeemed");
+        setRedeemed(data.status === "redeemed" && data.delivery_mode === "redeem");
         setStep("confirm");
         return;
       }
@@ -252,7 +252,7 @@ export default function GiftCreatePage() {
         setResumeSaved(false);
         setStep("info");
       } else if (["ready", "delivered", "redeemed"].includes(data.status)) {
-        setRedeemed(data.status === "redeemed");
+        setRedeemed(data.status === "redeemed" && data.deliveryMode === "redeem");
         setDeliveryToken(data.deliveryToken);
         setDeliveryMode(data.deliveryMode);
       } else {

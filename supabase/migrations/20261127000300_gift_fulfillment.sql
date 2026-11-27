@@ -13,7 +13,7 @@ drop policy if exists "Buyers can configure songs while personalizing" on public
 -- Older releases could generate albums even when the buyer selected a code.
 -- Keep their track list and existing delivery token as a listening link.
 update public.gifts g set delivery_mode = 'link'
-  where delivery_mode = 'redeem' and status <> 'redeemed'
+  where delivery_mode = 'redeem'
     and exists (select from public.gift_songs where gift_id = g.id);
 -- Before there are tracks a legacy interrupted draft still needs its settings.
 update public.gifts g set status = 'draft'
@@ -123,4 +123,3 @@ revoke all on function public.prepare_paid_gift(uuid, uuid, jsonb, integer) from
 grant execute on function public.prepare_paid_gift(uuid, uuid, jsonb, integer) to service_role;
 revoke all on function public.redeem_paid_gift(uuid, uuid, integer) from public, anon, authenticated;
 grant execute on function public.redeem_paid_gift(uuid, uuid, integer) to service_role;
-

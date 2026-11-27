@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
-import { routing } from "@/i18n/routing";
 import { getAppUrl } from "@/lib/utils";
 import { FROM_ADDRESS, getResend } from "@/lib/resend";
 import { NextResponse } from "next/server";
@@ -88,6 +87,7 @@ export async function POST(request: Request) {
   }
   if (gift.issued_voucher && user.email) {
     try {
+      const { routing } = await import("@/i18n/routing");
       const locale = hasLocale(routing.locales, body.locale) ? body.locale : routing.defaultLocale;
       const t = await getTranslations({ locale, namespace: "gift" });
       const redeemUrl = new URL(`/${locale}/gift/redeem/${encodeURIComponent(gift.delivery_token)}`, getAppUrl());
