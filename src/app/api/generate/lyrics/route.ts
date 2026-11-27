@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { generateLyrics } from "@/lib/generate-lyrics";
 import { rateLimit } from "@/lib/rate-limit";
-import { buildLyricsPrompt, type Theme } from "@/lib/song-prompts";
-
-const anthropic = new Anthropic();
+import { parseSongBrief } from "@/lib/song-prompts";
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "anonymous";
@@ -25,60 +23,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { childName, theme, musicStyle, language, customPrompt } =
-    await request.json();
-
-  if (!childName || !theme) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 },
-    );
+  const brief = parseSongBrief(await request.json().catch(() => null));
+  if (!brief) {
+    return NextResponse.json({ error: "Invalid song details" }, { status: 400 });
   }
 
-  // Sanitize inputs - strip anything that looks like prompt injection
-  const sanitizedName = childName.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, '').slice(0, 50);
-  const prompt = buildLyricsPrompt({
-    childName: sanitizedName,
-    theme: (["lullaby", "educational", "fun"].includes(theme) ? theme : "lullaby") as Theme,
-    musicStyle: musicStyle || "gentle",
-    language: language || "es",
-    customPrompt,
-  });
-
+  let lyrics: string;
   try {
-    const message = await anthropic.messages.create({
-      model: "claude-opus-5",
-      // max_tokens covers thinking + text on claude-opus-5; 1024 left no room for lyrics
-      max_tokens: 10000,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const textBlock = message.content.find((b) => b.type === "text");
-    const lyrics = textBlock?.type === "text" ? textBlock.text : "";
-
-    // Save to database
-    const { data: song, error: dbError } = await supabase
-      .from("generated_songs")
-      .insert({
-        user_id: user.id,
-        child_name: childName,
-        theme,
-        music_style: musicStyle,
-        language,
-        custom_prompt: customPrompt || null,
-        lyrics,
-        status: "lyrics_ready",
-      })
-      .select("id")
-      .single();
-
-    if (dbError) {
-      return NextResponse.json({ error: dbError.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ lyrics, songId: song.id });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Generation failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    lyrics = await generateLyrics(brief);
+  } catch (error) {
+    console.error("[Lyrics] Generation failed", error instanceof Error ? error.name : "Unknown error");
+    return NextResponse.json({ error: "Could not generate lyrics. Please try again." }, { status: 502 });
   }
+
+  const { data: song, error: dbError } = await supabase
+    .from("generated_songs")
+    .insert({
+      user_id: user.id,
+      child_name: brief.childName,
+      theme: brief.theme,
+      music_style: brief.musicStyle,
+      language: brief.language,
+      custom_prompt: brief.customPrompt,
+      lyrics,
+      status: "lyrics_ready",
+    })
+    .select("id")
+    .single();
+
+  if (dbError) {
+    return NextResponse.json({ error: "Could not save the lyrics." }, { status: 500 });
+  }
+
+  return NextResponse.json({ lyrics, songId: song.id });
 }

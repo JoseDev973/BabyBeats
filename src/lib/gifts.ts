@@ -41,6 +41,8 @@ export async function getOrCreateUnpaidGift(
       pack_type: body.packType,
       total_songs: GIFT_PACKS_COP[body.packType].songs,
       child_name: "—",
+      delivery_mode: "link",
+      delivery_token: crypto.randomUUID(),
       status: "draft",
     })
     .select("id")

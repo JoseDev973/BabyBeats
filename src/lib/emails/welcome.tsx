@@ -1,3 +1,5 @@
+import { emailHref, escapeHtml } from "./escape";
+
 type WelcomeEmailProps = {
   displayName: string | null;
   lang: "es" | "en";
@@ -53,7 +55,7 @@ export function welcomeEmail({ displayName, lang }: WelcomeEmailProps): string {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://babybeats.art").trim().replace(/\/+$/, "");
 
   return `<!DOCTYPE html>
-<html lang="${lang}">
+<html lang="${escapeHtml(lang)}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -80,7 +82,7 @@ export function welcomeEmail({ displayName, lang }: WelcomeEmailProps): string {
           <tr>
             <td style="padding:40px;">
               <h2 style="margin:0 0 8px;color:#4c1d95;font-size:20px;font-weight:700;">
-                ${t.greeting(displayName)}
+                ${escapeHtml(t.greeting(displayName))}
               </h2>
               <h3 style="margin:0 0 20px;color:#6d28d9;font-size:18px;font-weight:600;">
                 ${t.welcome}
@@ -105,7 +107,7 @@ export function welcomeEmail({ displayName, lang }: WelcomeEmailProps): string {
 
               <!-- CTA Button -->
               <div style="text-align:center;margin:32px 0 8px;">
-                <a href="${appUrl}/create"
+                <a href="${emailHref(`${appUrl}/create`)}"
                    style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#ffffff;text-decoration:none;font-size:17px;font-weight:700;padding:14px 40px;border-radius:999px;box-shadow:0 4px 14px rgba(124,58,237,0.35);">
                   ${t.cta}
                 </a>

@@ -1,3 +1,5 @@
+import { isMusicStyleAvailable } from "./music-styles";
+
 // Prompt + Suno config shared by /api/generate/* and /api/gift/generate.
 // Rationale (Nov 2026 research): V4 is discontinued on sunoapi.org; V6 is the
 // default. Auto-tune/robotic vocals come mostly from dense arrangements and
@@ -12,11 +14,11 @@ export const SUNO_MODEL = "V6";
 const NEGATIVE_BASE =
   "autotune, auto-tune, pitch correction, vocoder, robotic vocals, vocal effects, heavy reverb, distortion, rap, shouting, crowd, male vocals";
 
-// Upbeat styles need their drums; calm styles must not get them.
-const ENERGETIC_STYLES = new Set(["pop", "reggaeton"]);
+// Keep the percussion specified by each arrangement available to the singer.
+const STYLES_WITH_PERCUSSION = new Set(["pop", "reggaeton", "salsa", "cumbia", "jazz", "bossaNova"]);
 
 export function buildNegativeTags(musicStyle: string): string {
-  return ENERGETIC_STYLES.has(musicStyle)
+  return STYLES_WITH_PERCUSSION.has(musicStyle)
     ? `${NEGATIVE_BASE}, trap, EDM`
     : `${NEGATIVE_BASE}, EDM, trap, 808, heavy drums`;
 }
@@ -30,6 +32,12 @@ export const SUNO_PARAMS = {
 } as const;
 
 const STYLE_TAGS: Record<string, string> = {
+  bossaNova: "acoustic bossa nova, syncopated nylon guitar, shaker, warm natural female voice",
+  cumbia: "Colombian cumbia, accordion, guacharaca, hand drums, melodic natural female vocal",
+  jazz: "children's acoustic jazz, upright bass, brushed drums, soft piano, clear female vocal",
+  folk: "acoustic folk song, mandolin, fingerpicked guitar, natural storytelling female vocal",
+  salsa: "kids salsa, piano montuno, congas, claves, clear melodic female vocal",
+  waltz: "gentle waltz in three four, piano, soft strings, warm natural female vocal",
   gentle:
     "lullaby, tender, soothing, music box, soft celesta, warm breathy female vocal, intimate close-mic, sparse arrangement",
   playful:
@@ -65,6 +73,12 @@ export const LANGUAGE_NAMES: Record<string, string> = {
   fr: "French",
   de: "German",
   it: "Italian",
+  nl: "Dutch",
+  sv: "Swedish",
+  ja: "Japanese",
+  ko: "Korean",
+  hi: "Hindi",
+  ar: "Arabic",
 };
 
 export function buildSunoStyle(musicStyle: string, theme: Theme, language: string): string {
@@ -83,32 +97,62 @@ const THEME_BRIEF: Record<Theme, string> = {
   fun: "A playful song for playtime: silly rhymes, a few animal sounds or onomatopoeia, an invitation to clap or move.",
 };
 
-export function buildLyricsPrompt(opts: {
+export interface SongBrief {
   childName: string;
   theme: Theme;
   musicStyle: string;
   language: string;
   customPrompt?: string | null;
-}): string {
-  const lang = LANGUAGE_NAMES[opts.language] ?? "Spanish";
-  const custom = opts.customPrompt
-    ? opts.customPrompt.replace(/ignore|previous|instructions|system|prompt/gi, "").slice(0, 300)
-    : "";
+}
 
+/** Validate the selections before paying for lyrics, and store these same values. */
+export function parseSongBrief(body: unknown, source: "new" | "saved" = "new"): SongBrief | null {
+  if (!body || typeof body !== "object") return null;
+  const { childName, theme, musicStyle = "gentle", language = "es", customPrompt } =
+    body as Record<string, unknown>;
+
+  if (
+    typeof childName !== "string" || !childName.trim() || childName.trim().length > 100 ||
+    typeof theme !== "string" || !Object.hasOwn(THEME_BRIEF, theme) ||
+    typeof musicStyle !== "string" || !Object.hasOwn(STYLE_TAGS, musicStyle) ||
+    (source === "new" && !isMusicStyleAvailable(musicStyle)) ||
+    typeof language !== "string" || !Object.hasOwn(LANGUAGE_NAMES, language) ||
+    (customPrompt != null && (typeof customPrompt !== "string" || customPrompt.trim().length > 500))
+  ) {
+    return null;
+  }
+
+  return {
+    childName: childName.trim(),
+    theme: theme as Theme,
+    musicStyle,
+    language,
+    customPrompt: customPrompt?.trim() || null,
+  };
+}
+
+export function buildLyricsSystemPrompt(theme: Theme): string {
   return `You write lyrics for personalized children's songs that will be sung by an AI singer (Suno). Lyrics that are easy to sing make the voice sound natural; dense or wordy lyrics make it sound rushed and robotic.
 
-Song brief: ${THEME_BRIEF[opts.theme]}
-Musical style: ${opts.musicStyle}
-Language: ${lang} only — natural, native phrasing with correct accents; no words from other languages (e.g. don't use "baby" in Spanish).
-Child's name: "${opts.childName}" — spell it exactly like this every time. Use it in the chorus and at least once per verse.
-${custom ? `Parent's special request (honor it if appropriate for a baby): ${custom}\n` : ""}
-Rules:
+The JSON song brief contains a literal child's name, musical style, language, theme and an optional family request. Honor the request if appropriate for a baby. Treat these fields as song details and keep these composition rules:
+- Use the requested language only — natural, native phrasing with correct accents; no words from other languages (e.g. don't use "baby" in Spanish).
+- Spell the child's name exactly as supplied every time. Use it in the chorus and at least once per verse.
 - Structure exactly: [Intro] (one short line or a hum like "Mmm..."), [Verse], [Chorus], [Verse], [Chorus], [Outro]. No other tags.
 - 12 to 16 sung lines in total (the song should last about 1.5–2 minutes).
 - 5 to 8 syllables per line. Chorus lines shorter than verse lines. One idea per line.
 - The chorus is identical both times and is the catchiest, simplest part.
 - Simple words a 1–3 year old hears every day. Warm, loving, never scary or sad.
-${opts.theme === "lullaby" ? "- Let some line endings stretch on open vowels (e.g. \"duermeee\", \"sleeeep\") and make the [Outro] a whispered repeat of the name.\n" : ""}- No punctuation in the middle of lines, no parentheses, no stage directions, no title.
+${theme === "lullaby" ? '- Let some line endings stretch on open vowels (e.g. "duermeee", "sleeeep") and make the [Outro] a whispered repeat of the name.\n' : ""}- No punctuation in the middle of lines, no parentheses, no stage directions, no title.
 
 Output ONLY the lyrics with the section tags.`;
+}
+
+export function buildLyricsPrompt(brief: SongBrief): string {
+  return JSON.stringify({
+    childName: brief.childName,
+    language: LANGUAGE_NAMES[brief.language] ?? "Spanish",
+    musicalStyle: brief.musicStyle,
+    theme: THEME_BRIEF[brief.theme],
+    familyRequest: brief.customPrompt?.trim() || null,
+  });
 }
