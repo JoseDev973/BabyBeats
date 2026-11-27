@@ -7,14 +7,15 @@ import {
   useRef,
   useEffect,
   type ReactNode,
+  type SyntheticEvent,
 } from "react";
+import { canPausePlayback, readPlaybackState, type PlaybackState } from "@/lib/playback-state";
 import type { Song } from "@/types/database";
 
 interface PlayerState {
   currentSong: Song | null;
   queue: Song[];
-  isPlaying: boolean;
-  playbackError: boolean;
+  playback: PlaybackState;
   currentTime: number;
   duration: number;
   volume: number;
@@ -31,7 +32,7 @@ interface PlayerActions {
   clearQueue: () => void;
 }
 
-type PlayerContextType = PlayerState & PlayerActions;
+type PlayerContextType = PlayerState & PlayerActions & { canPause: boolean };
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
 
@@ -40,8 +41,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PlayerState>({
     currentSong: null,
     queue: [],
-    isPlaying: false,
-    playbackError: false,
+    playback: "paused",
     currentTime: 0,
     duration: 0,
     volume: 0.8,
@@ -70,7 +70,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       // Selecting another song or pausing while it loads aborts the old request.
       if (audio.src !== source || (error instanceof DOMException && error.name === "AbortError")) return;
-      setState((prev) => ({ ...prev, isPlaying: false, playbackError: true }));
+      setState((prev) => ({ ...prev, playback: "error" }));
     }
   }
 
@@ -83,8 +83,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       ...prev,
       currentSong: song,
       queue: remaining,
-      isPlaying: false,
-      playbackError: false,
+      playback: "loading",
       currentTime: 0,
       duration: 0,
     }));
@@ -123,10 +122,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, volume }));
   }
 
+  function syncPlayback(event: SyntheticEvent<HTMLAudioElement>) {
+    const playback = readPlaybackState(event.currentTarget);
+    setState((prev) => ({ ...prev, playback }));
+  }
+
   return (
     <PlayerContext.Provider
       value={{
         ...state,
+        canPause: canPausePlayback(state.playback),
         play,
         togglePlay,
         next,
@@ -139,9 +144,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     >
       <audio
         ref={audioRef}
-        onPlaying={() => setState((prev) => ({ ...prev, isPlaying: true, playbackError: false }))}
-        onPause={() => setState((prev) => ({ ...prev, isPlaying: false }))}
-        onError={() => setState((prev) => ({ ...prev, isPlaying: false, playbackError: true }))}
+        onPlay={syncPlayback}
+        onPlaying={syncPlayback}
+        onWaiting={syncPlayback}
+        onPause={syncPlayback}
+        onError={syncPlayback}
         onTimeUpdate={({ currentTarget }) => {
           const currentTime = currentTarget.currentTime;
           setState((prev) => ({ ...prev, currentTime }));
