@@ -5,6 +5,7 @@ import { ArrowLeft, CreditCard } from "lucide-react";
 import { CREDIT_PACKS, CreditPackKey } from "@/lib/stripe/credit-packs";
 import { CREDIT_PACKS_COP } from "@/lib/mercado-pago/config";
 import { createClient } from "@/lib/supabase/server";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 
 export default async function CheckoutPage({
   params,
@@ -63,20 +64,24 @@ export default async function CheckoutPage({
 
       {/* Payment methods */}
       <div className="flex flex-col gap-3">
-        <a
+        <TrackedLink
           href={`/api/checkout?pack=${pack}`}
+          event="begin_checkout"
+          params={{ item_id: pack, payment_provider: "stripe", value: selectedPack.price, currency: "USD" }}
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
         >
           <CreditCard className="h-4 w-4" />
           {t("payWithStripe")} — USD ${selectedPack.price}
-        </a>
+        </TrackedLink>
 
-        <a
+        <TrackedLink
           href={`/api/checkout-mp?pack=${pack}`}
+          event="begin_checkout"
+          params={{ item_id: pack, payment_provider: "mp", value: selectedPackCOP.price, currency: "COP" }}
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-primary text-primary text-sm font-bold hover:bg-primary/10 transition-colors"
         >
           {t("payWithMP")} — ${selectedPackCOP.price.toLocaleString("es-CO")} COP
-        </a>
+        </TrackedLink>
       </div>
     </div>
   );

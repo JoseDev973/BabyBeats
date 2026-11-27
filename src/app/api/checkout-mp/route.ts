@@ -3,6 +3,7 @@ import { Preference } from "mercadopago";
 import { getMercadoPago, CREDIT_PACKS_COP, CreditPackKey } from "@/lib/mercado-pago/config";
 import { createClient } from "@/lib/supabase/server";
 import { getAppUrl } from "@/lib/utils";
+import { purchaseReturnParams } from "@/lib/analytics";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
           amount_cop: selectedPack.price,
         }),
         back_urls: {
-          success: `${appUrl}/profile?success=true`,
+          success: `${appUrl}/profile?success=true&${purchaseReturnParams(pack, selectedPack.price, "COP")}`,
           failure: `${appUrl}/pricing?canceled=true`,
           pending: `${appUrl}/profile?pending=true`,
         },

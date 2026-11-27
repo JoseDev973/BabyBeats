@@ -4,6 +4,7 @@ import { getMercadoPago, GIFT_PACKS_COP } from "@/lib/mercado-pago/config";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateUnpaidGift } from "@/lib/gifts";
 import { getAppUrl } from "@/lib/utils";
+import { purchaseReturnParams } from "@/lib/analytics";
 
 /**
  * Starts a Mercado Pago (COP) checkout for a gift album.
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
           user_id: user.id,
         }),
         back_urls: {
-          success: `${returnUrl}?payment=success`,
+          success: `${returnUrl}?payment=success&${purchaseReturnParams(`gift_${gift.pack_type}`, pack.price, "COP")}`,
           failure: `${returnUrl}?payment=failure`,
           pending: `${returnUrl}?payment=pending`,
         },

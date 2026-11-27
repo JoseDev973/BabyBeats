@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Music, Mail, Lock, Loader2 } from "lucide-react";
 import { authReturnPath, authCallbackUrl } from "@/lib/auth-return";
+import { track } from "@/lib/analytics";
 
 export default function SignupPage() {
   const t = useTranslations("auth");
@@ -54,6 +55,9 @@ export default function SignupPage() {
       setLoading(false);
       return;
     }
+    // Without email confirmation the account is live now; otherwise
+    // /auth/callback reports the sign-up when the confirmation link is opened.
+    track("sign_up", { method: "email" });
     router.replace(next);
     router.refresh();
   }

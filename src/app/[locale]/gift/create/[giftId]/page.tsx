@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/analytics";
 import {
   Baby,
   Moon,
@@ -203,6 +204,7 @@ export default function GiftCreatePage() {
       if (data.error === "ALREADY_PAID") {
         setStep("info");
       } else if (res.ok && data.url) {
+        track("begin_checkout", { item_id: packType, payment_provider: provider });
         window.location.assign(data.url);
         return;
       } else {

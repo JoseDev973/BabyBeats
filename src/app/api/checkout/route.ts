@@ -4,6 +4,7 @@ import { getStripe, CREDIT_PACKS } from "@/lib/stripe/config";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getAppUrl } from "@/lib/utils";
+import { purchaseReturnParams } from "@/lib/analytics";
 
 type PackKey = keyof typeof CREDIT_PACKS;
 
@@ -77,7 +78,7 @@ async function createCheckoutUrl(userId: string, email: string | undefined, pack
       quantity: 1,
     }],
     mode: "payment",
-    success_url: `${getAppUrl()}/profile?success=true`,
+    success_url: `${getAppUrl()}/profile?success=true&${purchaseReturnParams(pack, amountCents / 100, "USD", "{CHECKOUT_SESSION_ID}")}`,
     cancel_url: `${getAppUrl()}/pricing?canceled=true`,
     metadata: { supabase_user_id: userId, pack, amount_usd_cents: String(amountCents) },
   });
