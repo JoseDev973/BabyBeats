@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { GIFT_PACKS_COP, isGiftPack } from "@/lib/mercado-pago/config";
 import { startSunoGeneration } from "@/lib/suno";
 import { generateLyrics } from "@/lib/generate-lyrics";
+import { parseSongBrief } from "@/lib/song-prompts";
 import type { GiftSong } from "@/types/database";
 
 // Up to 10 songs (Claude lyrics + Suno kickoff) run in parallel
@@ -94,21 +95,23 @@ export async function POST(request: Request) {
 
   const results = await Promise.allSettled(
     songs.map(async (song) => {
-      const lyrics = await generateLyrics({
+      const brief = parseSongBrief({
         childName: gift.child_name,
         theme: song.theme,
         musicStyle: song.music_style,
         language: song.language || gift.language || "es",
         customPrompt: song.custom_prompt,
-      });
+      }, "saved");
+      if (!brief) throw new Error("Invalid gift song details");
+      const lyrics = await generateLyrics(brief);
       await admin.from("gift_songs").update({ lyrics }).eq("id", song.id);
 
       const taskId = await startSunoGeneration({
         lyrics,
-        musicStyle: song.music_style,
-        theme: song.theme,
-        language: song.language || gift.language || "es",
-        childName: gift.child_name,
+        musicStyle: brief.musicStyle,
+        theme: brief.theme,
+        language: brief.language,
+        childName: brief.childName,
       });
 
       await admin

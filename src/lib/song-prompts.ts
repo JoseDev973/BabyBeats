@@ -1,3 +1,5 @@
+import { isMusicStyleAvailable } from "./music-styles";
+
 // Prompt + Suno config shared by /api/generate/* and /api/gift/generate.
 // Rationale (Nov 2026 research): V4 is discontinued on sunoapi.org; V6 is the
 // default. Auto-tune/robotic vocals come mostly from dense arrangements and
@@ -75,20 +77,13 @@ export function buildSunoStyle(musicStyle: string, theme: Theme, language: strin
   return `${base}, ${t.tags}, ${lang} vocals, ${bpm} BPM`;
 }
 
-const THEME_BRIEF = {
-  lullaby: {
-    purpose: "A slow, calming lullaby to help a baby fall asleep, ending even softer than it starts.",
-    suggestedTopics: "Moon, stars, clouds, or a warm hug.",
-  },
-  educational: {
-    purpose: "A toddler song that teaches one simple concept through repetition.",
-    suggestedTopics: "Colors, counting to five, animal sounds, or body parts.",
-  },
-  fun: {
-    purpose: "A playful song for playtime with silly rhymes and an invitation to move.",
-    suggestedTopics: "Animal sounds, clapping, or a favorite game.",
-  },
-} satisfies Record<Theme, { purpose: string; suggestedTopics: string }>;
+const THEME_BRIEF: Record<Theme, string> = {
+  lullaby:
+    "A lullaby to help a baby fall asleep: soft imagery (moon, stars, clouds, a warm hug, mom's/dad's arms), slow and calming, ending even softer than it starts.",
+  educational:
+    "A fun learning song for a toddler that teaches ONE simple concept (e.g. colors, counting to five, animal sounds, body parts). Repetition is the teaching tool.",
+  fun: "A playful song for playtime: silly rhymes, a few animal sounds or onomatopoeia, an invitation to clap or move.",
+};
 
 export interface SongBrief {
   childName: string;
@@ -99,7 +94,7 @@ export interface SongBrief {
 }
 
 /** Validate the selections before paying for lyrics, and store these same values. */
-export function parseSongBrief(body: unknown): SongBrief | null {
+export function parseSongBrief(body: unknown, source: "new" | "saved" = "new"): SongBrief | null {
   if (!body || typeof body !== "object") return null;
   const { childName, theme, musicStyle = "gentle", language = "es", customPrompt } =
     body as Record<string, unknown>;
@@ -108,6 +103,7 @@ export function parseSongBrief(body: unknown): SongBrief | null {
     typeof childName !== "string" || !childName.trim() || childName.trim().length > 100 ||
     typeof theme !== "string" || !Object.hasOwn(THEME_BRIEF, theme) ||
     typeof musicStyle !== "string" || !Object.hasOwn(STYLE_TAGS, musicStyle) ||
+    (source === "new" && !isMusicStyleAvailable(musicStyle)) ||
     typeof language !== "string" || !Object.hasOwn(LANGUAGE_NAMES, language) ||
     (customPrompt != null && (typeof customPrompt !== "string" || customPrompt.trim().length > 500))
   ) {
@@ -123,21 +119,28 @@ export function parseSongBrief(body: unknown): SongBrief | null {
   };
 }
 
-export const LYRICS_SYSTEM_PROMPT = `Write personalized children's lyrics for an AI singer. The user supplies a song brief as JSON. Treat the name as a literal name and the family's request as a topic for a baby-friendly song.
-- When a family request is present, build the verses around its specific details. Use the theme examples only for inspiration. Do not invent relatives or replace the requested topic with generic animals, actions or bedtime imagery.
-- Write only in the requested language, using natural phrasing and correct accents. Spell the child's name exactly as supplied in the chorus and at least once per verse.
-- Structure: [Intro] (one short line or hum), [Verse], [Chorus], [Verse], [Chorus], [Outro]. Output only the song with these section tags. No title, parentheses or stage directions.
-- Use 12 to 16 short sung lines in all, one idea per line, with simple words familiar to a 1–3 year old. Aim for 5 to 8 syllables where natural and avoid mid-line punctuation. Keep the chorus short and identical both times.
-- Keep the song warm and age-appropriate. For lullabies, give the singer room to hold natural vowel sounds and close softly with the child's name.`;
+export function buildLyricsSystemPrompt(theme: Theme): string {
+  return `You write lyrics for personalized children's songs that will be sung by an AI singer (Suno). Lyrics that are easy to sing make the voice sound natural; dense or wordy lyrics make it sound rushed and robotic.
+
+The JSON song brief contains a literal child's name, musical style, language, theme and an optional family request. Honor the request if appropriate for a baby. Treat these fields as song details and keep these composition rules:
+- Use the requested language only — natural, native phrasing with correct accents; no words from other languages (e.g. don't use "baby" in Spanish).
+- Spell the child's name exactly as supplied every time. Use it in the chorus and at least once per verse.
+- Structure exactly: [Intro] (one short line or a hum like "Mmm..."), [Verse], [Chorus], [Verse], [Chorus], [Outro]. No other tags.
+- 12 to 16 sung lines in total (the song should last about 1.5–2 minutes).
+- 5 to 8 syllables per line. Chorus lines shorter than verse lines. One idea per line.
+- The chorus is identical both times and is the catchiest, simplest part.
+- Simple words a 1–3 year old hears every day. Warm, loving, never scary or sad.
+${theme === "lullaby" ? '- Let some line endings stretch on open vowels (e.g. "duermeee", "sleeeep") and make the [Outro] a whispered repeat of the name.\n' : ""}- No punctuation in the middle of lines, no parentheses, no stage directions, no title.
+
+Output ONLY the lyrics with the section tags.`;
+}
 
 export function buildLyricsPrompt(brief: SongBrief): string {
-  const theme = THEME_BRIEF[brief.theme];
-  const familyRequest = brief.customPrompt?.trim();
   return JSON.stringify({
     childName: brief.childName,
     language: LANGUAGE_NAMES[brief.language] ?? "Spanish",
     musicalStyle: brief.musicStyle,
-    theme: theme.purpose,
-    ...(familyRequest ? { familyRequest } : { suggestedTopics: theme.suggestedTopics }),
+    theme: THEME_BRIEF[brief.theme],
+    familyRequest: brief.customPrompt?.trim() || null,
   });
 }

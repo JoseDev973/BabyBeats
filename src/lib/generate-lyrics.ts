@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { buildLyricsPrompt, LYRICS_SYSTEM_PROMPT, type SongBrief } from "@/lib/song-prompts";
+import { buildLyricsPrompt, buildLyricsSystemPrompt, type SongBrief } from "@/lib/song-prompts";
 import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
 
 export async function generateLyrics(brief: SongBrief): Promise<string> {
@@ -7,7 +7,7 @@ export async function generateLyrics(brief: SongBrief): Promise<string> {
     model: "claude-opus-5",
     // This budget includes thinking tokens as well as the sung text.
     max_tokens: 10000,
-    system: LYRICS_SYSTEM_PROMPT,
+    system: buildLyricsSystemPrompt(brief.theme),
     messages: [{ role: "user", content: buildLyricsPrompt(brief) }],
   });
 

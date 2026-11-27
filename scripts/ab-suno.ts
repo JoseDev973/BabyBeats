@@ -10,7 +10,7 @@ import {
   buildNegativeTags,
   SUNO_PARAMS,
   buildLyricsPrompt,
-  LYRICS_SYSTEM_PROMPT,
+  buildLyricsSystemPrompt,
   buildSunoStyle,
   type Theme,
 } from "../src/lib/song-prompts";
@@ -121,13 +121,13 @@ async function runVariant(variant: "old" | "new", c: (typeof CASES)[number]) {
     variant === "old"
       ? oldLyricsPrompt(c.theme, c.style)
       : buildLyricsPrompt({ childName: CHILD, theme: c.theme, musicStyle: c.style, language: LANG });
-  const text = await lyrics(prompt, variant === "new" ? LYRICS_SYSTEM_PROMPT : undefined);
+  const text = await lyrics(prompt, variant === "new" ? buildLyricsSystemPrompt(c.theme) : undefined);
   const tags = variant === "old" ? OLD_STYLE[c.style] : buildSunoStyle(c.style, c.theme, LANG);
   const body =
     variant === "old"
       ? { prompt: text, style: tags, title: `${CHILD}'s Song`, model: "V4" }
       : {
-          lyrics: text,
+          prompt: text,
           style: tags,
           title: `${LANG === "en" ? "A song for" : "Canción para"} ${CHILD}`,
           model: SUNO_MODEL,
