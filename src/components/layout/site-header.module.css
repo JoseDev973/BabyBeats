@@ -244,9 +244,10 @@
   }
 }
 @media (max-width: 480px) {
+  /* Not enough room for logo + CTA + login + menu: the CTA lives in the menu
+     and in every page's own buttons */
   .cta {
-    padding: 8px 14px;
-    font-size: 15px;
+    display: none;
   }
   .login {
     padding: 6px 12px;
