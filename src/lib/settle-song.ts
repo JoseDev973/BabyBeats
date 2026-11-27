@@ -42,9 +42,13 @@ export async function refreshGiftStatus(giftId: string) {
   }));
 }
 
-export async function settleSong(target: CallbackTarget, taskId: string) {
+export async function settleSong(
+  target: CallbackTarget,
+  taskId: string,
+  verifiedResult?: Awaited<ReturnType<typeof getSunoResult>>,
+) {
   const db = getSupabaseAdmin();
-  const result = await getSunoResult(taskId);
+  const result = verifiedResult ?? await getSunoResult(taskId);
   if (result.status === "generating") return result.stage;
 
   if (target.kind === "gift" && result.status === "failed") {

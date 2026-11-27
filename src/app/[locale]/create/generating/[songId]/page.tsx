@@ -376,7 +376,12 @@ function SongResult({ songId }: { songId: string }) {
           <h1 className="text-2xl font-bold mb-6">
             {status === "signedOut" ? t("sessionExpired") : t("unavailable")}
           </h1>
-          <Link href={status === "signedOut" ? "/auth/login" : "/my-songs"} className="text-primary underline">
+          <Link
+            href={status === "signedOut"
+              ? { pathname: "/auth/login", query: { next: `/create/generating/${encodeURIComponent(songId)}` } }
+              : "/my-songs"}
+            className="text-primary underline"
+          >
             {status === "signedOut" ? t("signIn") : t("mySongs")}
           </Link>
         </div>
