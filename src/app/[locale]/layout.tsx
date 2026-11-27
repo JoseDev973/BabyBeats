@@ -12,6 +12,7 @@ import AudioPlayer from "@/components/player/AudioPlayer";
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 import { GOOGLE_TAG_ID } from "@/lib/analytics";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import "../globals.css";
 
 const BASE_URL = "https://babybeats.art";
@@ -125,6 +126,7 @@ export default async function LocaleLayout({
           <Analytics />
           {process.env.VERCEL_ENV === "production" && (
             <>
+              <MetaPixel />
               <Script src={`https://www.googletagmanager.com/gtm.js?id=${GOOGLE_TAG_ID}`} strategy="afterInteractive" />
               <Script id="google-tag" strategy="afterInteractive">
                 {"window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} window.gtag = gtag; gtag('js', new Date());"}

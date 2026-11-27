@@ -23,7 +23,7 @@ const CONTENT = {
       },
       {
         heading: "4. Cookies",
-        body: `BabyBeats uses essential cookies for authentication and session management. We also use Vercel Analytics and Google Analytics to understand how visitors use the site (pages visited, songs started, checkouts started). Google Analytics sets its own cookies. We do not sell your data.`,
+        body: `BabyBeats uses essential cookies for authentication and session management. We also use Vercel Analytics and Google Analytics to understand how visitors use the site (pages visited, songs started, checkouts started), and the Meta Pixel to measure and improve our ads on Facebook and Instagram (pages visited, sign-ups, checkouts and purchases). Google Analytics and the Meta Pixel set their own cookies. We do not sell your data.`,
       },
       {
         heading: "5. Data Retention",
@@ -69,7 +69,7 @@ const CONTENT = {
       },
       {
         heading: "4. Cookies",
-        body: `BabyBeats usa cookies esenciales para autenticación y gestión de sesiones. También usamos Vercel Analytics y Google Analytics para entender cómo se usa el sitio (páginas visitadas, canciones iniciadas, pagos iniciados). Google Analytics usa sus propias cookies. No vendemos tus datos.`,
+        body: `BabyBeats usa cookies esenciales para autenticación y gestión de sesiones. También usamos Vercel Analytics y Google Analytics para entender cómo se usa el sitio (páginas visitadas, canciones iniciadas, pagos iniciados), y el Píxel de Meta para medir y mejorar nuestros anuncios en Facebook e Instagram (páginas visitadas, registros, pagos iniciados y compras). Google Analytics y el Píxel de Meta usan sus propias cookies. No vendemos tus datos.`,
       },
       {
         heading: "5. Retención de Datos",

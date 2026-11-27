@@ -4,6 +4,7 @@ import { GIFT_PACKS_USD } from "@/lib/stripe/credit-packs";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateUnpaidGift } from "@/lib/gifts";
 import { getAppUrl } from "@/lib/utils";
+import { purchaseReturnParams } from "@/lib/analytics";
 
 /**
  * Starts a Stripe (USD) checkout for a gift album.
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${returnUrl}?payment=success`,
+      success_url: `${returnUrl}?payment=success&${purchaseReturnParams(`gift_${gift.pack_type}`, pack.price, "USD", "{CHECKOUT_SESSION_ID}")}`,
       cancel_url: `${returnUrl}?payment=failure`,
       metadata: { type: "gift", gift_id: gift.id, supabase_user_id: user.id },
     });

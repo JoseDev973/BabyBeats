@@ -9,7 +9,7 @@ import { welcomeEmail, getWelcomeSubject } from "@/lib/emails/welcome";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = authReturnPath(searchParams.get("next"), "");
+  let next = authReturnPath(searchParams.get("next"), "");
   const locale = next.split("/")[1];
   const loginPath = hasLocale(routing.locales, locale) ? `/${locale}/auth/login` : "/auth/login";
 
@@ -39,6 +39,11 @@ export async function GET(request: Request) {
 
           // Only send welcome email if user was created within the last 10 minutes
           if (isNewUser && minutesSinceCreation < 10) {
+            // Lets the browser report the sign-up to GA4/Meta (see MetaPixel).
+            const method = user.app_metadata?.provider ?? "email";
+            const withSignup = new URL(next, origin);
+            withSignup.searchParams.set("px_signup", method);
+            next = withSignup.pathname + withSignup.search + withSignup.hash;
             const lang = profile?.preferred_language === "en" ? "en" : "es";
             const displayName = user.user_metadata?.display_name || user.user_metadata?.full_name || null;
             const { error } = await getResend().emails.send({
