@@ -2,11 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import {
   Baby,
-  Music,
   Moon,
   BookOpen,
   PartyPopper,
@@ -50,6 +49,7 @@ export default function GiftCreatePage() {
   const searchParams = useSearchParams();
   const paymentResult = searchParams.get("payment");
   const t = useTranslations("gift");
+  const locale = useLocale();
   const tc = useTranslations("create");
 
   const [step, setStep] = useState<Step>("loading");
@@ -65,37 +65,39 @@ export default function GiftCreatePage() {
   const [generationError, setGenerationError] = useState("");
   const [deliveryToken, setDeliveryToken] = useState("");
   const [copied, setCopied] = useState(false);
-  const [giftStatus, setGiftStatus] = useState("");
+  const [redeemed, setRedeemed] = useState(false);
+  const [resumeSaved, setResumeSaved] = useState(false);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stopPolling = useCallback(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
+    if (pollRef.current) clearTimeout(pollRef.current);
     pollRef.current = null;
   }, []);
 
   const pollUntilReady = useCallback(() => {
     stopPolling();
-    const supabase = createClient();
     const startedAt = Date.now();
-    pollRef.current = setInterval(async () => {
-      const { data: g } = await supabase
-        .from("gifts")
-        .select("status, delivery_token")
-        .eq("id", giftId)
-        .single();
-
-      if (g?.status === "ready" || g?.status === "delivered") {
+    async function poll() {
+      const g = await fetch(`/api/gift/status?giftId=${encodeURIComponent(giftId)}`)
+        .then((response) => response.ok ? response.json() : null).catch(() => null);
+      if (!pollRef.current) return;
+      if (g && ["ready", "delivered", "redeemed"].includes(g.status)) {
         if (g.delivery_token) setDeliveryToken(g.delivery_token);
-        setGiftStatus("ready");
+        setRedeemed(g.status === "redeemed");
         setGenerating(false);
         stopPolling();
-      } else if (Date.now() - startedAt > 15 * 60_000) {
+      } else if (g?.retryAvailable || g?.status === "personalizing" || Date.now() - startedAt > 15 * 60_000) {
+        setGenerating(false);
+        setGenerationError(t(g?.retryAvailable || g?.status === "personalizing" ? "generationFailed" : "checkAlbumStatus"));
         stopPolling();
+      } else {
+        pollRef.current = setTimeout(poll, 30000);
       }
-    }, 5000);
-  }, [giftId, stopPolling]);
+    }
+    pollRef.current = setTimeout(poll, 30000);
+  }, [giftId, stopPolling, t]);
 
   useEffect(() => stopPolling, [stopPolling]);
 
@@ -107,7 +109,7 @@ export default function GiftCreatePage() {
     async function load() {
       const { data } = await supabase
         .from("gifts")
-        .select("pack_type, total_songs, child_name, language, status, paid_at, delivery_token")
+        .select("pack_type, total_songs, child_name, language, status, paid_at, delivery_mode, delivery_token, gift_songs(count)")
         .eq("id", giftId)
         .single();
 
@@ -117,19 +119,32 @@ export default function GiftCreatePage() {
         return;
       }
 
+      setDeliveryMode(data.delivery_mode);
+      setDeliveryToken(data.delivery_token);
       setPackType(data.pack_type);
       setTotalSongs(data.total_songs);
       if (data.child_name && data.child_name !== "—") setChildName(data.child_name);
       if (data.language) setLanguage(data.language);
 
       if (["ready", "delivered", "redeemed"].includes(data.status)) {
-        setDeliveryToken(data.delivery_token);
-        setGiftStatus("ready");
+        setRedeemed(data.status === "redeemed" && data.delivery_mode === "redeem");
+        setStep("confirm");
+        return;
+      }
+      if (data.paid_at && ["personalizing", "generating"].includes(data.status) &&
+          data.gift_songs?.[0]?.count === 0) {
+        setResumeSaved(false);
+        setStep("info");
+        return;
+      }
+      if (data.status === "personalizing") {
+        setResumeSaved(true);
+        setGenerationError(t("generationFailed"));
         setStep("confirm");
         return;
       }
       if (data.status === "generating") {
-        setDeliveryToken(data.delivery_token);
+        setResumeSaved(true);
         setGenerating(true);
         setStep("confirm");
         pollUntilReady();
@@ -212,99 +227,52 @@ export default function GiftCreatePage() {
   }
 
   async function handleConfirm() {
-    if (!childName.trim()) return;
+    if (!resumeSaved && !childName.trim()) return;
     setLoading(true);
 
-    const supabase = createClient();
-
-    // Update gift with child info
-    await supabase
-      .from("gifts")
-      .update({
-        child_name: childName.trim(),
-        language,
-        delivery_mode: deliveryMode,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", giftId);
-
-    // Create song entries
-    const configs = mode === "quick"
-      ? Array.from({ length: totalSongs }, (_, i) => ({
-          theme: (PACK_THEMES[packType] || [])[i] || "lullaby",
-          style: (PACK_STYLES[packType] || [])[i] || "gentle",
-          prompt: "",
-        }))
-      : songConfigs;
-
-    const songRows = configs.map((c, i) => ({
-      gift_id: giftId,
-      position: i + 1,
-      theme: c.theme,
-      music_style: c.style,
-      language,
-      custom_prompt: c.prompt || null,
-      status: "pending",
-    }));
-
-    // Songs may already exist if a previous generation attempt failed
-    const { count: existingSongs } = await supabase
-      .from("gift_songs")
-      .select("id", { count: "exact", head: true })
-      .eq("gift_id", giftId);
-
-    if (!existingSongs) {
-      const { error: songsError } = await supabase.from("gift_songs").insert(songRows);
-      if (songsError) {
-        setLoading(false);
-        setStep("confirm");
-        setGenerationError(t("generationFailed"));
-        return;
-      }
-    }
-
-    // Fetch delivery token
-    const { data: giftData } = await supabase
-      .from("gifts")
-      .select("delivery_token")
-      .eq("id", giftId)
-      .single();
-
-    if (giftData?.delivery_token) {
-      setDeliveryToken(giftData.delivery_token);
-    }
-
     setStep("confirm");
-    setLoading(false);
-
-    // Trigger song generation
     setGenerating(true);
     setGenerationError("");
     try {
       const res = await fetch("/api/gift/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ giftId }),
+        body: JSON.stringify({
+          giftId, locale,
+          settings: resumeSaved ? undefined : {
+            childName: childName.trim(), language, deliveryMode,
+            songs: deliveryMode === "link" ? songConfigs : undefined,
+          },
+        }),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (data.error === "GIFT_ALREADY_PROCESSING") {
-          setGenerationError(t("giftAlreadyProcessing"));
-        } else if (data.error === "PAYMENT_REQUIRED") {
-          setGenerationError(t("paymentRequired"));
-        } else {
-          setGenerationError(t("generationFailed"));
-        }
-        setGenerating(false);
+        setGenerationError(t(data.error === "PAYMENT_REQUIRED" ? "paymentRequired" : "generationFailed"));
+      } else if (data.status === "needs_settings") {
+        setResumeSaved(false);
+        setStep("info");
+      } else if (["ready", "delivered", "redeemed"].includes(data.status)) {
+        setRedeemed(data.status === "redeemed" && data.deliveryMode === "redeem");
+        setDeliveryToken(data.deliveryToken);
+        setDeliveryMode(data.deliveryMode);
+      } else {
+        setDeliveryMode(data.deliveryMode);
+        setResumeSaved(true);
+        pollUntilReady();
         return;
       }
-
-      pollUntilReady();
     } catch {
       setGenerationError(t("generationFailed"));
-      setGenerating(false);
+    } finally {
+      setLoading(false);
     }
+    setGenerating(false);
   }
+
+  const deliveryPath = deliveryMode === "redeem"
+    ? `/${locale}/gift/redeem/${encodeURIComponent(deliveryToken)}`
+    : `/gift/deliver/${encodeURIComponent(deliveryToken)}`;
+  const deliveryUrl = typeof window === "undefined" ? "" : `${window.location.origin}${deliveryPath}`;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 sm:py-16">
@@ -364,6 +332,7 @@ export default function GiftCreatePage() {
 
           <input
             type="text"
+            maxLength={100}
             value={childName}
             onChange={(e) => setChildName(e.target.value)}
             placeholder={t("childNamePlaceholder")}
@@ -432,8 +401,8 @@ export default function GiftCreatePage() {
           </div>
 
           <button
-            onClick={() => { initSongConfigs(); setStep("mode"); }}
-            disabled={!childName.trim()}
+            onClick={deliveryMode === "redeem" ? handleConfirm : () => { initSongConfigs(); setStep("mode"); }}
+            disabled={loading || !childName.trim()}
             className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
           >
             {t("continue")}
@@ -448,7 +417,7 @@ export default function GiftCreatePage() {
           <div className="text-center">
             <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
             <h1 className="text-2xl font-extrabold mb-2">
-              {totalSongs} {t("songs")} para {childName}
+              {t("albumFor", { count: totalSongs, name: childName })}
             </h1>
           </div>
 
@@ -513,7 +482,7 @@ export default function GiftCreatePage() {
       {step === "custom" && (
         <div className="space-y-6">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-extrabold">{totalSongs} {t("songs")} para {childName}</h1>
+            <h1 className="text-2xl font-extrabold">{t("albumFor", { count: totalSongs, name: childName })}</h1>
           </div>
 
           <div className="space-y-4">
@@ -555,6 +524,7 @@ export default function GiftCreatePage() {
                 </select>
                 <input
                   type="text"
+                  maxLength={500}
                   value={config.prompt}
                   onChange={(e) => {
                     const updated = [...songConfigs];
@@ -591,11 +561,8 @@ export default function GiftCreatePage() {
                   <Sparkles className="h-8 w-8 text-primary" />
                 </div>
               </div>
-              <h1 className="text-2xl font-extrabold">{t("generating")}</h1>
-              <p className="text-muted-foreground">{t("generatingDesc", { count: totalSongs })}</p>
-              <p className="text-xs text-muted-foreground">
-                {t("songs")}: {totalSongs} para {childName}
-              </p>
+              <h1 className="text-2xl font-extrabold">{t(deliveryMode === "redeem" ? "preparingCode" : "generating")}</h1>
+              {deliveryMode === "link" && <p className="text-muted-foreground">{t("generatingDesc", { count: totalSongs })}</p>}
             </>
           ) : generationError ? (
             <>
@@ -604,10 +571,11 @@ export default function GiftCreatePage() {
               </div>
               <h1 className="text-2xl font-extrabold text-destructive">{generationError}</h1>
               <button
-                onClick={() => router.push("/gift")}
+                onClick={handleConfirm}
+                disabled={loading}
                 className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all"
               >
-                {t("heroTitle")}
+                {t("resumeGift")}
               </button>
             </>
           ) : (
@@ -615,27 +583,35 @@ export default function GiftCreatePage() {
               <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <Gift className="h-10 w-10 text-green-600" />
               </div>
-              <h1 className="text-2xl font-extrabold">{t("ready")}</h1>
-              <p className="text-muted-foreground">{t("readyDesc", { name: childName })}</p>
+              <h1 className="text-2xl font-extrabold">{t(redeemed ? "codeUsed" : deliveryMode === "redeem" ? "codeReady" : "ready")}</h1>
+              {!redeemed && <p className="text-muted-foreground">{deliveryMode === "redeem" ? t("shareRedeemLink", { name: childName }) : t("readyDesc", { name: childName })}</p>}
               <p className="text-sm text-muted-foreground">
                 {totalSongs} {t("songs")}
               </p>
 
-              {deliveryToken && (
+              {deliveryToken && !redeemed && (
                 <div className="bg-card border border-border rounded-xl p-5 space-y-3">
                   <p className="text-xs text-muted-foreground font-semibold uppercase">{t("copyLink")}</p>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       readOnly
-                      value={`${typeof window !== "undefined" ? window.location.origin : ""}/gift/deliver/${deliveryToken}`}
+                      value={deliveryUrl}
+                      aria-label={t("copyLink")}
+                      onFocus={(event) => event.target.select()}
                       className="flex-1 px-3 py-2 rounded-lg border border-input bg-background text-sm truncate"
                     />
                     <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/gift/deliver/${deliveryToken}`);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
+                      onClick={async (event) => {
+                        const input = event.currentTarget.previousElementSibling as HTMLInputElement;
+                        try {
+                          await navigator.clipboard.writeText(deliveryUrl);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        } catch {
+                          input.focus();
+                          input.select();
+                        }
                       }}
                       className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all shrink-0"
                     >

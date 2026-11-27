@@ -24,8 +24,8 @@ export default function AudioPlayer() {
   const common = useTranslations("common");
   const {
     currentSong,
-    isPlaying,
-    playbackError,
+    canPause,
+    playback,
     queue,
     currentTime,
     duration,
@@ -38,6 +38,13 @@ export default function AudioPlayer() {
   } = usePlayer();
 
   if (!currentSong) return null;
+
+  const status = {
+    paused: t("paused"),
+    loading: common("loading"),
+    playing: t("nowPlaying"),
+    error: t("playbackError"),
+  }[playback];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border z-50 px-4 py-2 sm:py-3">
@@ -57,8 +64,8 @@ export default function AudioPlayer() {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">{currentSong.title}</p>
-            <p className="text-xs text-muted-foreground truncate">
-              {playbackError ? <span role="alert">{t("playbackError")}</span> : isPlaying ? t("nowPlaying") : t("paused")}
+            <p className="text-xs text-muted-foreground truncate" role={playback === "error" ? "alert" : undefined}>
+              {status}
             </p>
           </div>
         </div>
@@ -74,11 +81,11 @@ export default function AudioPlayer() {
               <SkipBack className="h-4 w-4" />
             </button>
             <button
-              aria-label={common(isPlaying ? "pause" : "play")}
+              aria-label={common(canPause ? "pause" : "play")}
               onClick={togglePlay}
               className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
             >
-              {isPlaying ? (
+              {canPause ? (
                 <Pause className="h-4 w-4" />
               ) : (
                 <Play className="h-4 w-4 ml-0.5" />

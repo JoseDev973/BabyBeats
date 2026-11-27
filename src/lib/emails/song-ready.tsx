@@ -1,3 +1,5 @@
+import { emailHref, escapeHtml } from "./escape";
+
 type SongReadyEmailProps = {
   childName: string;
   songUrl: string;
@@ -45,15 +47,15 @@ export function songReadyEmail({
   const t = translations[lang];
 
   return `<!DOCTYPE html>
-<html lang="${lang}">
+<html lang="${escapeHtml(lang)}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${t.subject(childName)}</title>
+  <title>${escapeHtml(t.subject(childName))}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#faf5ff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
   <!-- Preheader -->
-  <div style="display:none;max-height:0;overflow:hidden;">${t.preheader(childName)}</div>
+  <div style="display:none;max-height:0;overflow:hidden;">${escapeHtml(t.preheader(childName))}</div>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#faf5ff;">
     <tr>
@@ -72,7 +74,7 @@ export function songReadyEmail({
           <tr>
             <td style="padding:40px;">
               <h2 style="margin:0 0 16px;color:#4c1d95;font-size:22px;font-weight:700;text-align:center;">
-                ${t.heading(childName)}
+                ${escapeHtml(t.heading(childName))}
               </h2>
 
               <p style="margin:0 0 8px;color:#6b7280;font-size:16px;line-height:1.6;text-align:center;">
@@ -81,7 +83,7 @@ export function songReadyEmail({
 
               <!-- CTA Button -->
               <div style="text-align:center;margin:32px 0;">
-                <a href="${songUrl}"
+                <a href="${emailHref(songUrl)}"
                    style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#ffffff;text-decoration:none;font-size:18px;font-weight:700;padding:16px 48px;border-radius:999px;box-shadow:0 4px 14px rgba(124,58,237,0.35);">
                   ${t.cta}
                 </a>

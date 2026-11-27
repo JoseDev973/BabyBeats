@@ -1,24 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import {
-  Music,
-  Baby,
-  Moon,
-  BookOpen,
-  PartyPopper,
-  Sparkles,
-  ArrowLeft,
-  ArrowRight,
-  Loader2,
-  Coins,
-  Disc3,
-  Wand2,
-  Settings2,
-  Lock,
-} from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/routing";
+import { Music, Baby, Moon, BookOpen, PartyPopper, Sparkles, ArrowLeft, ArrowRight, Loader2, Coins, Disc3, Wand2, Settings2, Lock, Heart } from "lucide-react";
+import ChoiceGroup from "./ChoiceGroup";
+import { AVAILABLE_MUSIC_STYLES } from "@/lib/music-styles";
+import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
 import type { SongTheme } from "@/types/database";
 
 interface CreateWizardProps {
@@ -32,8 +20,6 @@ const THEMES: { value: SongTheme; icon: typeof Moon; color: string }[] = [
   { value: "fun", icon: PartyPopper, color: "text-pink-500" },
 ];
 
-const STYLE_KEYS = ["gentle", "playful", "classical", "pop", "acoustic", "reggaeton"] as const;
-
 const SONG_LANGUAGES = [
   { value: "es", label: "Español" },
   { value: "en", label: "English" },
@@ -41,6 +27,12 @@ const SONG_LANGUAGES = [
   { value: "fr", label: "Français" },
   { value: "de", label: "Deutsch" },
   { value: "it", label: "Italiano" },
+  { value: "nl", label: "Nederlands" },
+  { value: "sv", label: "Svenska" },
+  { value: "ja", label: "日本語" },
+  { value: "ko", label: "한국어" },
+  { value: "hi", label: "हिन्दी" },
+  { value: "ar", label: "العربية" },
 ];
 
 const ALBUM_COUNTS = [3, 5, 10];
@@ -49,7 +41,7 @@ const AUTO_THEMES: SongTheme[] = ["lullaby", "educational", "fun", "lullaby", "f
 const AUTO_STYLES: string[] = ["gentle", "playful", "pop", "acoustic", "reggaeton", "classical", "gentle", "playful", "pop", "acoustic"];
 
 type Mode = "choose" | "single" | "album";
-type SingleStep = "child" | "theme" | "style" | "preview";
+type SingleStep = "child" | "theme" | "details" | "style" | "preview";
 type AlbumStep = "child" | "count" | "albumMode" | "albumCustom" | "albumConfirm";
 
 export default function CreateWizard({
@@ -58,13 +50,14 @@ export default function CreateWizard({
 }: CreateWizardProps) {
   const t = useTranslations("create");
   const router = useRouter();
+  const locale = useLocale();
 
   // Mode
   const [mode, setMode] = useState<Mode>("choose");
 
   // Shared
   const [childName, setChildName] = useState("");
-  const [language, setLanguage] = useState("es");
+  const [language, setLanguage] = useState(locale);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -73,8 +66,17 @@ export default function CreateWizard({
   const [theme, setTheme] = useState<SongTheme>("lullaby");
   const [musicStyle, setMusicStyle] = useState("gentle");
   const [customPrompt, setCustomPrompt] = useState("");
+  // The family's details are what make the lyrics personal: nudge once if skipped
+  const [detailsNudge, setDetailsNudge] = useState(false);
   const [lyrics, setLyrics] = useState("");
   const [generatedSongId, setGeneratedSongId] = useState<string | null>(null);
+
+  const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const alreadySubmitted = !!generatedSongId && submittedId === generatedSongId;
+  const [lyricsBrief, setLyricsBrief] = useState("");
+  const brief = JSON.stringify({ childName, theme, musicStyle, language, customPrompt });
+  const hasDraft = !!generatedSongId && lyricsBrief === brief;
+  const validLyrics = !!lyrics.trim() && lyrics.length <= MAX_LYRICS_LENGTH;
 
   // Album state
   const [albumStep, setAlbumStep] = useState<AlbumStep>("child");
@@ -83,10 +85,14 @@ export default function CreateWizard({
   const [songConfigs, setSongConfigs] = useState<{ theme: SongTheme; style: string; prompt: string }[]>([]);
   const [albumPrompt, setAlbumPrompt] = useState("");
 
+  const [albumTrack, setAlbumTrack] = useState(0);
+  const [albumDraftId, setAlbumDraftId] = useState<string | null>(null);
+  const [albumStage, setAlbumStage] = useState<"lyrics" | "audio">("lyrics");
+
   const isFirstSong = totalGenerated === 0;
   const hasCredits = credits > 0 || isFirstSong;
 
-  const SINGLE_STEPS: SingleStep[] = ["child", "theme", "style", "preview"];
+  const SINGLE_STEPS: SingleStep[] = ["child", "theme", "details", "style", "preview"];
   const singleStepIndex = SINGLE_STEPS.indexOf(singleStep);
 
   const ALBUM_STEPS: AlbumStep[] = ["child", "count", "albumMode", "albumCustom", "albumConfirm"];
@@ -110,10 +116,11 @@ export default function CreateWizard({
       const res = await fetch("/api/generate/lyrics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ childName, theme, musicStyle, language, customPrompt }),
+        body: brief,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || t("failedLyrics"));
+      setLyricsBrief(brief);
       setLyrics(data.lyrics);
       setGeneratedSongId(data.songId);
       setSingleStep("preview");
@@ -125,16 +132,20 @@ export default function CreateWizard({
   }
 
   async function generateAudio() {
-    if (!generatedSongId) return;
+    if (!generatedSongId || !validLyrics) return;
     setLoading(true);
     setError("");
     try {
       const res = await fetch("/api/generate/audio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ songId: generatedSongId }),
+        body: JSON.stringify({ songId: generatedSongId, lyrics }),
       });
       const data = await res.json();
+      if (data.code === "lyrics_already_submitted") {
+        setSubmittedId(generatedSongId);
+        throw new Error(t("lyricsAlreadySubmitted"));
+      }
       if (!res.ok) throw new Error(data.error || t("failedAudio"));
       router.push(`/create/generating/${generatedSongId}`);
     } catch (err) {
@@ -145,13 +156,22 @@ export default function CreateWizard({
 
   function singleGoNext() {
     if (singleStep === "child" && !childName.trim()) return;
-    if (singleStep === "style") { generateLyrics(); return; }
+    if (singleStep === "details" && !customPrompt.trim() && !detailsNudge) {
+      setDetailsNudge(true);
+      return;
+    }
+    if (singleStep === "style") {
+      if (hasDraft) setSingleStep("preview");
+      else generateLyrics();
+      return;
+    }
     if (singleStep === "preview") { generateAudio(); return; }
     const next = singleStepIndex + 1;
     if (next < SINGLE_STEPS.length) setSingleStep(SINGLE_STEPS[next]);
   }
 
   function singleGoBack() {
+    setError("");
     if (singleStepIndex === 0) { setMode("choose"); return; }
     setSingleStep(SINGLE_STEPS[singleStepIndex - 1]);
   }
@@ -170,30 +190,42 @@ export default function CreateWizard({
       : songConfigs;
 
     try {
-      // Generate lyrics + audio for each song sequentially
-      // First song uses the "first free" logic, rest use credits
-      for (let i = 0; i < configs.length; i++) {
-        const lyricsRes = await fetch("/api/generate/lyrics", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            childName,
-            theme: configs[i].theme,
-            musicStyle: configs[i].style,
-            language,
-            customPrompt: configs[i].prompt || "",
-          }),
-        });
-        const lyricsData = await lyricsRes.json();
-        if (!lyricsRes.ok) throw new Error(lyricsData.error || t("failedLyrics"));
+      // Resume at the unfinished track if a previous request failed.
+      for (let i = albumTrack; i < configs.length; i++) {
+        let songId = i === albumTrack ? albumDraftId : null;
+        if (!songId) {
+          setAlbumStage("lyrics");
+          const lyricsRes = await fetch("/api/generate/lyrics", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              childName,
+              theme: configs[i].theme,
+              musicStyle: configs[i].style,
+              language,
+              customPrompt: configs[i].prompt || "",
+            }),
+          });
+          const lyricsData = await lyricsRes.json();
+          if (!lyricsRes.ok) throw new Error(lyricsData.error || t("failedLyrics"));
+          songId = lyricsData.songId;
+          setAlbumDraftId(songId);
+        }
 
+        setAlbumStage("audio");
         const audioRes = await fetch("/api/generate/audio", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ songId: lyricsData.songId }),
+          body: JSON.stringify({ songId }),
         });
         const audioData = await audioRes.json();
-        if (!audioRes.ok) throw new Error(audioData.error || t("failedAudio"));
+        if (!audioRes.ok) {
+          // A missing or unusable draft needs fresh lyrics. Keep the same draft for network/provider retries.
+          if (audioRes.status === 404 || audioData.code === "invalid_lyrics") setAlbumDraftId(null);
+          throw new Error(audioData.error || t("failedAudio"));
+        }
+        setAlbumTrack(i + 1);
+        setAlbumDraftId(null);
       }
 
       router.push("/my-songs");
@@ -205,7 +237,11 @@ export default function CreateWizard({
 
   function albumGoNext() {
     if (albumStep === "child" && !childName.trim()) return;
-    if (albumStep === "count") { initAlbumConfigs(albumCount); setAlbumStep("albumMode"); return; }
+    if (albumStep === "count") {
+      if (songConfigs.length !== albumCount) initAlbumConfigs(albumCount);
+      setAlbumStep("albumMode");
+      return;
+    }
     if (albumStep === "albumMode" && albumMode === "quick") { setAlbumStep("albumConfirm"); return; }
     if (albumStep === "albumMode" && albumMode === "custom") { setAlbumStep("albumCustom"); return; }
     if (albumStep === "albumCustom") { setAlbumStep("albumConfirm"); return; }
@@ -215,6 +251,7 @@ export default function CreateWizard({
   }
 
   function albumGoBack() {
+    setError("");
     if (albumStep === "child") { setMode("choose"); return; }
     if (albumStep === "albumCustom") { setAlbumStep("albumMode"); return; }
     if (albumStep === "albumConfirm" && albumMode === "custom") { setAlbumStep("albumCustom"); return; }
@@ -267,11 +304,13 @@ export default function CreateWizard({
             </button>
             {!isFirstSong && (
               <button
-                onClick={() => { if (credits > 0) { setMode("album"); setAlbumStep("child"); } }}
-                disabled={credits === 0}
+                onClick={() => {
+                  if (credits === 0) router.push("/pricing");
+                  else { setMode("album"); setAlbumStep("child"); }
+                }}
                 className={`p-6 rounded-2xl border-2 transition-all text-center group ${
                   credits === 0
-                    ? "border-border opacity-60 cursor-not-allowed"
+                    ? "border-border"
                     : "border-border hover:border-primary/50 hover:shadow-lg"
                 }`}
               >
@@ -281,12 +320,7 @@ export default function CreateWizard({
                 <p className="font-bold text-lg">{t("modeAlbum")}</p>
                 <p className="text-sm text-muted-foreground mt-1">{t("modeAlbumDesc")}</p>
                 {credits === 0 && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); router.push("/pricing"); }}
-                    className="mt-2 text-sm text-primary font-semibold hover:underline"
-                  >
-                    {t("albumNeedCredits")}
-                  </button>
+                  <span className="mt-2 block text-sm text-primary font-semibold">{t("albumNeedCredits")}</span>
                 )}
               </button>
             )}
@@ -311,7 +345,7 @@ export default function CreateWizard({
                 <h2 className="text-xl font-bold mb-2">{t("childStep")}</h2>
                 <p className="text-muted-foreground">{t("childHint")}</p>
               </div>
-              <input type="text" value={childName} onChange={(e) => setChildName(e.target.value)}
+              <input type="text" value={childName} maxLength={100} onChange={(e) => setChildName(e.target.value)}
                 placeholder={t("childPlaceholder")}
                 className="w-full px-4 py-3 rounded-xl border border-input bg-background text-lg text-center focus:outline-none focus:ring-2 focus:ring-ring"
                 autoFocus onKeyDown={(e) => e.key === "Enter" && singleGoNext()} />
@@ -335,12 +369,52 @@ export default function CreateWizard({
                   </button>
                 ))}
               </div>
-              <div>
-                <label className="text-sm font-semibold mb-1.5 block text-muted-foreground">{t("customPrompt")}</label>
-                <textarea value={customPrompt} onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder={t("customPlaceholder")} rows={2}
-                  className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
+            </div>
+          )}
+
+          {singleStep === "details" && (
+            <div className="space-y-5">
+              <div className="text-center">
+                <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">{t("detailsStep", { name: childName })}</h2>
+                <p className="text-muted-foreground">{t("detailsHint")}</p>
               </div>
+              <div className="flex flex-wrap gap-2" role="group" aria-label={t("detailsIdeas")}>
+                {(["detailsIdeaNickname", "detailsIdeaToy", "detailsIdeaPet", "detailsIdeaFamily", "detailsIdeaLoves", "detailsIdeaCalms"] as const).map((key) => (
+                  <button key={key} type="button"
+                    onClick={() => {
+                      const start = t(key);
+                      setCustomPrompt((prev) => (prev.trim() ? `${prev.trim()} ${start}` : start));
+                      setDetailsNudge(false);
+                      requestAnimationFrame(() => {
+                        const el = document.getElementById("song-details") as HTMLTextAreaElement | null;
+                        if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+                      });
+                    }}
+                    className="rounded-full border-2 border-border px-3.5 py-1.5 text-sm font-semibold hover:border-primary hover:bg-primary/5 transition-colors">
+                    + {t(key + "Label")}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label htmlFor="song-details" className="sr-only">{t("detailsStep", { name: childName })}</label>
+                <textarea id="song-details" maxLength={500} value={customPrompt} rows={5} autoFocus
+                  onChange={(e) => { setCustomPrompt(e.target.value); setDetailsNudge(false); }}
+                  placeholder={t("detailsPlaceholder", { name: childName })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring resize-y" />
+                <p className="mt-1 text-end text-xs text-muted-foreground">{customPrompt.length} / 500</p>
+              </div>
+              {detailsNudge && (
+                <div role="status" className="rounded-xl border border-accent bg-accent/20 p-4 text-center space-y-3">
+                  <p className="font-semibold">{t("detailsNudge")}</p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <button type="button" onClick={() => { setDetailsNudge(false); document.getElementById("song-details")?.focus(); }}
+                      className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">{t("detailsAdd")}</button>
+                    <button type="button" onClick={() => setSingleStep("style")}
+                      className="rounded-xl border-2 border-border px-4 py-2 text-sm font-bold">{t("detailsSkip")}</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -350,28 +424,11 @@ export default function CreateWizard({
                 <Music className="h-12 w-12 text-primary mx-auto mb-4" />
                 <h2 className="text-xl font-bold mb-2">{t("styleStep")}</h2>
               </div>
-              <div>
-                <label className="text-sm font-semibold mb-2 block">{t("musicStyle")}</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {STYLE_KEYS.map((key) => (
-                    <button key={key} onClick={() => setMusicStyle(key)}
-                      className={`px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
-                        musicStyle === key ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                      }`}>{t(key)}</button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-semibold mb-2 block">{t("language")}</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {SONG_LANGUAGES.map((l) => (
-                    <button key={l.value} onClick={() => setLanguage(l.value)}
-                      className={`px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
-                        language === l.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                      }`}>{l.label}</button>
-                  ))}
-                </div>
-              </div>
+              <ChoiceGroup label={t("musicStyle")}
+                options={AVAILABLE_MUSIC_STYLES.map((value) => ({ value, label: t(value) }))}
+                selected={musicStyle} onChange={setMusicStyle} disabled={loading} />
+              <ChoiceGroup label={t("language")} options={SONG_LANGUAGES}
+                selected={language} onChange={setLanguage} disabled={loading} />
             </div>
           )}
 
@@ -382,8 +439,13 @@ export default function CreateWizard({
                 <h2 className="text-xl font-bold mb-2">{t("previewStep", { name: childName })}</h2>
                 <p className="text-muted-foreground">{t("previewHint")}</p>
               </div>
-              <div className="bg-muted/50 rounded-xl p-6 border border-border">
-                <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans">{lyrics}</pre>
+              <div>
+                <label className="mb-2 block text-sm font-semibold" htmlFor="song-lyrics">{t("lyricsLabel")}</label>
+                <textarea id="song-lyrics" value={lyrics} dir="auto" disabled={loading}
+                  onChange={(event) => setLyrics(event.target.value)} maxLength={MAX_LYRICS_LENGTH} rows={12}
+                  aria-describedby="lyrics-length"
+                  className="w-full resize-y rounded-xl border border-border bg-muted/50 px-4 py-3 text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring" />
+                <p id="lyrics-length" className="mt-1 text-end text-xs text-muted-foreground">{lyrics.length} / {MAX_LYRICS_LENGTH}</p>
               </div>
               {!hasCredits && (
                 <div className="bg-accent/20 border border-accent rounded-xl p-4 text-center">
@@ -395,19 +457,28 @@ export default function CreateWizard({
             </div>
           )}
 
-          {/* Error */}
-          {error && <p className="mt-4 text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl">{error}</p>}
+          <p role="status" className="mt-4 text-center text-sm text-muted-foreground empty:hidden">
+            {loading && t(singleStep === "style" ? "writingLyrics" : "startingAudio")}
+          </p>
+          {error && <p role="alert" className="mt-4 text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl">{error}</p>}
+
+          {singleStep === "preview" && alreadySubmitted && (
+            <Link href={`/create/generating/${generatedSongId}`}
+              className="mt-2 inline-block text-sm font-semibold text-primary underline">
+              {t("openSubmittedSong")}
+            </Link>
+          )}
 
           {/* Nav */}
           <div className="flex justify-between mt-10">
-            <button onClick={singleGoBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={singleGoBack} disabled={loading} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-4 w-4" />{t("back")}
             </button>
             <button onClick={singleGoNext}
-              disabled={loading || (singleStep === "child" && !childName.trim()) || (singleStep === "preview" && !hasCredits)}
+              disabled={loading || (singleStep === "child" && !childName.trim()) || (singleStep === "preview" && (!hasCredits || !validLyrics || alreadySubmitted))}
               className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {singleStep === "style" ? t("generateLyrics") : singleStep === "preview" ? t("generateAudio") : t("next")}
+              {singleStep === "style" && !hasDraft ? t("generateLyrics") : singleStep === "preview" ? t("generateAudio") : t("next")}
               {!loading && singleStep !== "preview" && singleStep !== "style" && <ArrowRight className="h-4 w-4" />}
             </button>
           </div>
@@ -431,21 +502,12 @@ export default function CreateWizard({
                 <h2 className="text-xl font-bold mb-2">{t("childStep")}</h2>
                 <p className="text-muted-foreground">{t("childHint")}</p>
               </div>
-              <input type="text" value={childName} onChange={(e) => setChildName(e.target.value)}
+              <input type="text" value={childName} maxLength={100} onChange={(e) => setChildName(e.target.value)}
                 placeholder={t("childPlaceholder")}
                 className="w-full px-4 py-3 rounded-xl border border-input bg-background text-lg text-center focus:outline-none focus:ring-2 focus:ring-ring"
                 autoFocus onKeyDown={(e) => e.key === "Enter" && albumGoNext()} />
-              <div>
-                <label className="text-sm font-semibold mb-2 block">{t("language")}</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {SONG_LANGUAGES.map((l) => (
-                    <button key={l.value} onClick={() => setLanguage(l.value)}
-                      className={`px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
-                        language === l.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                      }`}>{l.label}</button>
-                  ))}
-                </div>
-              </div>
+              <ChoiceGroup label={t("language")} options={SONG_LANGUAGES}
+                selected={language} onChange={setLanguage} />
             </div>
           )}
 
@@ -494,12 +556,14 @@ export default function CreateWizard({
                 </div>
               </button>
 
-              <div>
-                <label className="text-sm font-semibold mb-1.5 block text-muted-foreground">{t("customPrompt")}</label>
-                <textarea value={albumPrompt} onChange={(e) => setAlbumPrompt(e.target.value)}
-                  placeholder={t("customPlaceholder")} rows={2}
-                  className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
-              </div>
+              {albumMode === "quick" && (
+                <div>
+                  <label htmlFor="album-request" className="text-sm font-semibold mb-1.5 block text-muted-foreground">{t("customPrompt")}</label>
+                  <textarea id="album-request" maxLength={500} value={albumPrompt} onChange={(e) => setAlbumPrompt(e.target.value)}
+                    placeholder={t("customPlaceholder")} rows={2}
+                    className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
+                </div>
+              )}
             </div>
           )}
 
@@ -523,9 +587,9 @@ export default function CreateWizard({
                   <select value={config.style}
                     onChange={(e) => { const u = [...songConfigs]; u[i].style = e.target.value; setSongConfigs(u); }}
                     className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm mb-2">
-                    {STYLE_KEYS.map((s) => (<option key={s} value={s}>{t(s)}</option>))}
+                    {AVAILABLE_MUSIC_STYLES.map((s) => (<option key={s} value={s}>{t(s)}</option>))}
                   </select>
-                  <input type="text" value={config.prompt}
+                  <input type="text" maxLength={500} value={config.prompt}
                     onChange={(e) => { const u = [...songConfigs]; u[i].prompt = e.target.value; setSongConfigs(u); }}
                     placeholder={t("customPlaceholder")}
                     className="w-full px-3 py-2 rounded-lg border border-input bg-background text-xs" />
@@ -549,19 +613,23 @@ export default function CreateWizard({
             </div>
           )}
 
-          {/* Error */}
-          {error && <p className="mt-4 text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl">{error}</p>}
+          <p role="status" className="mt-4 text-center text-sm text-muted-foreground empty:hidden">
+            {loading && t(albumStage === "lyrics" ? "albumWritingLyrics" : "albumStartingAudio", {
+              current: Math.min(albumTrack + 1, albumCount), count: albumCount,
+            })}
+          </p>
+          {error && <p role="alert" className="mt-4 text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl">{error}</p>}
 
           {/* Nav */}
           <div className="flex justify-between mt-10">
-            <button onClick={albumGoBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={albumGoBack} disabled={loading || albumTrack > 0 || !!albumDraftId} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-4 w-4" />{t("back")}
             </button>
             <button onClick={albumGoNext}
               disabled={loading || (albumStep === "child" && !childName.trim()) || (albumStep === "albumConfirm" && !albumHasCredits)}
               className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? t("albumGenerating", { count: albumCount, name: childName }) : albumStep === "albumConfirm" ? t("generateAudio") : t("next")}
+              {albumStep === "albumConfirm" ? t(albumTrack || albumDraftId ? "continueAlbum" : "generateAudio") : t("next")}
               {!loading && albumStep !== "albumConfirm" && <ArrowRight className="h-4 w-4" />}
             </button>
           </div>
