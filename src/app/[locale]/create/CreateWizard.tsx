@@ -8,6 +8,7 @@ import ChoiceGroup from "./ChoiceGroup";
 import { AVAILABLE_MUSIC_STYLES } from "@/lib/music-styles";
 import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
 import type { SongTheme } from "@/types/database";
+import { track } from "@/lib/analytics";
 
 interface CreateWizardProps {
   credits: number;
@@ -147,6 +148,7 @@ export default function CreateWizard({
         throw new Error(t("lyricsAlreadySubmitted"));
       }
       if (!res.ok) throw new Error(data.error || t("failedAudio"));
+      track("generate_song", { song_type: "single" });
       router.push(`/create/generating/${generatedSongId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("somethingWrong"));
@@ -226,6 +228,7 @@ export default function CreateWizard({
         }
         setAlbumTrack(i + 1);
         setAlbumDraftId(null);
+        track("generate_song", { song_type: "album" });
       }
 
       router.push("/my-songs");
