@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { CREDIT_PACKS, GIFT_PACKS_USD } from "@/lib/stripe/credit-packs";
 import { CREDIT_PACKS_COP, GIFT_PACKS_COP } from "@/lib/mercado-pago/config";
+import { createClient } from "@/lib/supabase/server";
 import DemoPlayer from "./DemoPlayer";
 import StickyCta from "./StickyCta";
 import styles from "./landing.module.css";
@@ -27,6 +28,13 @@ const cop = (n: number) => `$${n.toLocaleString("es-CO")} COP`;
 
 export default async function Landing({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: "newWeb" });
+  // Someone who already made a song has used the free one: don't promise it again
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("credits, total_songs_generated").eq("id", user.id).maybeSingle()
+    : { data: null };
+  const returning = (profile?.total_songs_generated ?? 0) > 0;
   const DEMOS = locale === "en" ? DEMOS_BY_LANG.en : DEMOS_BY_LANG.es;
   const nameRe = new RegExp(`(${DEMOS.name}\\w*)`);
   const tg = await getTranslations({ locale, namespace: "gift" });
@@ -55,13 +63,15 @@ export default async function Landing({ locale }: { locale: string }) {
             <p className={styles.heroBody}>{t("heroBody")}</p>
             <div className={styles.heroActions}>
               <Link href="/create" id="hero-cta" className={styles.primary}>
-                {t("heroCta")}
+                {returning ? t("heroCtaReturning") : t("heroCta")}
               </Link>
               <a href="#ejemplos" className={styles.textLink}>
                 {t("heroListen")}
               </a>
             </div>
-            <p className={styles.note}>{t("heroNote")}</p>
+            <p className={styles.note}>
+              {returning ? t("heroNoteReturning", { count: profile?.credits ?? 0 }) : t("heroNote")}
+            </p>
           </div>
           <div className={styles.heroStage}>
             <Image
@@ -143,9 +153,9 @@ export default async function Landing({ locale }: { locale: string }) {
           </ol>
           <div className={styles.howCta}>
             <Link href="/create" className={styles.primary}>
-              {t("howCta")}
+              {returning ? t("ctaReturning") : t("howCta")}
             </Link>
-            <p className={styles.note}>{t("howNote")}</p>
+            <p className={styles.note}>{returning ? t("howNoteReturning") : t("howNote")}</p>
           </div>
         </div>
       </section>
@@ -223,7 +233,7 @@ export default async function Landing({ locale }: { locale: string }) {
 
       <StickyCta targetId="hero-cta" className={styles.sticky} hiddenClassName={styles.stickyHidden}>
         <Link href="/create" className={styles.primary}>
-          {t("stickyCta")}
+          {returning ? t("ctaReturning") : t("stickyCta")}
         </Link>
       </StickyCta>
 

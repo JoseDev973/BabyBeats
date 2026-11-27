@@ -487,6 +487,10 @@
     "account": "My account",
     "creditsLeft": "{count, plural, one {# credit} other {# credits}}",
     "buyCredits": "Buy credits",
-    "menu": "Menu"
+    "menu": "Menu",
+    "heroCtaReturning": "Create another song",
+    "heroNoteReturning": "You have {count, plural, =0 {0 credits} one {# credit} other {# credits}} left.",
+    "howNoteReturning": "Takes about 2 minutes.",
+    "ctaReturning": "Create another song"
   }
 }
