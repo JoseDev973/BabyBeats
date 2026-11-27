@@ -12,11 +12,11 @@ export const SUNO_MODEL = "V6";
 const NEGATIVE_BASE =
   "autotune, auto-tune, pitch correction, vocoder, robotic vocals, vocal effects, heavy reverb, distortion, rap, shouting, crowd, male vocals";
 
-// Upbeat styles need their drums; calm styles must not get them.
-const ENERGETIC_STYLES = new Set(["pop", "reggaeton", "salsa", "cumbia"]);
+// Keep the percussion specified by each arrangement available to the singer.
+const STYLES_WITH_PERCUSSION = new Set(["pop", "reggaeton", "salsa", "cumbia", "jazz", "bossaNova"]);
 
 export function buildNegativeTags(musicStyle: string): string {
-  return ENERGETIC_STYLES.has(musicStyle)
+  return STYLES_WITH_PERCUSSION.has(musicStyle)
     ? `${NEGATIVE_BASE}, trap, EDM`
     : `${NEGATIVE_BASE}, EDM, trap, 808, heavy drums`;
 }

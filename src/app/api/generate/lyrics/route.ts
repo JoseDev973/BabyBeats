@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { rateLimit } from "@/lib/rate-limit";
-import { buildLyricsPrompt, type Theme } from "@/lib/song-prompts";
+import { isMusicStyleAvailable } from "@/lib/music-styles";
+import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
+import { buildLyricsPrompt, LANGUAGE_NAMES, type Theme } from "@/lib/song-prompts";
 
 const anthropic = new Anthropic();
 
@@ -25,21 +27,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { childName, theme, musicStyle, language, customPrompt } =
-    await request.json();
-
-  if (!childName || !theme) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 },
-    );
+  const body = await request.json().catch(() => null);
+  const childName = typeof body?.childName === "string" ? body.childName.trim() : "";
+  const { theme, musicStyle = "gentle", language = "es", customPrompt } = body ?? {};
+  if (!childName || childName.length > 100 || !["lullaby", "educational", "fun"].includes(theme)
+      || !isMusicStyleAvailable(musicStyle) || typeof language !== "string" || !Object.hasOwn(LANGUAGE_NAMES, language)
+      || (customPrompt != null && (typeof customPrompt !== "string" || customPrompt.length > 500))) {
+    return NextResponse.json({ error: "Invalid song details" }, { status: 400 });
   }
 
-  // Sanitize inputs - strip anything that looks like prompt injection
-  const sanitizedName = childName.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, '').slice(0, 50);
   const prompt = buildLyricsPrompt({
-    childName: sanitizedName,
-    theme: (["lullaby", "educational", "fun"].includes(theme) ? theme : "lullaby") as Theme,
+    childName,
+    theme: theme as Theme,
     musicStyle: musicStyle || "gentle",
     language: language || "es",
     customPrompt,
@@ -55,6 +54,10 @@ export async function POST(request: Request) {
 
     const textBlock = message.content.find((b) => b.type === "text");
     const lyrics = textBlock?.type === "text" ? textBlock.text : "";
+
+    if (!lyrics.trim() || lyrics.length > MAX_LYRICS_LENGTH) {
+      return NextResponse.json({ error: "Could not generate usable lyrics. Please try again." }, { status: 502 });
+    }
 
     // Save to database
     const { data: song, error: dbError } = await supabase

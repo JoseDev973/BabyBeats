@@ -237,6 +237,8 @@
     "startingAudio": "Sending your lyrics to the music generator…",
     "albumWritingLyrics": "Song {current} of {count} · Writing lyrics…",
     "albumStartingAudio": "Song {current} of {count} · Starting audio…",
+    "lyricsAlreadySubmitted": "This song was already submitted with the earlier lyrics.",
+    "openSubmittedSong": "Open that song",
     "continueAlbum": "Continue album",
     "bossaNova": "Bossa nova",
     "cumbia": "Cumbia",

@@ -237,6 +237,8 @@
     "startingAudio": "Enviando tu letra para crear la música…",
     "albumWritingLyrics": "Canción {current} de {count} · Escribiendo la letra…",
     "albumStartingAudio": "Canción {current} de {count} · Iniciando el audio…",
+    "lyricsAlreadySubmitted": "Esta canción ya se está creando con la letra anterior.",
+    "openSubmittedSong": "Abrir esa canción",
     "continueAlbum": "Continuar álbum",
     "bossaNova": "Bossa nova",
     "cumbia": "Cumbia",

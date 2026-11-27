@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import {
   Music,
   Baby,
@@ -20,6 +20,7 @@ import {
   Lock,
 } from "lucide-react";
 import ChoiceGroup from "./ChoiceGroup";
+import { AVAILABLE_MUSIC_STYLES } from "@/lib/music-styles";
 import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
 import type { SongTheme } from "@/types/database";
 
@@ -33,11 +34,6 @@ const THEMES: { value: SongTheme; icon: typeof Moon; color: string }[] = [
   { value: "educational", icon: BookOpen, color: "text-emerald-500" },
   { value: "fun", icon: PartyPopper, color: "text-pink-500" },
 ];
-
-const STYLE_KEYS = [
-  "gentle", "playful", "classical", "pop", "acoustic", "reggaeton",
-  "bossaNova", "cumbia", "jazz", "folk", "salsa", "waltz",
-] as const;
 
 const SONG_LANGUAGES = [
   { value: "es", label: "Español" },
@@ -88,6 +84,8 @@ export default function CreateWizard({
   const [lyrics, setLyrics] = useState("");
   const [generatedSongId, setGeneratedSongId] = useState<string | null>(null);
 
+  const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const alreadySubmitted = !!generatedSongId && submittedId === generatedSongId;
   const [lyricsBrief, setLyricsBrief] = useState("");
   const brief = JSON.stringify({ childName, theme, musicStyle, language, customPrompt });
   const hasDraft = !!generatedSongId && lyricsBrief === brief;
@@ -157,6 +155,10 @@ export default function CreateWizard({
         body: JSON.stringify({ songId: generatedSongId, lyrics }),
       });
       const data = await res.json();
+      if (data.code === "lyrics_already_submitted") {
+        setSubmittedId(generatedSongId);
+        throw new Error(t("lyricsAlreadySubmitted"));
+      }
       if (!res.ok) throw new Error(data.error || t("failedAudio"));
       router.push(`/create/generating/${generatedSongId}`);
     } catch (err) {
@@ -226,7 +228,11 @@ export default function CreateWizard({
           body: JSON.stringify({ songId }),
         });
         const audioData = await audioRes.json();
-        if (!audioRes.ok) throw new Error(audioData.error || t("failedAudio"));
+        if (!audioRes.ok) {
+          // A missing or unusable draft needs fresh lyrics. Keep the same draft for network/provider retries.
+          if (audioRes.status === 404 || audioData.code === "invalid_lyrics") setAlbumDraftId(null);
+          throw new Error(audioData.error || t("failedAudio"));
+        }
         setAlbumTrack(i + 1);
         setAlbumDraftId(null);
       }
@@ -388,7 +394,7 @@ export default function CreateWizard({
                 <h2 className="text-xl font-bold mb-2">{t("styleStep")}</h2>
               </div>
               <ChoiceGroup label={t("musicStyle")}
-                options={STYLE_KEYS.map((value) => ({ value, label: t(value) }))}
+                options={AVAILABLE_MUSIC_STYLES.map((value) => ({ value, label: t(value) }))}
                 selected={musicStyle} onChange={setMusicStyle} disabled={loading} />
               <ChoiceGroup label={t("language")} options={SONG_LANGUAGES}
                 selected={language} onChange={setLanguage} disabled={loading} />
@@ -425,13 +431,20 @@ export default function CreateWizard({
           </p>
           {error && <p role="alert" className="mt-4 text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl">{error}</p>}
 
+          {singleStep === "preview" && alreadySubmitted && (
+            <Link href={`/create/generating/${generatedSongId}`}
+              className="mt-2 inline-block text-sm font-semibold text-primary underline">
+              {t("openSubmittedSong")}
+            </Link>
+          )}
+
           {/* Nav */}
           <div className="flex justify-between mt-10">
             <button onClick={singleGoBack} disabled={loading} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-4 w-4" />{t("back")}
             </button>
             <button onClick={singleGoNext}
-              disabled={loading || (singleStep === "child" && !childName.trim()) || (singleStep === "preview" && (!hasCredits || !validLyrics))}
+              disabled={loading || (singleStep === "child" && !childName.trim()) || (singleStep === "preview" && (!hasCredits || !validLyrics || alreadySubmitted))}
               className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {singleStep === "style" && !hasDraft ? t("generateLyrics") : singleStep === "preview" ? t("generateAudio") : t("next")}
@@ -543,7 +556,7 @@ export default function CreateWizard({
                   <select value={config.style}
                     onChange={(e) => { const u = [...songConfigs]; u[i].style = e.target.value; setSongConfigs(u); }}
                     className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm mb-2">
-                    {STYLE_KEYS.map((s) => (<option key={s} value={s}>{t(s)}</option>))}
+                    {AVAILABLE_MUSIC_STYLES.map((s) => (<option key={s} value={s}>{t(s)}</option>))}
                   </select>
                   <input type="text" maxLength={500} value={config.prompt}
                     onChange={(e) => { const u = [...songConfigs]; u[i].prompt = e.target.value; setSongConfigs(u); }}
