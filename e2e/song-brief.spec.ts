@@ -77,7 +77,9 @@ test("submits the reviewed lyrics using the proven Suno V6 custom-mode payload",
     theme: "lullaby", musicStyle: "gentle", callbackTarget: { kind: "song" as const, id: "fixture" },
   };
   const previousSecret = process.env.SUNO_WEBHOOK_SECRET;
+  const previousKey = process.env.SUNO_API_KEY;
   process.env.SUNO_WEBHOOK_SECRET = "fixture";
+  process.env.SUNO_API_KEY = "fixture";
   const provider = mock.method(globalThis, "fetch", async (_: unknown, init: RequestInit) => {
     const payload = JSON.parse(String(init.body));
     expect(payload).toMatchObject({
@@ -91,6 +93,8 @@ test("submits the reviewed lyrics using the proven Suno V6 custom-mode payload",
     expect(await startSunoGeneration(opts)).toBe("fixture");
   } finally {
     provider.mock.restore();
+    if (previousKey === undefined) delete process.env.SUNO_API_KEY;
+    else process.env.SUNO_API_KEY = previousKey;
     if (previousSecret === undefined) delete process.env.SUNO_WEBHOOK_SECRET;
     else process.env.SUNO_WEBHOOK_SECRET = previousSecret;
   }
