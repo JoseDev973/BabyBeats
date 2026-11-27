@@ -94,7 +94,7 @@ export async function settleSong(
       const lang = song.language === "en" ? "en" : "es";
       const songUrl = song.share_token ? `${getAppUrl()}/share/${song.share_token}` : `${getAppUrl()}/${lang}/my-songs`;
       await sendReadyEmail(song.user_id, getSongReadySubject(song.child_name, lang),
-        songReadyEmail({ childName: song.child_name, songUrl, lang }));
+        songReadyEmail({ childName: song.child_name, songUrl, lang, coverUrl: image }));
     }
   }
   return null;
