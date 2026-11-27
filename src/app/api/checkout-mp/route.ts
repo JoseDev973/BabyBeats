@@ -4,6 +4,7 @@ import { getMercadoPago, CREDIT_PACKS_COP, CreditPackKey } from "@/lib/mercado-p
 import { createClient } from "@/lib/supabase/server";
 import { getAppUrl } from "@/lib/utils";
 import { purchaseReturnParams } from "@/lib/analytics";
+import { metaContextFromRequest } from "@/lib/meta-capi";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -44,6 +45,8 @@ export async function GET(request: Request) {
             currency_id: "COP",
           },
         ],
+        // Copied by Mercado Pago to payment.metadata; read by the webhook for Meta CAPI.
+        metadata: metaContextFromRequest(request),
         external_reference: JSON.stringify({
           user_id: user.id,
           pack,

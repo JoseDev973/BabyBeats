@@ -23,7 +23,7 @@ const CONTENT = {
       },
       {
         heading: "4. Cookies",
-        body: `BabyBeats uses essential cookies for authentication and session management. We also use Vercel Analytics and Google Analytics to understand how visitors use the site (pages visited, songs started, checkouts started), and the Meta Pixel to measure and improve our ads on Facebook and Instagram (pages visited, sign-ups, checkouts and purchases). Google Analytics and the Meta Pixel set their own cookies. We do not sell your data.`,
+        body: `BabyBeats uses essential cookies for authentication and session management. We also use Vercel Analytics and Google Analytics to understand how visitors use the site (pages visited, songs started, checkouts started), and the Meta Pixel to measure and improve our ads on Facebook and Instagram (pages visited, sign-ups, checkouts and purchases). Google Analytics and the Meta Pixel set their own cookies. When you complete a purchase, our server also reports it to Meta (Conversions API) with a hashed, non-readable version of your email, so our ads are measured correctly. We do not sell your data.`,
       },
       {
         heading: "5. Data Retention",
@@ -69,7 +69,7 @@ const CONTENT = {
       },
       {
         heading: "4. Cookies",
-        body: `BabyBeats usa cookies esenciales para autenticación y gestión de sesiones. También usamos Vercel Analytics y Google Analytics para entender cómo se usa el sitio (páginas visitadas, canciones iniciadas, pagos iniciados), y el Píxel de Meta para medir y mejorar nuestros anuncios en Facebook e Instagram (páginas visitadas, registros, pagos iniciados y compras). Google Analytics y el Píxel de Meta usan sus propias cookies. No vendemos tus datos.`,
+        body: `BabyBeats usa cookies esenciales para autenticación y gestión de sesiones. También usamos Vercel Analytics y Google Analytics para entender cómo se usa el sitio (páginas visitadas, canciones iniciadas, pagos iniciados), y el Píxel de Meta para medir y mejorar nuestros anuncios en Facebook e Instagram (páginas visitadas, registros, pagos iniciados y compras). Google Analytics y el Píxel de Meta usan sus propias cookies. Cuando completas una compra, nuestro servidor también se la reporta a Meta (API de conversiones) con una versión cifrada e ilegible de tu correo, para medir bien nuestros anuncios. No vendemos tus datos.`,
       },
       {
         heading: "5. Retención de Datos",
