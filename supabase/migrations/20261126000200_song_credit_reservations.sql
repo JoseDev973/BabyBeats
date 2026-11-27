@@ -2,19 +2,22 @@
 -- a null reservation so their balances and transaction history are untouched.
 alter table public.generated_songs
   add column if not exists suno_task_id text,
-  add column audio_reservation_id uuid;
+  add column if not exists audio_reservation_id uuid;
 
 -- While a credit is held, only a trusted server writer can change or delete
 -- the song. Ordinary draft inserts and edits retain their existing RLS rules.
+drop policy if exists "Clients cannot insert credit reservations" on public.generated_songs;
 create policy "Clients cannot insert credit reservations" on public.generated_songs
   as restrictive for insert to authenticated, anon with check (audio_reservation_id is null);
+drop policy if exists "Clients cannot change reserved songs" on public.generated_songs;
 create policy "Clients cannot change reserved songs" on public.generated_songs
   as restrictive for update to authenticated, anon
   using (audio_reservation_id is null) with check (audio_reservation_id is null);
+drop policy if exists "Clients cannot delete reserved songs" on public.generated_songs;
 create policy "Clients cannot delete reserved songs" on public.generated_songs
   as restrictive for delete to authenticated, anon using (audio_reservation_id is null);
 
-create function public.reserve_song_audio(p_user_id uuid, p_song_id uuid, p_lyrics text)
+create or replace function public.reserve_song_audio(p_user_id uuid, p_song_id uuid, p_lyrics text)
 returns jsonb
 language plpgsql set search_path = '' as $$
 declare
@@ -29,6 +32,9 @@ begin
     return jsonb_build_object('outcome', 'not_found');
   end if;
   if song.status in ('generating', 'completed') then
+    if p_lyrics is not null and p_lyrics is distinct from song.lyrics then
+      return jsonb_build_object('outcome', 'lyrics_already_submitted');
+    end if;
     return jsonb_build_object('outcome', song.status, 'task_id', song.suno_task_id);
   end if;
   song.lyrics := coalesce(p_lyrics, song.lyrics);
@@ -61,7 +67,28 @@ $$;
 revoke all on function public.reserve_song_audio(uuid, uuid, text) from public, anon, authenticated;
 grant execute on function public.reserve_song_audio(uuid, uuid, text) to service_role;
 
-create function public.settle_song_audio() returns trigger
+-- The signed callback may beat the HTTP response, and the response to this
+-- write may itself be lost. Repeating the association never replaces a task.
+create or replace function public.attach_song_audio_task(p_song_id uuid, p_attempt uuid, p_task_id text)
+returns text language plpgsql set search_path = '' as $$
+declare
+  current_status text;
+begin
+  update public.generated_songs set suno_task_id = p_task_id, updated_at = now()
+    where id = p_song_id and audio_reservation_id = p_attempt
+      and status = 'generating' and suno_task_id is null;
+  if found then
+    return 'generating';
+  end if;
+  select status into current_status from public.generated_songs
+    where id = p_song_id and suno_task_id = p_task_id;
+  return coalesce(current_status, 'stale');
+end;
+$$;
+revoke all on function public.attach_song_audio_task(uuid, uuid, text) from public, anon, authenticated;
+grant execute on function public.attach_song_audio_task(uuid, uuid, text) to service_role;
+
+create or replace function public.settle_song_audio() returns trigger
 language plpgsql set search_path = '' as $$
 declare
   remaining_songs integer;
@@ -83,6 +110,7 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists settle_reserved_song_audio on public.generated_songs;
 create trigger settle_reserved_song_audio before update of status on public.generated_songs
   for each row when (old.audio_reservation_id is not null and old.status = 'generating'
     and new.status in ('completed', 'failed')) execute function public.settle_song_audio();

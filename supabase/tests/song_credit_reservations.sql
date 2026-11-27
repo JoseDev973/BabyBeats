@@ -7,6 +7,7 @@ declare
   second_song uuid;
   legacy_song uuid;
   previous_attempt uuid;
+  current_attempt uuid;
   result jsonb;
 begin
   insert into auth.users (id) values (owner_id);
@@ -23,7 +24,9 @@ begin
   assert result->>'outcome' = 'invalid_draft';
   result := reserve_song_audio(owner_id, first_song, 'Edited');
   assert result->>'outcome' = 'reserved' and result->>'lyrics' = 'Edited';
-  result := reserve_song_audio(owner_id, first_song, 'Duplicate');
+  result := reserve_song_audio(owner_id, first_song, 'Different edit');
+  assert result->>'outcome' = 'lyrics_already_submitted';
+  result := reserve_song_audio(owner_id, first_song, 'Edited');
   assert result->>'outcome' = 'generating';
   assert (select lyrics = 'Edited' from generated_songs where id = first_song);
   assert (select credits = 1 and total_songs_generated = 1 from profiles where id = owner_id);
@@ -46,10 +49,13 @@ begin
   result := reserve_song_audio(owner_id, second_song, null);
   previous_attempt := (result->>'attempt')::uuid;
   update generated_songs set status = 'failed' where id = second_song;
-  perform reserve_song_audio(owner_id, second_song, null);
-  update generated_songs set suno_task_id = 'obsolete' where id = second_song
-    and audio_reservation_id = previous_attempt;
-  assert not found;
+  result := reserve_song_audio(owner_id, second_song, null);
+  current_attempt := (result->>'attempt')::uuid;
+  assert attach_song_audio_task(second_song, previous_attempt, 'obsolete') = 'stale';
+  assert (select suno_task_id is null from generated_songs where id = second_song);
+  assert attach_song_audio_task(second_song, current_attempt, 'submitted') = 'generating';
+  assert attach_song_audio_task(second_song, current_attempt, 'submitted') = 'generating';
+  assert attach_song_audio_task(second_song, current_attempt, 'different') = 'stale';
   update generated_songs set status = 'failed' where id = second_song;
   update generated_songs set status = 'failed' where id = first_song;
   assert (select credits = 1 and total_songs_generated = 0 from profiles where id = owner_id);
@@ -58,8 +64,15 @@ begin
   update generated_songs set status = 'failed' where id = legacy_song;
   assert (select credits = 1 and total_songs_generated = 0 from profiles where id = owner_id);
 
-  perform reserve_song_audio(owner_id, first_song, null);
+  result := reserve_song_audio(owner_id, first_song, null);
+  current_attempt := (result->>'attempt')::uuid;
+  -- The callback attaches and completes before the original writer returns.
+  update generated_songs set suno_task_id = 'from-callback'
+    where id = first_song and audio_reservation_id = current_attempt and suno_task_id is null;
   update generated_songs set status = 'completed' where id = first_song;
+  assert attach_song_audio_task(first_song, current_attempt, 'from-callback') = 'completed';
+  result := reserve_song_audio(owner_id, first_song, 'Unsubmitted edit');
+  assert result->>'outcome' = 'lyrics_already_submitted';
   result := reserve_song_audio(owner_id, first_song, null);
   assert result->>'outcome' = 'completed';
   perform reserve_song_audio(owner_id, second_song, null);

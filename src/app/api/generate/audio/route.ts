@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { startSunoGeneration } from "@/lib/suno";
+import { startSunoGeneration, SunoSubmissionRejected } from "@/lib/suno";
 import { expireInterruptedSongStarts } from "@/lib/expire-song-starts";
 import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
 import { rateLimit } from "@/lib/rate-limit";
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     typeof editedLyrics !== "string" || !editedLyrics.trim() || editedLyrics.length > MAX_LYRICS_LENGTH
   )) {
     return NextResponse.json(
-      { error: `Lyrics must contain between 1 and ${MAX_LYRICS_LENGTH} characters.` },
+      { code: "invalid_lyrics", error: `Lyrics must contain between 1 and ${MAX_LYRICS_LENGTH} characters.` },
       { status: 400 },
     );
   }
@@ -58,8 +58,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ songId, status: song.outcome, taskId: song.task_id });
     case "not_found":
       return NextResponse.json({ error: "Song not found" }, { status: 404 });
+    case "lyrics_already_submitted":
+      return NextResponse.json({
+        code: "lyrics_already_submitted",
+        error: "This song was already submitted with different lyrics.",
+      }, { status: 409 });
     case "invalid_draft":
-      return NextResponse.json({ error: "Song needs valid lyrics" }, { status: 400 });
+      return NextResponse.json({ code: "invalid_lyrics", error: "Song needs valid lyrics" }, { status: 400 });
     case "no_credits":
       return NextResponse.json({ error: "No credits remaining. Please purchase more." }, { status: 402 });
     case "reserved":
@@ -77,25 +82,39 @@ export async function POST(request: Request) {
       theme: song.theme,
       language: song.language || "es",
       childName: song.child_name,
-      callbackTarget: { kind: "song", id: song.id },
+      callbackTarget: { kind: "song", id: song.id, attempt: song.attempt },
     });
   } catch (err) {
+    // A lost response can mean Suno already accepted the song. Let its signed
+    // callback attach the task, or let the stale-start window release it.
+    if (!(err instanceof SunoSubmissionRejected)) {
+      return NextResponse.json({ songId, status: "generating" }, { status: 202 });
+    }
     const { error: releaseError } = await admin.from("generated_songs")
       .update({ status: "failed", updated_at: new Date().toISOString() })
-      .eq("id", songId).eq("audio_reservation_id", song.attempt);
+      .eq("id", songId).eq("audio_reservation_id", song.attempt).is("suno_task_id", null);
     if (releaseError) console.error("Could not release song reservation", songId, releaseError.code);
     const message = err instanceof Error ? err.message : "Audio generation failed";
     return NextResponse.json({ error: message }, { status: 502 });
   }
 
-  const { data: saved, error: saveError } = await admin.from("generated_songs")
-    .update({ suno_task_id: taskId, updated_at: new Date().toISOString() })
-    .eq("id", songId).eq("audio_reservation_id", song.attempt)
-    .select("id").maybeSingle();
-  if (saveError || !saved) {
-    console.error("Could not attach provider task to song", songId, taskId);
-    return NextResponse.json({ error: "Could not confirm audio generation." }, { status: 503 });
+  // Retry the database write, never the paid provider request. If a callback
+  // already attached or settled the task, the RPC returns its current status.
+  for (let write = 0; write < 2; write++) {
+    const { data: status, error } = await admin.rpc("attach_song_audio_task", {
+      p_song_id: songId, p_attempt: song.attempt, p_task_id: taskId,
+    });
+    if (error) {
+      console.error("Could not record audio task", songId, taskId, error.code);
+      continue;
+    }
+    if (status === "stale") {
+      return NextResponse.json({ error: "This audio attempt has expired." }, { status: 409 });
+    }
+    return NextResponse.json({ taskId, songId, status });
   }
 
-  return NextResponse.json({ taskId, songId, status: "generating" });
+  // The status page can still recover from a provider callback sent after
+  // this response. A repeated POST sees the reservation and does not resubmit.
+  return NextResponse.json({ taskId, songId, status: "generating" }, { status: 202 });
 }
