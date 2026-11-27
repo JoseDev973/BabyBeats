@@ -96,7 +96,14 @@ export default function MySongsList({ songs, credits }: MySongsListProps) {
 
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">
-                    {t("songFor", { name: song.child_name })}
+                    {song.status === "completed" || song.status === "generating" ? (
+                      <Link
+                        href={`/create/generating/${song.id}`}
+                        className="underline underline-offset-2 hover:text-primary"
+                      >
+                        {t("songFor", { name: song.child_name })}
+                      </Link>
+                    ) : t("songFor", { name: song.child_name })}
                   </p>
                   <p className="text-xs text-muted-foreground flex items-center gap-2">
                     <span>{t(song.theme)}</span>
