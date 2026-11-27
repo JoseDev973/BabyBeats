@@ -30,12 +30,12 @@ export default function ChoiceGroup({ label, options, selected, onChange, disabl
           </label>
         ))}
       </div>
-      <button type="button" aria-expanded={expanded} aria-controls={id}
+      {options.length > 6 && <button type="button" aria-expanded={expanded} aria-controls={id}
         onClick={() => setExpanded(!expanded)}
         className="mt-2 inline-flex items-center gap-1 rounded px-1 py-1 text-sm font-semibold text-primary hover:underline">
         {t(expanded ? "showLess" : "showMore")}
         <ChevronDown aria-hidden="true" className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
-      </button>
+      </button>}
     </fieldset>
   );
 }
