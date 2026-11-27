@@ -23,7 +23,7 @@ const CONTENT = {
       },
       {
         heading: "4. Cookies",
-        body: `BabyBeats uses essential cookies for authentication and session management. We also use Vercel Analytics for basic, privacy-friendly usage analytics. We do not use third-party advertising cookies or tracking pixels.`,
+        body: `BabyBeats uses essential cookies for authentication and session management. We also use Vercel Analytics and Google Analytics to understand how visitors use the site (pages visited, songs started, checkouts started). Google Analytics sets its own cookies. We do not sell your data.`,
       },
       {
         heading: "5. Data Retention",
@@ -69,7 +69,7 @@ const CONTENT = {
       },
       {
         heading: "4. Cookies",
-        body: `BabyBeats usa cookies esenciales para autenticación y gestión de sesiones. También usamos Vercel Analytics para análisis básicos y respetuosos con la privacidad. No usamos cookies de publicidad de terceros ni píxeles de seguimiento.`,
+        body: `BabyBeats usa cookies esenciales para autenticación y gestión de sesiones. También usamos Vercel Analytics y Google Analytics para entender cómo se usa el sitio (páginas visitadas, canciones iniciadas, pagos iniciados). Google Analytics usa sus propias cookies. No vendemos tus datos.`,
       },
       {
         heading: "5. Retención de Datos",
