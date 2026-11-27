@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Gift, Loader2, Music, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GIFT_PACKS_COP } from "@/lib/mercado-pago/config";
+import { track } from "@/lib/analytics";
 
 const PACKS = [
   {
@@ -71,6 +72,7 @@ export default function GiftPage() {
         return;
       }
 
+      track("begin_checkout", { item_id: packType, payment_provider: provider });
       window.location.assign(data.url);
     } catch {
       setError(t("paymentError"));
