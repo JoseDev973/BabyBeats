@@ -36,22 +36,29 @@ export async function POST(request: Request) {
     .select("*")
     .eq("id", songId)
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (songError || !song) {
+  if (songError) {
+    return NextResponse.json({ error: "Could not load the song. Please retry." }, { status: 500 });
+  }
+  if (!song) {
     return NextResponse.json({ error: "Song not found" }, { status: 404 });
   }
 
   if (song.status === "generating" || song.status === "completed") {
-    return NextResponse.json(
-      { songId, status: song.status },
-    );
+    if (editedLyrics !== undefined && editedLyrics !== song.lyrics) {
+      return NextResponse.json(
+        { error: "Audio has already been requested with a different version of the lyrics.", code: "lyrics_already_submitted" },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json({ songId, status: song.status });
   }
 
   const lyrics = editedLyrics === undefined ? song.lyrics : editedLyrics;
   if (typeof lyrics !== "string" || !lyrics.trim() || lyrics.length > MAX_LYRICS_LENGTH) {
     return NextResponse.json(
-      { error: `Lyrics must contain between 1 and ${MAX_LYRICS_LENGTH} characters.` },
+      { error: `Lyrics must contain between 1 and ${MAX_LYRICS_LENGTH} characters.`, code: "invalid_lyrics" },
       { status: 400 },
     );
   }
