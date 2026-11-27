@@ -6,8 +6,9 @@ export async function settleCreditPurchase(
   paymentId: string,
   userId: string,
   pack: { name: string; credits: number },
+  onFirstSettle?: () => void,
 ) {
-  const { error } = await getSupabaseAdmin().rpc("settle_credit_purchase", {
+  const { data, error } = await getSupabaseAdmin().rpc("settle_credit_purchase", {
     p_provider: provider,
     p_payment_id: paymentId,
     p_user_id: userId,
@@ -18,5 +19,7 @@ export async function settleCreditPurchase(
     console.error(`[${provider}] Failed to apply credit purchase ${paymentId}`, error.code);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
+  // The RPC returns false for a retried webhook whose receipt already exists.
+  if (data === true) onFirstSettle?.();
   return NextResponse.json({ received: true });
 }

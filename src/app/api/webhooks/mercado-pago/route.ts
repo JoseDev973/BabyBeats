@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { Payment } from "mercadopago";
 import { createHmac } from "crypto";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/lib/mercado-pago/config";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { settleCreditPurchase } from "@/lib/settle-credit-purchase";
+import { sendMetaPurchase } from "@/lib/meta-capi";
 
 function verifySignature(request: Request): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET;
@@ -101,12 +102,34 @@ export async function POST(request: Request) {
     console.error(`[MP Webhook] Credit payment ${paymentId} amount mismatch`);
     return NextResponse.json({ received: true });
   }
-  return settleCreditPurchase("mercado_pago", String(payment.id ?? paymentId), userId, selectedPack);
+  const mpPaymentId = String(payment.id ?? paymentId);
+  return settleCreditPurchase("mercado_pago", mpPaymentId, userId, selectedPack, () =>
+    after(() => sendMetaPurchase(mpPurchase(payment, mpPaymentId, userId, pack))),
+  );
+}
+
+type MpPayment = {
+  transaction_amount?: number;
+  currency_id?: string;
+  payer?: { email?: string };
+  metadata?: Record<string, unknown>;
+};
+
+function mpPurchase(payment: MpPayment, paymentId: string, userId: string, itemId: string) {
+  return {
+    eventId: paymentId,
+    value: payment.transaction_amount ?? 0,
+    currency: payment.currency_id ?? "COP",
+    itemId,
+    userId,
+    email: payment.payer?.email,
+    context: payment.metadata,
+  };
 }
 
 async function handleGiftPayment(
   ref: { gift_id?: string; user_id?: string },
-  payment: { transaction_amount?: number; currency_id?: string },
+  payment: MpPayment,
   paymentId: string,
 ) {
   if (!ref.gift_id || !ref.user_id) {
@@ -140,7 +163,7 @@ async function handleGiftPayment(
     return NextResponse.json({ received: true });
   }
 
-  const { error } = await supabaseAdmin
+  const { data: updated, error } = await supabaseAdmin
     .from("gifts")
     .update({
       paid_at: new Date().toISOString(),
@@ -148,11 +171,17 @@ async function handleGiftPayment(
       updated_at: new Date().toISOString(),
     })
     .eq("id", gift.id)
-    .is("paid_at", null);
+    .is("paid_at", null)
+    .select("id");
 
   if (error) {
     console.error(`[MP Webhook] Failed to mark gift ${gift.id} paid:`, error);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
+  }
+
+  // Only the delivery that actually marked the gift paid reports the purchase.
+  if (updated?.length) {
+    after(() => sendMetaPurchase(mpPurchase(payment, paymentId, ref.user_id!, `gift_${gift.pack_type}`)));
   }
 
   return NextResponse.json({ received: true });

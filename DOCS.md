@@ -469,6 +469,8 @@ Cancion completada → share_token generado automaticamente
 | `STRIPE_MEGA_PACK_PRICE_ID` | Vercel | price_xxx para Mega Pack (25 creditos, $19.99) |
 | `MP_ACCESS_TOKEN` | Vercel | Token de Mercado Pago |
 | `MP_WEBHOOK_SECRET` | Vercel | Secret de webhook de MP |
+| `META_CAPI_ACCESS_TOKEN` | Vercel | Token de la API de conversiones de Meta (pixel BabyBeats Web). Sin él, no se envían compras desde el servidor |
+| `META_CAPI_TEST_EVENT_CODE` | Vercel (opcional) | Código de "Probar eventos"; solo mientras se valida |
 
 ### Emails
 

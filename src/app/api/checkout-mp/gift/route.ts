@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrCreateUnpaidGift } from "@/lib/gifts";
 import { getAppUrl } from "@/lib/utils";
 import { purchaseReturnParams } from "@/lib/analytics";
+import { metaContextFromRequest } from "@/lib/meta-capi";
 
 /**
  * Starts a Mercado Pago (COP) checkout for a gift album.
@@ -48,6 +49,8 @@ export async function POST(request: Request) {
             currency_id: "COP",
           },
         ],
+        // Copied by Mercado Pago to payment.metadata; read by the webhook for Meta CAPI.
+        metadata: metaContextFromRequest(request),
         external_reference: JSON.stringify({
           type: "gift",
           gift_id: gift.id,

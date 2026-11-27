@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getAppUrl } from "@/lib/utils";
 import { purchaseReturnParams } from "@/lib/analytics";
+import { metaContextFromRequest, type MetaBrowserContext } from "@/lib/meta-capi";
 
 type PackKey = keyof typeof CREDIT_PACKS;
 
@@ -51,7 +52,12 @@ async function getValidCustomerId(
   return customer.id;
 }
 
-async function createCheckoutUrl(userId: string, email: string | undefined, pack: PackKey) {
+async function createCheckoutUrl(
+  userId: string,
+  email: string | undefined,
+  pack: PackKey,
+  metaContext: MetaBrowserContext,
+) {
   const selectedPack = CREDIT_PACKS[pack];
   const amountCents = Math.round(selectedPack.price * 100);
   const supabase = await createClient();
@@ -80,7 +86,7 @@ async function createCheckoutUrl(userId: string, email: string | undefined, pack
     mode: "payment",
     success_url: `${getAppUrl()}/profile?success=true&${purchaseReturnParams(pack, amountCents / 100, "USD", "{CHECKOUT_SESSION_ID}")}`,
     cancel_url: `${getAppUrl()}/pricing?canceled=true`,
-    metadata: { supabase_user_id: userId, pack, amount_usd_cents: String(amountCents) },
+    metadata: { supabase_user_id: userId, pack, amount_usd_cents: String(amountCents), ...metaContext },
   });
 
   return session.url;
@@ -112,7 +118,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const url = await createCheckoutUrl(user.id, user.email, pack);
+    const url = await createCheckoutUrl(user.id, user.email, pack, metaContextFromRequest(request));
     return NextResponse.redirect(url ?? fallback);
   } catch (err) {
     console.error("[checkout] Stripe error:", err);
@@ -141,7 +147,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const url = await createCheckoutUrl(user.id, user.email, pack);
+    const url = await createCheckoutUrl(user.id, user.email, pack, metaContextFromRequest(request));
     if (!url) {
       return NextResponse.json({ error: "Failed to create payment link" }, { status: 502 });
     }

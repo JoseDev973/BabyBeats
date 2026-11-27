@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getStripe, CREDIT_PACKS } from "@/lib/stripe/config";
 import { GIFT_PACKS_USD } from "@/lib/stripe/credit-packs";
 import { isGiftPack } from "@/lib/mercado-pago/config";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import Stripe from "stripe";
 import { settleCreditPurchase } from "@/lib/settle-credit-purchase";
+import { sendMetaPurchase } from "@/lib/meta-capi";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -53,7 +54,9 @@ export async function POST(request: Request) {
           console.error(`[Stripe Webhook] Credit payment ${session.id} amount mismatch`);
           return NextResponse.json({ received: true });
         }
-        return settleCreditPurchase("stripe", session.id, userId, pack);
+        return settleCreditPurchase("stripe", session.id, userId, pack, () =>
+          after(() => sendMetaPurchase(stripePurchase(session, userId, packKey))),
+        );
       }
 
       // Handle subscription (existing logic)
@@ -149,7 +152,7 @@ async function handleGiftPayment(session: Stripe.Checkout.Session, userId: strin
     return NextResponse.json({ received: true });
   }
 
-  const { error } = await admin
+  const { data: updated, error } = await admin
     .from("gifts")
     .update({
       paid_at: new Date().toISOString(),
@@ -157,12 +160,30 @@ async function handleGiftPayment(session: Stripe.Checkout.Session, userId: strin
       updated_at: new Date().toISOString(),
     })
     .eq("id", gift.id)
-    .is("paid_at", null);
+    .is("paid_at", null)
+    .select("id");
 
   if (error) {
     console.error(`[Stripe Webhook] Failed to mark gift ${gift.id} paid:`, error);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
+  // Only the delivery that actually marked the gift paid reports the purchase.
+  if (updated?.length) {
+    after(() => sendMetaPurchase(stripePurchase(session, userId, `gift_${gift.pack_type}`)));
+  }
+
   return NextResponse.json({ received: true });
+}
+
+function stripePurchase(session: Stripe.Checkout.Session, userId: string, itemId: string) {
+  return {
+    eventId: session.id,
+    value: (session.amount_total ?? 0) / 100,
+    currency: session.currency ?? "usd",
+    itemId,
+    userId,
+    email: session.customer_details?.email ?? session.customer_email,
+    context: session.metadata,
+  };
 }

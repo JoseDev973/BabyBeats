@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrCreateUnpaidGift } from "@/lib/gifts";
 import { getAppUrl } from "@/lib/utils";
 import { purchaseReturnParams } from "@/lib/analytics";
+import { metaContextFromRequest } from "@/lib/meta-capi";
 
 /**
  * Starts a Stripe (USD) checkout for a gift album.
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
       ],
       success_url: `${returnUrl}?payment=success&${purchaseReturnParams(`gift_${gift.pack_type}`, pack.price, "USD", "{CHECKOUT_SESSION_ID}")}`,
       cancel_url: `${returnUrl}?payment=failure`,
-      metadata: { type: "gift", gift_id: gift.id, supabase_user_id: user.id },
+      metadata: { type: "gift", gift_id: gift.id, supabase_user_id: user.id, ...metaContextFromRequest(request) },
     });
 
     if (!session.url) {
