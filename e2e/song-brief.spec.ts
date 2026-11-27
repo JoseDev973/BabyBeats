@@ -23,6 +23,9 @@ test("validates the same brief that will be saved and used for lyrics", () => {
   expect(parseSongBrief({ ...brief, childName: "  " })).toBeNull();
   expect(parseSongBrief({ ...brief, childName: "小".repeat(101) })).toBeNull();
   expect(parseSongBrief({ ...brief, musicStyle: "unknown" })).toBeNull();
+  const audition = { ...brief, musicStyle: "cumbia", language: "ja" };
+  expect(parseSongBrief(audition, "saved")).toEqual(audition);
+  expect(parseSongBrief(audition) !== null).toBe(process.env.NEXT_PUBLIC_PREVIEW_MUSIC_STYLES === "true");
   expect(JSON.parse(buildLyricsPrompt({ ...brief, customPrompt: null })).familyRequest).toBeNull();
 });
 
