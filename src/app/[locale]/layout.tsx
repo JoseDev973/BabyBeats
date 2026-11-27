@@ -65,6 +65,10 @@ export async function generateMetadata({
     icons: {
       icon: "/icon.svg",
     },
+    // Meta Business (portfolio BabyBeats) → Seguridad de la marca → Dominios
+    verification: {
+      other: { "facebook-domain-verification": "pece7ud95g0kumcegw00um4qqx52dy" },
+    },
     keywords: [
       "baby songs",
       "AI music",
