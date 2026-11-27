@@ -30,6 +30,18 @@ test.describe("Home page", () => {
     await expect(page.getByRole("button", { name: /Reproducir/i }).first()).toBeVisible();
   });
 
+  test("playing the second lullaby demo pauses the hero even when both use the same MP3", async ({ page }) => {
+    await page.goto("/es");
+    const demos = page.locator("audio[src$='cuna-sofia.mp3']");
+    await expect(demos).toHaveCount(2);
+    for (const demo of await demos.all()) {
+      await demo.locator("..").getByRole("button").click();
+      await expect(demo).toHaveJSProperty("paused", false);
+    }
+    await expect(demos.first()).toHaveJSProperty("paused", true);
+    await expect(demos.last().locator("..").getByRole("button")).toHaveAccessibleName(/pausar/i);
+  });
+
   test("language toggle ES/EN works", async ({ page }) => {
     await page.goto("/es");
     await page.getByRole("link", { name: "EN", exact: true }).click();

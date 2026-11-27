@@ -52,6 +52,7 @@ async function getValidCustomerId(
 
 async function createCheckoutUrl(userId: string, email: string | undefined, pack: PackKey) {
   const selectedPack = CREDIT_PACKS[pack];
+  const amountCents = Math.round(selectedPack.price * 100);
   const supabase = await createClient();
 
   const { data: profile } = await supabase
@@ -67,7 +68,7 @@ async function createCheckoutUrl(userId: string, email: string | undefined, pack
     line_items: [{
       price_data: {
         currency: "usd",
-        unit_amount: Math.round(selectedPack.price * 100),
+        unit_amount: amountCents,
         product_data: {
           name: `BabyBeats ${selectedPack.name}`,
           description: `${selectedPack.credits} personalized songs`,
@@ -78,7 +79,7 @@ async function createCheckoutUrl(userId: string, email: string | undefined, pack
     mode: "payment",
     success_url: `${getAppUrl()}/profile?success=true`,
     cancel_url: `${getAppUrl()}/pricing?canceled=true`,
-    metadata: { supabase_user_id: userId, pack },
+    metadata: { supabase_user_id: userId, pack, amount_usd_cents: String(amountCents) },
   });
 
   return session.url;

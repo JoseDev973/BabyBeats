@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import styles from "./landing.module.css";
-
-const EVENT = "newweb:play";
 
 type Props = {
   src: string;
@@ -24,26 +23,21 @@ function fmt(s: number) {
 const BARS = [6, 10, 16, 12, 20, 14, 9, 18, 24, 15, 11, 19, 26, 17, 10, 14, 22, 13, 8, 16, 21, 12, 9, 15, 19, 11, 7, 13, 17, 10];
 
 export default function DemoPlayer({ src, title, playLabel, pauseLabel, variant = "inline", eyebrow }: Props) {
+  const t = useTranslations("player");
+  const [failed, setFailed] = useState(false);
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // Only one demo plays at a time
-  useEffect(() => {
-    const onOther = (e: Event) => {
-      if ((e as CustomEvent<string>).detail !== src) audio.current?.pause();
-    };
-    window.addEventListener(EVENT, onOther);
-    return () => window.removeEventListener(EVENT, onOther);
-  }, [src]);
-
   function toggle() {
     const a = audio.current;
     if (!a) return;
     if (a.paused) {
-      window.dispatchEvent(new CustomEvent(EVENT, { detail: src }));
-      void a.play();
+      if (a.error) a.load();
+      void a.play().catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === "AbortError")) setFailed(true);
+      });
     } else {
       a.pause();
     }
@@ -57,7 +51,14 @@ export default function DemoPlayer({ src, title, playLabel, pauseLabel, variant 
         ref={audio}
         src={src}
         preload="metadata"
-        onPlay={() => setPlaying(true)}
+        onPlaying={() => {
+          setFailed(false);
+          setPlaying(true);
+        }}
+        onError={() => {
+          setPlaying(false);
+          setFailed(true);
+        }}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
         onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
@@ -88,7 +89,7 @@ export default function DemoPlayer({ src, title, playLabel, pauseLabel, variant 
           ))}
         </div>
         <span className={styles.playerTime}>
-          {duration ? `${fmt(time)} / ${fmt(duration)}` : "\u00a0"}
+          {failed ? <span role="alert">{t("playbackError")}</span> : duration ? `${fmt(time)} / ${fmt(duration)}` : "\u00a0"}
         </span>
       </div>
     </div>
