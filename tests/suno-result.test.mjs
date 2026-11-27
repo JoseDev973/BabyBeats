@@ -10,6 +10,14 @@ test("the callback signature is specific to this song and gift type", () => {
     const target = { kind: "song", id: "123" };
     const url = new URL(callbackUrl("https://example.test", target));
     assert.deepEqual(verifyCallback(url), target);
+    const attempt = "00000000-0000-4000-8000-000000000001";
+    const signed = new URL(callbackUrl("https://example.test", { ...target, attempt }));
+    assert.deepEqual(verifyCallback(signed), { ...target, attempt });
+    signed.searchParams.delete("attempt");
+    assert.equal(verifyCallback(signed), null);
+    url.searchParams.set("attempt", attempt);
+    assert.equal(verifyCallback(url), null);
+    url.searchParams.delete("attempt");
     url.searchParams.set("kind", "gift");
     assert.equal(verifyCallback(url), null);
     url.searchParams.set("kind", "song");
