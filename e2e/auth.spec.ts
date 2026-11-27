@@ -85,3 +85,22 @@ test("expired confirmation links explain how to recover in the original language
   await expect(page).toHaveURL(/\/pt\/auth\/login\?error=auth_failed/);
   await expect(page.getByRole("alert").filter({ hasText: /link não é mais válido/i })).toBeVisible();
 });
+
+test("shows Google signup failures after requesting email confirmation", async ({ page }) => {
+  await page.route("**/auth/v1/signup**", (route) => route.fulfill({
+    json: { id: "00000000-0000-4000-8000-000000000001", email: "listener@example.test", identities: [] },
+  }));
+  await page.goto("/en/auth/signup");
+  await page.locator('input[type="email"]').fill("listener@example.test");
+  await page.locator('input[type="password"]').first().fill("fixture-password");
+  await page.locator('input[type="password"]').last().fill("fixture-password");
+  await page.locator('main button[type="submit"]').click();
+  await expect(page.getByRole("status")).toContainText(/check your inbox/i);
+
+  // Force a local OAuth initialization failure before any redirect to Google.
+  await page.evaluate(() => {
+    crypto.subtle.digest = async () => { throw new Error("Local WebCrypto failure"); };
+  });
+  await page.getByRole("button", { name: /google/i }).click();
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText(/could not connect to Google/i);
+});

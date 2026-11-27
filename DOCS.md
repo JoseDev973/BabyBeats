@@ -36,7 +36,7 @@
 | Stripe | 21.0.1 | Pagos (tarjeta internacional) |
 | Mercado Pago | 2.12.0 | Pagos (LATAM) |
 | Anthropic Claude | claude-sonnet-4-20250514 | Generacion de letras |
-| Suno API | sunoapi.org | Generacion de audio |
+| Suno API | sunoapi.org | Generacion de audio con V6 (modo personalizado, duración solicitada de 110 s) |
 | Resend | 6.10.0 | Emails transaccionales |
 | next-intl | 4.8.3 | i18n (4 idiomas) |
 | Playwright | 1.59.1 | E2E testing |
@@ -241,7 +241,7 @@ supabase/migrations/
 |---|---|---|---|
 | `/api/webhooks/stripe` | POST | Signature | Maneja checkout.session.completed, subscription updates |
 | `/api/webhooks/mercado-pago` | POST | HMAC | Verifica firma HMAC. Maneja pagos aprobados. Unique constraint en mp_payment_id. |
-| `/api/webhooks/suno` | POST | Bearer | SUNO_WEBHOOK_SECRET obligatorio. Actualiza generated_songs Y gift_songs. Envia email cuando completa. |
+| `/api/webhooks/suno` | POST | HMAC | URL firmada con SUNO_WEBHOOK_SECRET por canción. Confirma el resultado con record-info y guarda las pistas. |
 
 ### Gifts
 
@@ -416,16 +416,16 @@ Cancion completada → share_token generado automaticamente
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 
 ### Validacion de input
-- **childName:** Max 100 chars, sanitizado con `.replace(/[<>"'&]/g, '')`
-- **customPrompt:** Max 500 chars, strip de keywords de inyeccion (ignore/previous/instructions/system/prompt)
+- **childName:** Hasta 100 caracteres. Se conserva el nombre en su escritura original.
+- **customPrompt:** Hasta 500 caracteres en el formulario de canciones. El pedido familiar se envía a Claude en el mensaje de usuario, separado de las instrucciones de composición.
 - **theme:** Allowlist `['lullaby', 'educational', 'fun']`
-- **language:** Allowlist `['es', 'en', 'pt', 'fr', 'de', 'it']`
+- **language y musicStyle:** Se validan contra los idiomas y estilos configurados para generar canciones.
 - **priceId (Stripe):** Validado contra env vars reales
 
 ### Webhooks
 - **Stripe:** Verificacion de firma con `stripe.webhooks.constructEvent`
 - **Mercado Pago:** HMAC signature verification
-- **Suno:** Bearer token obligatorio (SUNO_WEBHOOK_SECRET), retorna 503 si no configurado
+- **Suno:** URL firmada por canción (SUNO_WEBHOOK_SECRET). Las consultas autenticadas de estado recuperan resultados si el callback falla.
 
 ### Rate Limiting
 - In-memory Map, 60 req/min por IP

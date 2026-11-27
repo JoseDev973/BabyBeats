@@ -26,7 +26,7 @@ export default function SongCard({
 }: SongCardProps) {
   const t = useTranslations("songs");
   const common = useTranslations("common");
-  const { currentSong, isPlaying, play, togglePlay } = usePlayer();
+  const { currentSong, canPause, play, togglePlay } = usePlayer();
 
   const isCurrentSong = currentSong?.id === song.id;
   const isLocked = song.is_premium && !isPremiumUser;
@@ -49,7 +49,7 @@ export default function SongCard({
       <button
         type="button"
         disabled={isLocked}
-        aria-label={`${isLocked ? t("premiumLocked") : common(isCurrentSong && isPlaying ? "pause" : "play")} · ${song.title}`}
+        aria-label={`${isLocked ? t("premiumLocked") : common(isCurrentSong && canPause ? "pause" : "play")} · ${song.title}`}
         className="absolute inset-0 z-10 rounded-lg disabled:cursor-not-allowed"
         onClick={handlePlay}
       />
@@ -68,7 +68,7 @@ export default function SongCard({
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
           {isLocked ? (
             <Lock className="h-4 w-4 text-white" />
-          ) : isCurrentSong && isPlaying ? (
+          ) : isCurrentSong && canPause ? (
             <Pause className="h-4 w-4 text-white" />
           ) : (
             <Play className="h-4 w-4 text-white ml-0.5" />

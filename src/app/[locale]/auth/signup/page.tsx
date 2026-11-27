@@ -132,6 +132,11 @@ export default function SignupPage() {
             </div>
           </div>
 
+          {error && (
+            <p role="alert" className="mb-4 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
           {confirmationSent && (
             <p role="status" className="text-center text-sm">{t("confirmEmail")}</p>
           )}
@@ -194,12 +199,6 @@ export default function SignupPage() {
                 />
               </div>
             </div>
-
-            {error && (
-              <p role="alert" className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
-                {error}
-              </p>
-            )}
 
             <button
               type="submit"

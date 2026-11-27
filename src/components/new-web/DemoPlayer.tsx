@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type SyntheticEvent } from "react";
 import { useTranslations } from "next-intl";
+import { canPausePlayback, readPlaybackState, type PlaybackState } from "@/lib/playback-state";
 import styles from "./landing.module.css";
 
 type Props = {
@@ -24,9 +25,10 @@ const BARS = [6, 10, 16, 12, 20, 14, 9, 18, 24, 15, 11, 19, 26, 17, 10, 14, 22, 
 
 export default function DemoPlayer({ src, title, playLabel, pauseLabel, variant = "inline", eyebrow }: Props) {
   const t = useTranslations("player");
-  const [failed, setFailed] = useState(false);
+  const common = useTranslations("common");
   const audio = useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = useState(false);
+  const [playback, setPlayback] = useState<PlaybackState>("paused");
+  const canPause = canPausePlayback(playback);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -36,11 +38,15 @@ export default function DemoPlayer({ src, title, playLabel, pauseLabel, variant 
     if (a.paused) {
       if (a.error) a.load();
       void a.play().catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === "AbortError")) setFailed(true);
+        if (!(error instanceof DOMException && error.name === "AbortError")) setPlayback("error");
       });
     } else {
       a.pause();
     }
+  }
+
+  function syncPlayback(event: SyntheticEvent<HTMLAudioElement>) {
+    setPlayback(readPlaybackState(event.currentTarget));
   }
 
   const progress = duration ? time / duration : 0;
@@ -51,16 +57,12 @@ export default function DemoPlayer({ src, title, playLabel, pauseLabel, variant 
         ref={audio}
         src={src}
         preload="metadata"
-        onPlaying={() => {
-          setFailed(false);
-          setPlaying(true);
-        }}
-        onError={() => {
-          setPlaying(false);
-          setFailed(true);
-        }}
-        onPause={() => setPlaying(false)}
-        onEnded={() => setPlaying(false)}
+        onPlay={syncPlayback}
+        onPlaying={syncPlayback}
+        onWaiting={syncPlayback}
+        onPause={syncPlayback}
+        onEnded={syncPlayback}
+        onError={syncPlayback}
         onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
       />
@@ -68,9 +70,9 @@ export default function DemoPlayer({ src, title, playLabel, pauseLabel, variant 
         type="button"
         className={styles.playButton}
         onClick={toggle}
-        aria-label={`${playing ? pauseLabel : playLabel}: ${title}`}
+        aria-label={`${canPause ? pauseLabel : playLabel}: ${title}`}
       >
-        {playing ? (
+        {canPause ? (
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
         ) : (
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>
@@ -89,7 +91,10 @@ export default function DemoPlayer({ src, title, playLabel, pauseLabel, variant 
           ))}
         </div>
         <span className={styles.playerTime}>
-          {failed ? <span role="alert">{t("playbackError")}</span> : duration ? `${fmt(time)} / ${fmt(duration)}` : "\u00a0"}
+          {playback === "error" && <span role="alert">{t("playbackError")}</span>}
+          {playback === "loading" && common("loading")}
+          {(playback === "paused" || playback === "playing") &&
+            (duration ? `${fmt(time)} / ${fmt(duration)}` : "\u00a0")}
         </span>
       </div>
     </div>
