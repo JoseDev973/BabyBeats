@@ -1,0 +1,2 @@
+export const SUPPORT_EMAIL_MAX_LENGTH = 254;
+export const SUPPORT_MESSAGE_MAX_LENGTH = 4000;
