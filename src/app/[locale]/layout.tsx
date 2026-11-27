@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { PlayerProvider } from "@/hooks/usePlayer";
 import SiteHeader from "@/components/layout/SiteHeader";
+import SupportWidget from "@/components/layout/SupportWidget";
 import Footer from "@/components/layout/Footer";
 import AudioPlayer from "@/components/player/AudioPlayer";
 import { Analytics } from "@vercel/analytics/react";
@@ -117,6 +118,7 @@ export default async function LocaleLayout({
             <main className="flex-1">{children}</main>
             <Footer />
             <AudioPlayer />
+            <SupportWidget />
           </PlayerProvider>
           <Analytics />
         </NextIntlClientProvider>

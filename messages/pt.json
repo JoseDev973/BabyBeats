@@ -1,4 +1,18 @@
 {
+  "support": {
+    "button": "Ajuda",
+    "title": "Como podemos ajudar?",
+    "intro": "Envie sua mensagem e responderemos por e-mail.",
+    "email": "Seu e-mail",
+    "message": "Sua mensagem",
+    "send": "Enviar mensagem",
+    "sending": "Enviando…",
+    "sent": "Mensagem enviada. Vamos responder para {email}.",
+    "close": "Fechar",
+    "invalid": "Confira seu e-mail e escreva uma mensagem.",
+    "failed": "Não conseguimos enviar sua mensagem. Tente novamente.",
+    "limited": "Você enviou várias mensagens. Tente novamente em alguns minutos."
+  },
   "common": {
     "appName": "BabyBeats",
     "tagline": "Músicas feitas com IA para o seu bebê",

@@ -1,4 +1,18 @@
 {
+  "support": {
+    "button": "Aide",
+    "title": "Comment pouvons-nous vous aider ?",
+    "intro": "Écrivez-nous et nous vous répondrons par e-mail.",
+    "email": "Votre adresse e-mail",
+    "message": "Votre message",
+    "send": "Envoyer le message",
+    "sending": "Envoi en cours…",
+    "sent": "Message envoyé. Nous vous répondrons à {email}.",
+    "close": "Fermer",
+    "invalid": "Vérifiez votre adresse e-mail et saisissez un message.",
+    "failed": "Votre message n’a pas pu être envoyé. Veuillez réessayer.",
+    "limited": "Vous avez envoyé plusieurs messages. Réessayez dans quelques minutes."
+  },
   "common": {
     "appName": "BabyBeats",
     "tagline": "Chansons créées par IA pour votre bébé",
