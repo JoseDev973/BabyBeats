@@ -8,38 +8,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { GIFT_PACKS_COP, isGiftPack } from "@/lib/mercado-pago/config";
 import { startSunoGeneration, SunoSubmissionRejected } from "@/lib/suno";
-import { buildLyricsPrompt } from "@/lib/song-prompts";
-import type { GiftSong, SongTheme } from "@/types/database";
-
-async function generateLyrics(
-  childName: string,
-  theme: SongTheme,
-  musicStyle: string,
-  language: string,
-  customPrompt: string | null,
-): Promise<string> {
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const message = await new Anthropic().messages.create({
-    model: "claude-opus-5",
-    // max_tokens covers thinking + text on claude-opus-5
-    max_tokens: 10000,
-    messages: [
-      {
-        role: "user",
-        content: buildLyricsPrompt({
-          childName: childName.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, "").slice(0, 50),
-          theme,
-          musicStyle,
-          language,
-          customPrompt,
-        }),
-      },
-    ],
-  });
-
-  const textBlock = message.content.find((b) => b.type === "text");
-  return textBlock?.type === "text" ? textBlock.text : "";
-}
+import { parseSongBrief } from "@/lib/song-prompts";
+import { generateLyrics } from "@/lib/generate-lyrics";
+import { MAX_LYRICS_LENGTH } from "@/lib/lyrics-limits";
+import type { GiftSong } from "@/types/database";
 
 // Up to 10 songs (Claude lyrics + Suno kickoff) run in parallel
 export const maxDuration = 300;
@@ -55,7 +27,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const { giftId, settings } = body ?? {};
+  const { giftId } = body ?? {};
 
   if (!giftId || typeof giftId !== "string") {
     return NextResponse.json(
@@ -68,7 +40,7 @@ export async function POST(request: Request) {
 
   const { data: draftGift } = await admin
     .from("gifts")
-    .select("paid_at, pack_type")
+    .select("paid_at, pack_type, gift_songs(count)")
     .eq("id", giftId)
     .eq("buyer_id", user.id)
     .maybeSingle();
@@ -88,20 +60,20 @@ export async function POST(request: Request) {
   }
 
   const maxSongs = GIFT_PACKS_COP[packType].songs;
-  if (settings != null && (
-    typeof settings.childName !== "string" || !settings.childName.trim() || settings.childName.length > 100 ||
-    typeof settings.language !== "string" || !settings.language.trim() || settings.language.length > 32 ||
-    !["link", "redeem"].includes(settings.deliveryMode) ||
-    (settings.deliveryMode === "link" && (
-      !Array.isArray(settings.songs) || settings.songs.length !== maxSongs ||
-      !settings.songs.every((song: { theme?: string; style?: string; prompt?: string } | null) =>
-        song && ["lullaby", "educational", "fun"].includes(song.theme ?? "") &&
-        typeof song.style === "string" && song.style.trim() && song.style.length <= 64 &&
-        typeof song.prompt === "string" && song.prompt.length <= 500
-      )
-    ))
-  )) {
-    return NextResponse.json({ error: "Invalid gift settings" }, { status: 400 });
+  // Saved tracks keep the style selected at purchase, even when an audition
+  // has since closed. A first-time configuration uses the current options.
+  const settings = draftGift.gift_songs[0]?.count > 0 ? null : body.settings;
+  if (settings != null) {
+    const basics = { childName: settings.childName, language: settings.language };
+    const valid = settings.deliveryMode === "redeem"
+      ? parseSongBrief({ ...basics, theme: "lullaby" })
+      : settings.deliveryMode === "link" && Array.isArray(settings.songs) && settings.songs.length === maxSongs &&
+        settings.songs.every((song: { theme?: string; style?: string; prompt?: string } | null) =>
+          song && typeof song.style === "string" &&
+          parseSongBrief({ ...basics, theme: song.theme, musicStyle: song.style, customPrompt: song.prompt }));
+    if (!valid || typeof settings.language !== "string") {
+      return NextResponse.json({ error: "Invalid gift settings" }, { status: 400 });
+    }
   }
 
   const { data: gift, error: prepareError } = await admin.rpc("prepare_paid_gift", {
@@ -146,14 +118,13 @@ ${redeemUrl}`,
         .is("suno_task_id", null).not("start_expires_at", "is", null);
       let submitted = false;
       try {
-        const lyrics = song.lyrics || await generateLyrics(
-          gift.child_name,
-          song.theme as SongTheme,
-          song.music_style,
-          song.language || gift.language || "es",
-          song.custom_prompt,
-        );
-        if (!lyrics.trim()) throw new Error("Empty lyrics");
+        const brief = parseSongBrief({
+          childName: gift.child_name, theme: song.theme, musicStyle: song.music_style,
+          language: song.language || gift.language || "es", customPrompt: song.custom_prompt,
+        }, "saved");
+        if (!brief) throw new Error("Invalid gift song details");
+        const lyrics = song.lyrics?.trim() && song.lyrics.length <= MAX_LYRICS_LENGTH
+          ? song.lyrics : await generateLyrics(brief);
 
         const { data: current } = await saveStart({ lyrics }).select("id").maybeSingle().throwOnError();
         if (!current) return;
@@ -161,10 +132,8 @@ ${redeemUrl}`,
         const taskId = await startSunoGeneration({
           callbackTarget: { kind: "gift", id: song.id, attempt: song.start_attempt },
           lyrics,
-          musicStyle: song.music_style,
-          theme: song.theme,
-          language: song.language || gift.language || "es",
-          childName: gift.child_name,
+          musicStyle: brief.musicStyle, theme: brief.theme,
+          language: brief.language, childName: brief.childName,
         });
         await saveStart({ suno_task_id: taskId, status: "generating", start_expires_at: null }).throwOnError();
       } catch (error) {
