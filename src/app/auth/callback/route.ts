@@ -3,6 +3,8 @@ import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getResend, FROM_ADDRESS } from "@/lib/resend";
+import { welcomeEmail, getWelcomeSubject } from "@/lib/emails/welcome";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -38,33 +40,14 @@ export async function GET(request: Request) {
           // Only send welcome email if user was created within the last 10 minutes
           if (isNewUser && minutesSinceCreation < 10) {
             const lang = profile?.preferred_language === "en" ? "en" : "es";
-            // Use the request origin (not NEXT_PUBLIC_APP_URL which may be localhost)
-            const emailUrl = `${origin}/api/emails/send`;
-
-            console.log(`[Auth Callback] Sending welcome email to ${user.email} via ${emailUrl}`);
-
-            fetch(emailUrl, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-api-key": process.env.INTERNAL_API_KEY || "",
-              },
-              body: JSON.stringify({
-                type: "welcome",
-                to: user.email,
-                lang,
-                data: {
-                  displayName:
-                    user.user_metadata?.display_name ||
-                    user.user_metadata?.full_name ||
-                    null,
-                },
-              }),
-            }).then((res) => {
-              console.log(`[Auth Callback] Welcome email response: ${res.status}`);
-            }).catch((err) => {
-              console.error("[Auth Callback] Failed to send welcome email:", err);
+            const displayName = user.user_metadata?.display_name || user.user_metadata?.full_name || null;
+            const { error } = await getResend().emails.send({
+              from: FROM_ADDRESS,
+              to: user.email!,
+              subject: getWelcomeSubject(lang),
+              html: welcomeEmail({ displayName, lang }),
             });
+            if (error) console.error("[Auth Callback] Failed to send welcome email:", error);
           }
         }
       } catch (err) {
