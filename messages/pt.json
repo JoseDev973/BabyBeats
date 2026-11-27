@@ -117,6 +117,10 @@
     "signupWithGoogle": "Registrar com Google",
     "forgotPassword": "Esqueceu a senha?",
     "resetEmailSent": "Email de recuperação enviado. Verifique sua caixa de entrada.",
+    "setPassword": "Salvar nova senha",
+    "linkFailed": "Este link não é mais válido. Entre novamente ou solicite outro e-mail de recuperação.",
+    "requestFailed": "Não foi possível concluir a solicitação. Tente novamente.",
+    "confirmEmail": "Confira seu e-mail e abra o link para confirmar sua conta.",
     "enterEmailFirst": "Digite seu email primeiro"
   },
   "pricing": {
@@ -151,6 +155,13 @@
     "choosePlan": "Escolher plano"
   },
   "player": {
+    "paused": "Em pausa",
+    "playbackError": "Não foi possível reproduzir o áudio. Tente novamente.",
+    "restart": "Reiniciar música",
+    "position": "Posição da reprodução",
+    "unmute": "Ativar som",
+    "mute": "Silenciar",
+    "volume": "Volume",
     "nowPlaying": "Reproduzindo",
     "queue": "Fila",
     "lyrics": "Letra"

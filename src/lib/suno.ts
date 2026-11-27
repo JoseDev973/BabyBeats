@@ -11,6 +11,12 @@ import { callbackUrl, type CallbackTarget } from "@/lib/suno-callback";
 
 const SUNO_API_BASE = "https://api.sunoapi.org/api/v1";
 
+/** Suno declined the request or a local preflight failed before sending it. */
+export class SunoSubmissionRejected extends Error {}
+
+// Timeout and conflict responses can represent a task that was already accepted.
+const rejectionCodes = new Set([400, 401, 402, 403, 404, 405, 413, 422, 429, 430, 451, 455]);
+
 const TITLE_TEMPLATE: Record<string, string> = {
   es: "Canción para {name}",
   en: "A song for {name}",
@@ -37,10 +43,19 @@ export async function startSunoGeneration(opts: {
 }): Promise<string> {
   const theme = (["lullaby", "educational", "fun"].includes(opts.theme) ? opts.theme : "lullaby") as Theme;
 
+  const apiKey = process.env.SUNO_API_KEY?.trim();
+  if (!apiKey) throw new SunoSubmissionRejected("SUNO_API_KEY is not configured");
+  let signedCallback: string;
+  try {
+    signedCallback = callbackUrl(getAppUrl(), opts.callbackTarget);
+  } catch {
+    throw new SunoSubmissionRejected("Invalid Suno callback configuration");
+  }
+
   const res = await fetch(`${SUNO_API_BASE}/generate`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.SUNO_API_KEY?.trim()}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -52,13 +67,18 @@ export async function startSunoGeneration(opts: {
       title: (TITLE_TEMPLATE[opts.language] ?? TITLE_TEMPLATE.es).replace("{name}", () => opts.childName).slice(0, 80),
       model: SUNO_MODEL,
       ...SUNO_PARAMS,
-      callBackUrl: callbackUrl(getAppUrl(), opts.callbackTarget),
+      callBackUrl: signedCallback,
     }),
   });
 
-  const result = await res.json();
-  if (result.code !== 200 || !result.data?.taskId) {
-    throw new Error(result.msg || "Failed to start Suno generation");
+  if (!res.ok) {
+    if (rejectionCodes.has(res.status)) throw new SunoSubmissionRejected(`Suno rejected generation (${res.status})`);
+    throw new Error(`Suno submission returned ${res.status}`);
   }
-  return result.data.taskId as string;
+  const result = await res.json();
+  if (rejectionCodes.has(result.code)) throw new SunoSubmissionRejected(`Suno rejected generation (${result.code})`);
+  if (result.code !== 200 || typeof result.data?.taskId !== "string" || !result.data.taskId) {
+    throw new Error("Suno did not confirm the task ID");
+  }
+  return result.data.taskId;
 }

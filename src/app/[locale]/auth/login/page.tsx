@@ -1,22 +1,49 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Music, Mail, Lock, Loader2 } from "lucide-react";
+import { authReturnPath, authCallbackUrl } from "@/lib/auth-return";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
   const tc = useTranslations("common");
   const router = useRouter();
+  const locale = useLocale();
+  const search = useSearchParams();
+  const next = authReturnPath(search.get("next") ?? search.get("redirect"), locale);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(search.get("error") === "auth_failed" ? t("linkFailed") : "");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
+
+  async function sendResetEmail() {
+    setError("");
+    setResetSent(false);
+    if (!email.trim()) {
+      setError(t("enterEmailFirst"));
+      return;
+    }
+
+    setSendingReset(true);
+    try {
+      const { error } = await createClient().auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: authCallbackUrl(window.location.origin, `/${locale}/auth/reset-password`),
+      });
+      if (error) setError(error.message);
+      else setResetSent(true);
+    } catch {
+      setError(t("requestFailed"));
+    } finally {
+      setSendingReset(false);
+    }
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -35,7 +62,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
+    router.replace(next);
     router.refresh();
   }
 
@@ -48,7 +75,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: authCallbackUrl(window.location.origin, next),
         },
       });
 
@@ -140,18 +167,8 @@ export default function LoginPage() {
                 </label>
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (!email) {
-                      setError(t("enterEmailFirst"));
-                      return;
-                    }
-                    const supabase = createClient();
-                    await supabase.auth.resetPasswordForEmail(email, {
-                      redirectTo: `${window.location.origin}/auth/callback`,
-                    });
-                    setResetSent(true);
-                    setError("");
-                  }}
+                  onClick={sendResetEmail}
+                  disabled={sendingReset}
                   className="text-xs text-primary hover:underline"
                 >
                   {t("forgotPassword")}
@@ -173,13 +190,13 @@ export default function LoginPage() {
             </div>
 
             {resetSent && (
-              <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+              <p role="status" className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
                 {t("resetEmailSent")}
               </p>
             )}
 
             {error && (
-              <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
+              <p role="alert" className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
                 {error}
               </p>
             )}
@@ -198,7 +215,7 @@ export default function LoginPage() {
         <p className="text-center text-sm text-muted-foreground mt-4">
           {t("noAccount")}{" "}
           <Link
-            href="/auth/signup"
+            href={{ pathname: "/auth/signup", query: { next } }}
             className="text-primary font-medium hover:underline"
           >
             {tc("signup")}

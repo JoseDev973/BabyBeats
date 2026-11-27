@@ -30,7 +30,7 @@ test("shows a local sign-in link when the session expires", async ({ page }) => 
   await page.route("**/api/generate/status?*", (route) => route.fulfill({ status: 401, json: {} }));
   await page.goto(path);
   await expect(page.getByRole("heading", { name: "Sign in to check your song" })).toBeVisible();
-  await expect(page.locator("main").getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/en/auth/login");
+  await expect(page.locator("main").getByRole("link", { name: "Sign in" })).toHaveAttribute("href", `/en/auth/login?next=${encodeURIComponent(path.slice(3))}`);
 });
 
 test("a deleted song has a route back to the library", async ({ page }) => {

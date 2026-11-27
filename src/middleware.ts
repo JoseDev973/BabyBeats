@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
 
   // Copy Supabase cookies to the intl response
   supabaseResponse.cookies.getAll().forEach((cookie) => {
-    intlResponse.cookies.set(cookie.name, cookie.value);
+    intlResponse.cookies.set(cookie);
   });
 
   return intlResponse;

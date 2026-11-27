@@ -21,9 +21,12 @@ function formatTime(seconds: number): string {
 
 export default function AudioPlayer() {
   const t = useTranslations("player");
+  const common = useTranslations("common");
   const {
     currentSong,
     isPlaying,
+    playbackError,
+    queue,
     currentTime,
     duration,
     volume,
@@ -35,8 +38,6 @@ export default function AudioPlayer() {
   } = usePlayer();
 
   if (!currentSong) return null;
-
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border z-50 px-4 py-2 sm:py-3">
@@ -57,7 +58,7 @@ export default function AudioPlayer() {
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">{currentSong.title}</p>
             <p className="text-xs text-muted-foreground truncate">
-              {t("nowPlaying")}
+              {playbackError ? <span role="alert">{t("playbackError")}</span> : isPlaying ? t("nowPlaying") : t("paused")}
             </p>
           </div>
         </div>
@@ -66,12 +67,14 @@ export default function AudioPlayer() {
         <div className="flex flex-col items-center gap-1 flex-1 max-w-md">
           <div className="flex items-center gap-3">
             <button
+              aria-label={t("restart")}
               onClick={previous}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <SkipBack className="h-4 w-4" />
             </button>
             <button
+              aria-label={common(isPlaying ? "pause" : "play")}
               onClick={togglePlay}
               className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
             >
@@ -82,8 +85,10 @@ export default function AudioPlayer() {
               )}
             </button>
             <button
+              aria-label={common("next")}
+              disabled={queue.length === 0}
               onClick={next}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="disabled:opacity-40 text-muted-foreground hover:text-foreground transition-colors"
             >
               <SkipForward className="h-4 w-4" />
             </button>
@@ -97,6 +102,7 @@ export default function AudioPlayer() {
             <input
               type="range"
               min={0}
+              aria-label={t("position")}
               max={duration || 0}
               value={currentTime}
               onChange={(e) => seek(Number(e.target.value))}
@@ -111,6 +117,7 @@ export default function AudioPlayer() {
         {/* Volume (desktop only) */}
         <div className="hidden sm:flex items-center gap-2 w-32">
           <button
+            aria-label={t(volume === 0 ? "unmute" : "mute")}
             onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -124,6 +131,7 @@ export default function AudioPlayer() {
             type="range"
             min={0}
             max={1}
+            aria-label={t("volume")}
             step={0.05}
             value={volume}
             onChange={(e) => setVolume(Number(e.target.value))}

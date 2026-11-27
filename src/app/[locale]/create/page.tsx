@@ -1,6 +1,7 @@
 import { expireInterruptedSongStarts } from "@/lib/expire-song-starts";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import CreateWizard from "./CreateWizard";
 
 export const metadata = {
@@ -16,7 +17,8 @@ export default async function CreatePage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    const locale = await getLocale();
+    redirect(`/${locale}/auth/login?next=/create`);
   }
 
   await expireInterruptedSongStarts(user.id);
