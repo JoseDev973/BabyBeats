@@ -1,126 +1,65 @@
-import { emailHref, escapeHtml } from "./escape";
+import { emailLayout, escapeHtml, tipBox, type EmailLang } from "./layout";
 
 type GiftReadyEmailProps = {
   childName: string;
   totalSongs: number;
   deliveryUrl: string;
-  lang: "es" | "en";
+  lang: EmailLang;
 };
 
 const translations = {
   es: {
-    subject: (childName: string) =>
-      `El album de ${childName} esta listo!`,
-    preheader: (childName: string) =>
-      `Las canciones personalizadas de ${childName} estan listas para escuchar.`,
-    heading: (childName: string) =>
-      `El album de ${childName} esta listo!`,
-    body: (totalSongs: number) =>
-      `Hemos terminado de crear ${totalSongs} canciones personalizadas llenas de amor y magia musical.`,
-    cta: "Escuchar ahora",
-    footer:
-      "Hecho con amor por BabyBeats - Canciones personalizadas para los mas pequenos.",
-    noReply: "Este es un correo automatico, por favor no respondas.",
+    subject: (n: string) => `🎁 El álbum de ${n} está listo`,
+    preheader: (n: string, k: number) => `${k} canciones con el nombre de ${n}, listas para regalar.`,
+    eyebrow: "Tu regalo está listo",
+    heading: (n: string) => `El álbum de ${n} está listo`,
+    body: (n: string, k: number) => [
+      `Terminamos ${k} canciones originales, todas con el nombre de ${escapeHtml(n)}. Para dormir, para aprender y para bailar.`,
+      "Ábrelo, escúchalo y, cuando quieras, compártelo con la familia.",
+    ],
+    cta: "Abrir el álbum",
+    note: "El enlace funciona sin cuenta: puedes enviarlo tal cual.",
+    tipTitle: "Para entregarlo",
+    tips: [
+      "💌 Mándalo por WhatsApp con una nota tuya.",
+      "🎈 O ábrelo en voz alta en el baby shower: siempre hay lágrimas.",
+    ],
   },
   en: {
-    subject: (childName: string) =>
-      `${childName}'s album is ready!`,
-    preheader: (childName: string) =>
-      `${childName}'s personalized songs are ready to listen.`,
-    heading: (childName: string) =>
-      `${childName}'s album is ready!`,
-    body: (totalSongs: number) =>
-      `We've finished creating ${totalSongs} personalized songs filled with love and musical magic.`,
-    cta: "Listen Now",
-    footer:
-      "Made with love by BabyBeats - Personalized songs for little ones.",
-    noReply: "This is an automated email, please do not reply.",
+    subject: (n: string) => `🎁 ${n}'s album is ready`,
+    preheader: (n: string, k: number) => `${k} songs with ${n}'s name, ready to give.`,
+    eyebrow: "Your gift is ready",
+    heading: (n: string) => `${n}'s album is ready`,
+    body: (n: string, k: number) => [
+      `We finished ${k} original songs, every one with ${escapeHtml(n)}'s name. For sleeping, learning and dancing.`,
+      "Open it, listen, and share it with the family whenever you like.",
+    ],
+    cta: "Open the album",
+    note: "The link works without an account, so you can send it as is.",
+    tipTitle: "To give it",
+    tips: [
+      "💌 Send it by text with a note of your own.",
+      "🎈 Or play it out loud at the baby shower — there are always happy tears.",
+    ],
   },
 };
 
-export function getGiftReadySubject(childName: string, lang: "es" | "en") {
+export function getGiftReadySubject(childName: string, lang: EmailLang) {
   return translations[lang].subject(childName);
 }
 
-export function giftReadyEmail({
-  childName,
-  totalSongs,
-  deliveryUrl,
-  lang,
-}: GiftReadyEmailProps): string {
+export function giftReadyEmail({ childName, totalSongs, deliveryUrl, lang }: GiftReadyEmailProps): string {
   const t = translations[lang];
-
-  return `<!DOCTYPE html>
-<html lang="${escapeHtml(lang)}">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapeHtml(t.subject(childName))}</title>
-</head>
-<body style="margin:0;padding:0;background-color:#faf5ff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-  <!-- Preheader -->
-  <div style="display:none;max-height:0;overflow:hidden;">${escapeHtml(t.preheader(childName))}</div>
-
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#faf5ff;">
-    <tr>
-      <td align="center" style="padding:40px 20px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(128,90,213,0.12);">
-
-          <!-- Header -->
-          <tr>
-            <td style="background:linear-gradient(135deg,#7c3aed,#a78bfa,#c084fc);padding:40px 40px 30px;text-align:center;">
-              <div style="font-size:32px;margin-bottom:8px;">&#127925;</div>
-              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">BabyBeats</h1>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:40px;">
-              <h2 style="margin:0 0 16px;color:#4c1d95;font-size:22px;font-weight:700;text-align:center;">
-                ${escapeHtml(t.heading(childName))}
-              </h2>
-
-              <p style="margin:0 0 8px;color:#6b7280;font-size:16px;line-height:1.6;text-align:center;">
-                ${escapeHtml(t.body(totalSongs))}
-              </p>
-
-              <!-- Song count badge -->
-              <div style="text-align:center;margin:24px 0;">
-                <span style="display:inline-block;background-color:#ede9fe;color:#6d28d9;font-size:18px;font-weight:700;padding:12px 24px;border-radius:999px;">
-                  &#127926; ${escapeHtml(String(totalSongs))} ${lang === "es" ? "canciones" : "songs"}
-                </span>
-              </div>
-
-              <!-- CTA Button -->
-              <div style="text-align:center;margin:32px 0;">
-                <a href="${emailHref(deliveryUrl)}"
-                   style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#ffffff;text-decoration:none;font-size:18px;font-weight:700;padding:16px 48px;border-radius:999px;box-shadow:0 4px 14px rgba(124,58,237,0.35);">
-                  ${t.cta}
-                </a>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background-color:#f5f3ff;padding:24px 40px;text-align:center;border-top:1px solid #ede9fe;">
-              <p style="margin:0 0 4px;color:#8b5cf6;font-size:13px;font-weight:600;">
-                &#127925; BabyBeats
-              </p>
-              <p style="margin:0 0 8px;color:#9ca3af;font-size:12px;">
-                ${t.footer}
-              </p>
-              <p style="margin:0;color:#d1d5db;font-size:11px;">
-                ${t.noReply}
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  return emailLayout({
+    lang,
+    title: t.subject(childName),
+    preheader: t.preheader(childName, totalSongs),
+    image: { src: "/emails/regalo.png", width: 150 },
+    eyebrow: t.eyebrow,
+    heading: t.heading(childName),
+    paragraphs: t.body(childName, totalSongs),
+    cta: { label: t.cta, href: deliveryUrl },
+    note: t.note,
+    extra: tipBox(t.tipTitle, t.tips),
+  });
 }
