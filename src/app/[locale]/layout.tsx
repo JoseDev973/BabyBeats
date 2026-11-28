@@ -89,11 +89,13 @@ export async function generateMetadata({
       siteName: "BabyBeats",
       locale: OG_LOCALE_MAP[locale] ?? locale,
       type: "website",
+      images: [{ url: `${BASE_URL}/og/og-${locale === "en" ? "en" : "es"}.png`, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: ogDescription,
+      images: [`${BASE_URL}/og/og-${locale === "en" ? "en" : "es"}.png`],
     },
   };
 }

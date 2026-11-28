@@ -8,9 +8,9 @@ import { CREDIT_PACKS_COP } from "@/lib/mercado-pago/config";
 
 type Currency = "USD" | "COP";
 
-export function PricingPacks({ locale }: { locale: string }) {
+export function PricingPacks({ locale, defaultCurrency = "USD" }: { locale: string; defaultCurrency?: Currency }) {
   const t = useTranslations("pricing");
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [currency, setCurrency] = useState<Currency>(defaultCurrency);
 
   return (
     <>
