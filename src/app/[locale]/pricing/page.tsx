@@ -4,6 +4,7 @@ import { Link } from "@/i18n/routing";
 import { Sparkles, Gift } from "lucide-react";
 import { PricingPacks } from "@/components/pricing/PricingPacks";
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 
 export async function generateMetadata({
   params,
@@ -25,6 +26,9 @@ export default async function PricingPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pricing" });
+  // Visitors from Colombia see peso prices (and Mercado Pago) first
+  const country = (await headers()).get("x-vercel-ip-country");
+  const defaultCurrency = country === "CO" ? "COP" : "USD";
 
   // Check if user is logged in and has already generated songs
   let isLoggedIn = false;
@@ -73,7 +77,7 @@ export default async function PricingPage({
       <h2 className="text-2xl font-bold text-center mb-2">{t("needMoreSongs")}</h2>
 
       {/* Client component handles currency toggle + pack grid */}
-      <PricingPacks locale={locale} />
+      <PricingPacks locale={locale} defaultCurrency={defaultCurrency} />
     </div>
   );
 }

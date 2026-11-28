@@ -11,7 +11,7 @@ const CONTENT = {
     sections: [
       {
         heading: "1. Information We Collect",
-        body: `We collect the following information when you use BabyBeats:\n\n- Account information: email address and display name\n- Song preferences: your child's name, preferred themes, music styles, language, and any custom prompts you provide\n- Payment information: processed securely through Stripe (we do not store your card details)\n- Usage data: songs generated, credits used, and basic analytics`,
+        body: `We collect the following information when you use BabyBeats:\n\n- Account information: email address and display name\n- Song preferences: your child's name, preferred themes, music styles, language, and any custom prompts you provide\n- Payment information: processed securely through Stripe or Mercado Pago (we do not store your card or bank details)\n- Usage data: songs generated, credits used, and basic analytics`,
       },
       {
         heading: "2. How We Use Your Information",
@@ -19,7 +19,7 @@ const CONTENT = {
       },
       {
         heading: "3. Third-Party Services",
-        body: `We use the following third-party services to operate BabyBeats:\n\n- Supabase: authentication and database hosting\n- Stripe: payment processing\n- Suno: AI audio generation\n- Anthropic (Claude): AI lyrics generation\n- Resend: transactional emails\n- Vercel: hosting and analytics\n\nEach of these services has their own privacy policy. We only share the minimum information necessary for each service to function.`,
+        body: `We use the following third-party services to operate BabyBeats:\n\n- Supabase: authentication and database hosting\n- Stripe and Mercado Pago: payment processing\n- Google Analytics and Meta (Facebook/Instagram): site analytics and ad measurement\n- Suno: AI audio generation\n- Anthropic (Claude): AI lyrics generation\n- Resend: transactional emails\n- Vercel: hosting and analytics\n\nEach of these services has their own privacy policy. We only share the minimum information necessary for each service to function.`,
       },
       {
         heading: "4. Cookies",
@@ -57,7 +57,7 @@ const CONTENT = {
     sections: [
       {
         heading: "1. Información que Recopilamos",
-        body: `Recopilamos la siguiente información cuando usas BabyBeats:\n\n- Información de cuenta: dirección de correo electrónico y nombre para mostrar\n- Preferencias de canciones: el nombre de tu hijo/a, temas preferidos, estilos musicales, idioma y cualquier solicitud personalizada que proporciones\n- Información de pago: procesada de forma segura a través de Stripe (no almacenamos los datos de tu tarjeta)\n- Datos de uso: canciones generadas, créditos utilizados y análisis básicos`,
+        body: `Recopilamos la siguiente información cuando usas BabyBeats:\n\n- Información de cuenta: dirección de correo electrónico y nombre para mostrar\n- Preferencias de canciones: el nombre de tu hijo/a, temas preferidos, estilos musicales, idioma y cualquier solicitud personalizada que proporciones\n- Información de pago: procesada de forma segura a través de Stripe o Mercado Pago (no almacenamos los datos de tu tarjeta ni de tu banco)\n- Datos de uso: canciones generadas, créditos utilizados y análisis básicos`,
       },
       {
         heading: "2. Cómo Usamos tu Información",
@@ -65,7 +65,7 @@ const CONTENT = {
       },
       {
         heading: "3. Servicios de Terceros",
-        body: `Utilizamos los siguientes servicios de terceros para operar BabyBeats:\n\n- Supabase: autenticación y alojamiento de base de datos\n- Stripe: procesamiento de pagos\n- Suno: generación de audio con IA\n- Anthropic (Claude): generación de letras con IA\n- Resend: correos transaccionales\n- Vercel: alojamiento y análisis\n\nCada uno de estos servicios tiene su propia política de privacidad. Solo compartimos la información mínima necesaria para que cada servicio funcione.`,
+        body: `Utilizamos los siguientes servicios de terceros para operar BabyBeats:\n\n- Supabase: autenticación y alojamiento de base de datos\n- Stripe y Mercado Pago: procesamiento de pagos\n- Google Analytics y Meta (Facebook/Instagram): análisis del sitio y medición de anuncios\n- Suno: generación de audio con IA\n- Anthropic (Claude): generación de letras con IA\n- Resend: correos transaccionales\n- Vercel: alojamiento y análisis\n\nCada uno de estos servicios tiene su propia política de privacidad. Solo compartimos la información mínima necesaria para que cada servicio funcione.`,
       },
       {
         heading: "4. Cookies",
