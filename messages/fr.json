@@ -166,7 +166,9 @@
     "buyCredits": "Acheter {count} Crédits",
     "payWithStripe": "Payer par carte (Stripe)",
     "payWithMP": "Payer avec Mercado Pago",
-    "choosePlan": "Choisir un plan"
+    "choosePlan": "Choisir un plan",
+    "currencyUSD": "USD — Dollar",
+    "currencyCOP": "COP — Peso"
   },
   "player": {
     "paused": "En pause",
@@ -496,5 +498,13 @@
     "heroNoteReturning": "Il vous reste {count, plural, =0 {0 crédit} one {# crédit} other {# crédits}}.",
     "howNoteReturning": "Environ 2 minutes.",
     "ctaReturning": "Créer une autre chanson"
+  },
+  "checkout": {
+    "title": "Finalisez votre achat",
+    "orderSummary": "Récapitulatif de la commande",
+    "credits": "{count} crédits",
+    "payWithStripe": "Payer par carte (Stripe)",
+    "payWithMP": "Payer avec Mercado Pago",
+    "backToPricing": "Retour aux tarifs"
   }
 }
